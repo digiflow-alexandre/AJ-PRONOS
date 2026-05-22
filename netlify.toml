@@ -1,0 +1,21 @@
+# ============================================================
+# AJ Pronos — config Netlify
+# Le projet Next.js vit dans le sous-dossier site/
+# ============================================================
+
+[build]
+  # Netlify cd dans site/ avant de lancer les commandes
+  base = "site"
+  command = "npm run build"
+  # Publish dir auto-géré par @netlify/plugin-nextjs (laisse vide)
+  publish = ".next"
+
+[build.environment]
+  # Force Node 20 (Next.js 16 compatible)
+  NODE_VERSION = "20"
+  # Pour les builds Next.js sur Netlify, désactive la télémétrie
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Plugin officiel Netlify pour Next.js — gère SSR, API routes, ISR, images
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
