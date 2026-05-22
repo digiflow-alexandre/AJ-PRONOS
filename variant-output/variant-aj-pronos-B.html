@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AJ Pronos — Le pari sportif, avec méthode.</title>
+<meta name="description" content="IA + expertise humaine. ROI public. Sans engagement. Conseil en paris sportifs avec transparence totale.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-base: #0A0A0A;
+    --bg-elevated: #141414;
+    --bg-deeper: #08080C;
+    --border-faint: rgba(255, 255, 255, 0.08);
+    --border-soft: rgba(255, 255, 255, 0.12);
+    --text-primary: #FAFAFA;
+    --text-muted: #A1A1AA;
+    --text-dim: #71717A;
+    --gold-500: #D4AF37;
+    --gold-300: #F5D77A;
+    --gold-900: #3D2F0A;
+    --gold-glow: rgba(212, 175, 55, 0.15);
+    --success: #10B981;
+    --danger: #EF4444;
+    --font-display: 'Geist', system-ui, sans-serif;
+    --font-mono: 'Geist Mono', monospace;
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  body {
+    font-family: var(--font-display);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-weight: 400;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  /* Grain noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' seed='5'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+    mix-blend-mode: overlay;
+  }
+
+  ::selection { background: var(--gold-500); color: var(--bg-base); }
+
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+  .container {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 clamp(1.25rem, 4vw, 2rem);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ============ NAV ============ */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 1rem 0;
+    transition: background var(--transition-base), backdrop-filter var(--transition-base), border-color var(--transition-base);
+    border-bottom: 1px solid transparent;
+  }
+  .nav.scrolled {
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom-color: var(--border-faint);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  .logo {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    font-family: var(--font-display);
+  }
+  .logo-aj {
+    font-weight: 700;
+    color: var(--gold-500);
+    font-size: 1.4rem;
+    letter-spacing: -0.02em;
+  }
+  .logo-pronos {
+    font-weight: 500;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+  }
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+    align-items: center;
+  }
+  .nav-links a {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color var(--transition-fast);
+  }
+  .nav-links a:hover { color: var(--text-primary); }
+  .nav-cta {
+    background: var(--gold-500);
+    color: var(--bg-base);
+    padding: 0.7rem 1.4rem;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.25);
+    transition: transform var(--transition-fast), filter var(--transition-fast), box-shadow var(--transition-fast);
+  }
+  .nav-cta:hover {
+    transform: scale(1.03);
+    filter: brightness(1.1);
+    box-shadow: 0 6px 30px rgba(212, 175, 55, 0.4);
+  }
+  .nav-cta:focus-visible {
+    outline: 2px solid var(--gold-300);
+    outline-offset: 3px;
+  }
+  .mobile-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    padding: 0.5rem;
+  }
+  .mobile-toggle span {
+    width: 24px;
+    height: 2px;
+    background: var(--text-primary);
+    transition: var(--transition-base);
+  }
+
+  /* ============ HERO ============ */
+  .hero {
+    position: relative;
+    padding: clamp(7rem, 14vh, 9rem) 0 clamp(4rem, 8vh, 6rem);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 70% 30%, rgba(212, 175, 55, 0.12), transparent 50%),
+      radial-gradient(ellipse at 20% 80%, rgba(212, 175, 55, 0.04), transparent 60%);
+    pointer-events: none;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: center;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--gold-500);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 100px;
+    background: rgba(212, 175, 55, 0.06);
+    margin-bottom: 1.5rem;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--gold-500);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--gold-500);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .hero h1 {
+    font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+    line-height: 1.05;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.25rem;
+  }
+  .hero h1 .accent {
+    color: var(--gold-500);
+    font-style: italic;
+    font-weight: 500;
+  }
+  .hero-sub {
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    color: var(--text-muted);
+    max-width: 32rem;
+    margin-bottom: 2rem;
+    line-height: 1.55;
+  }
+  .hero-kpi {
+    margin-bottom: 2.25rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(212, 175, 55, 0.02));
+    display: inline-block;
+  }
+  .hero-kpi-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .hero-kpi-value {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    color: var(--gold-500);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    text-shadow: 0 0 60px rgba(212, 175, 55, 0.4);
+    display: flex;
+    align-items: baseline;
+    gap: 0.15em;
+  }
+  .hero-kpi-value .plus {
+    font-size: 0.55em;
+    color: var(--gold-300);
+  }
+  .hero-kpi-value .percent {
+    font-size: 0.55em;
+    color: var(--gold-300);
+  }
+  .hero-kpi-sub {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .hero-ctas {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.75rem;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: transform var(--transition-fast), filter var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  }
+  .btn-primary {
+    background: var(--gold-500);
+    color: var(--bg-base);
+    box-shadow: 0 4px 30px rgba(212, 175, 55, 0.3);
+  }
+  .btn-primary:hover {
+    transform: scale(1.03);
+    filter: brightness(1.1);
+    box-shadow: 0 8px 40px rgba(212, 175, 55, 0.5);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-soft);
+  }
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--gold-500);
+    color: var(--gold-300);
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--gold-300);
+    outline-offset: 3px;
+  }
+  .btn-arrow {
+    display: inline-block;
+    transition: transform var(--transition-fast);
+  }
+  .btn:hover .btn-arrow { transform: translateX(3px); }
+
+  /* Mockup card hero */
+  .mockup-wrapper {
+    position: relative;
+    perspective: 1200px;
+  }
+  .mockup-card {
+    background: linear-gradient(135deg, #141414, #1a1a1a);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 1.75rem;
+    box-shadow:
+      0 0 0 1px rgba(212, 175, 55, 0.2),
+      0 30px 80px rgba(0, 0, 0, 0.6),
+      0 0 100px rgba(212, 175, 55, 0.08);
+    transform: rotateY(-3deg) rotateX(2deg);
+    transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+    animation: cardFloat 6s ease-in-out infinite;
+  }
+  .mockup-card:hover { transform: rotateY(0deg) rotateX(0deg); }
+  @keyframes cardFloat {
+    0%, 100% { transform: rotateY(-3deg) rotateX(2deg) translateY(0); }
+    50% { transform: rotateY(-3deg) rotateX(2deg) translateY(-8px); }
+  }
+  .mockup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-faint);
+    margin-bottom: 1.25rem;
+  }
+  .mockup-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .mockup-logo {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--gold-500), var(--gold-300));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.65rem;
+    color: var(--bg-base);
+  }
+  .mockup-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  .mockup-time {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+  .mockup-match {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.4rem;
+  }
+  .mockup-teams {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+  }
+  .mockup-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 0;
+    border-top: 1px solid var(--border-faint);
+  }
+  .mockup-row-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .mockup-row-value {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+  }
+  .mockup-row-value.gold { color: var(--gold-500); font-size: 1.1rem; }
+  .mockup-badges {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-faint);
+  }
+  .mockup-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.35rem 0.65rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 100px;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--success);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .mockup-badge svg { width: 10px; height: 10px; }
+
+  .mockup-floating {
+    position: absolute;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: floatBadge 4s ease-in-out infinite;
+  }
+  .mockup-floating.top {
+    top: -1.5rem;
+    right: -1rem;
+    color: var(--gold-500);
+    animation-delay: 0s;
+  }
+  .mockup-floating.bottom {
+    bottom: -1.5rem;
+    left: -1rem;
+    color: var(--success);
+    animation-delay: 2s;
+  }
+  @keyframes floatBadge {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .mockup-floating-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+  }
+
+  /* ============ STATS BAND ============ */
+  .stats-band {
+    padding: clamp(3rem, 7vw, 5rem) 0;
+    border-top: 1px solid var(--border-faint);
+    border-bottom: 1px solid var(--border-faint);
+    background: var(--bg-deeper);
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .stat-item {
+    text-align: center;
+    padding: 1rem clamp(0.5rem, 2vw, 1.5rem);
+    border-right: 1px solid var(--border-faint);
+    position: relative;
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-value {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: clamp(2rem, 4.5vw, 3.5rem);
+    color: var(--gold-500);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 30px rgba(212, 175, 55, 0.25);
+  }
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+
+  /* ============ SECTION COMMON ============ */
+  section {
+    padding: clamp(4rem, 9vw, 7rem) 0;
+    position: relative;
+  }
+  .section-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--gold-500);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-size: clamp(1.75rem, 4vw, 2.85rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    margin-bottom: 1rem;
+    max-width: 36rem;
+  }
+  .section-title .accent {
+    color: var(--gold-500);
+    font-style: italic;
+    font-weight: 500;
+  }
+  .section-sub {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    max-width: 38rem;
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+    line-height: 1.55;
+  }
+  .section-header {
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  /* ============ HOW IT WORKS ============ */
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .how-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: 16px;
+    padding: 2rem 1.75rem;
+    position: relative;
+    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+  }
+  .how-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.4), 0 20px 60px rgba(212, 175, 55, 0.15);
+  }
+  .how-number {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 4rem;
+    color: var(--gold-500);
+    line-height: 1;
+    opacity: 0.85;
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.04em;
+  }
+  .how-card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.01em;
+  }
+  .how-card p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  /* ============ EDGE IA ============ */
+  .edge-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  .edge-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: 16px;
+    padding: 1.75rem;
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+  }
+  .edge-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.4), 0 20px 60px rgba(212, 175, 55, 0.15);
+  }
+  .edge-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.05));
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold-500);
+    flex-shrink: 0;
+  }
+  .edge-icon svg { width: 22px; height: 22px; }
+  .edge-content h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.01em;
+  }
+  .edge-content p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  /* ============ TRANSPARENCY / CHART ============ */
+  .transparency {
+    background: var(--bg-deeper);
+    border-top: 1px solid var(--border-faint);
+    border-bottom: 1px solid var(--border-faint);
+  }
+  .transparency-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-items: flex-start;
+  }
+  .chart-wrapper {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: 16px;
+    padding: 1.75rem;
+  }
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  .chart-title {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+  .chart-value {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--gold-500);
+    font-size: 1.4rem;
+  }
+  .chart-svg {
+    width: 100%;
+    height: 200px;
+    display: block;
+  }
+  .chart-svg .grid-line {
+    stroke: var(--border-faint);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+  .chart-svg .area {
+    fill: url(#chart-gradient);
+  }
+  .chart-svg .line {
+    stroke: var(--gold-500);
+    stroke-width: 2.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4));
+  }
+  .chart-svg .dot {
+    fill: var(--gold-500);
+    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.6));
+  }
+  .chart-axis {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  .bets-table {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .bets-table-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-faint);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .bets-table-title {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+  .bets-list { max-height: 280px; overflow-y: auto; }
+  .bets-list::-webkit-scrollbar { width: 4px; }
+  .bets-list::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 2px; }
+  .bet-row {
+    padding: 0.85rem 1.5rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 1rem;
+    align-items: center;
+    border-bottom: 1px solid var(--border-faint);
+    font-size: 0.85rem;
+  }
+  .bet-row:last-child { border-bottom: none; }
+  .bet-sport {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .bet-label { color: var(--text-primary); }
+  .bet-cote {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+  .bet-result {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.25rem 0.55rem;
+    border-radius: 100px;
+  }
+  .bet-result.win {
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.12);
+  }
+  .bet-result.loss {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.12);
+  }
+
+  /* ============ PRICING ============ */
+  .pricing-toggle-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 3rem;
+  }
+  .pricing-toggle {
+    display: inline-flex;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: 100px;
+    padding: 0.3rem;
+    position: relative;
+  }
+  .pricing-toggle button {
+    padding: 0.6rem 1.4rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-radius: 100px;
+    transition: color var(--transition-fast);
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-display);
+  }
+  .pricing-toggle button.active {
+    color: var(--bg-base);
+  }
+  .pricing-toggle-pill {
+    position: absolute;
+    top: 0.3rem;
+    bottom: 0.3rem;
+    left: 0.3rem;
+    width: calc(50% - 0.3rem);
+    background: var(--gold-500);
+    border-radius: 100px;
+    transition: transform var(--transition-smooth);
+    box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+  }
+  .pricing-toggle.annual .pricing-toggle-pill {
+    transform: translateX(100%);
+  }
+  .pricing-toggle-badge {
+    margin-left: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    padding: 0.1rem 0.35rem;
+    background: rgba(16, 185, 129, 0.18);
+    color: var(--success);
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    align-items: stretch;
+  }
+  .price-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: 18px;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+  }
+  .price-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.4), 0 20px 60px rgba(212, 175, 55, 0.15);
+  }
+  .price-card.featured {
+    border-color: var(--gold-500);
+    transform: scale(1.05);
+    background: linear-gradient(180deg, rgba(212, 175, 55, 0.08), var(--bg-elevated) 40%);
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.5), 0 20px 60px rgba(212, 175, 55, 0.2);
+  }
+  .price-card.featured:hover {
+    transform: scale(1.05) translateY(-4px);
+    box-shadow: 0 0 0 1px var(--gold-500), 0 25px 70px rgba(212, 175, 55, 0.3);
+  }
+  .price-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gold-500);
+    color: var(--bg-base);
+    padding: 0.4rem 0.85rem;
+    border-radius: 100px;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(212, 175, 55, 0.4);
+  }
+  .price-name {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.01em;
+  }
+  .price-desc {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin-bottom: 1.5rem;
+    min-height: 2.5rem;
+  }
+  .price-amount {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+  }
+  .price-amount-value {
+    font-size: 2.5rem;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .price-amount-period {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    font-family: var(--font-display);
+    font-weight: 400;
+  }
+  .price-amount-free {
+    font-size: 2rem;
+    color: var(--gold-500);
+    letter-spacing: -0.02em;
+  }
+  .price-engagement {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .price-features {
+    list-style: none;
+    margin-bottom: 1.75rem;
+    flex: 1;
+  }
+  .price-features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.5rem 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border-faint);
+  }
+  .price-features li:last-child { border-bottom: none; }
+  .price-check {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--gold-500);
+    margin-top: 2px;
+  }
+  .price-cta {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+    transition: all var(--transition-fast);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+    border: 1px solid var(--border-soft);
+    display: block;
+  }
+  .price-card.featured .price-cta {
+    background: var(--gold-500);
+    color: var(--bg-base);
+    border-color: var(--gold-500);
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+  }
+  .price-cta:hover {
+    border-color: var(--gold-500);
+    color: var(--gold-300);
+  }
+  .price-card.featured .price-cta:hover {
+    transform: scale(1.02);
+    filter: brightness(1.1);
+    color: var(--bg-base);
+  }
+
+  /* ============ TRUST / TESTIMONIALS ============ */
+  .trust-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+  .trust-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: 16px;
+    padding: 1.75rem;
+    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+  }
+  .trust-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.4), 0 20px 60px rgba(212, 175, 55, 0.15);
+  }
+  .trust-quote {
+    font-size: 1.05rem;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+    color: var(--text-primary);
+  }
+  .trust-author {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .trust-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-500), var(--gold-900));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--bg-base);
+  }
+  .trust-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .trust-meta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .trust-banner {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(212, 175, 55, 0.02));
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .trust-banner-value {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 2.25rem;
+    color: var(--gold-500);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .trust-banner-text {
+    color: var(--text-primary);
+    font-size: 1rem;
+    line-height: 1.4;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  /* ============ FAQ ============ */
+  .faq-list {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .faq-item {
+    border-bottom: 1px solid var(--border-faint);
+  }
+  .faq-question {
+    width: 100%;
+    text-align: left;
+    padding: 1.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: color var(--transition-fast);
+  }
+  .faq-question:hover { color: var(--gold-500); }
+  .faq-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--gold-500);
+    transition: transform var(--transition-base);
+  }
+  .faq-item.open .faq-icon { transform: rotate(45deg); }
+  .faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--transition-smooth);
+  }
+  .faq-answer-inner {
+    padding: 0 0 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.98rem;
+    line-height: 1.6;
+    max-width: 90%;
+  }
+  .faq-item.open .faq-answer { max-height: 200px; }
+
+  /* ============ CTA FINAL ============ */
+  .cta-final {
+    background: linear-gradient(135deg, var(--gold-900), #1a1404);
+    border-top: 1px solid rgba(212, 175, 55, 0.3);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-final::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 50%, rgba(212, 175, 55, 0.15), transparent 60%);
+    pointer-events: none;
+  }
+  .cta-final-inner {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .cta-final h2 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    margin-bottom: 1rem;
+  }
+  .cta-final h2 .accent { color: var(--gold-500); font-style: italic; font-weight: 500; }
+  .cta-final p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+  .cta-final .btn-primary {
+    padding: 1.1rem 2rem;
+    font-size: 1rem;
+  }
+  .cta-final-sub {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  /* ============ FOOTER ============ */
+  footer {
+    background: var(--bg-deeper);
+    border-top: 1px solid var(--border-faint);
+    padding: 4rem 0 2rem;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+  }
+  .footer-brand p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 1.25rem;
+    line-height: 1.6;
+    max-width: 28rem;
+  }
+  .footer-col h5 {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+  .footer-col ul { list-style: none; }
+  .footer-col li { margin-bottom: 0.6rem; }
+  .footer-col a {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    transition: color var(--transition-fast);
+  }
+  .footer-col a:hover { color: var(--gold-500); }
+  .footer-warning {
+    padding: 1.5rem;
+    background: rgba(239, 68, 68, 0.04);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+  }
+  .footer-warning p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin-bottom: 0.5rem;
+  }
+  .footer-warning p:last-child { margin-bottom: 0; }
+  .footer-warning strong { color: var(--text-primary); font-weight: 500; }
+  .footer-bottom {
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-faint);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .footer-copy {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+  }
+  .footer-anj {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  /* ============ STICKY CTA ============ */
+  .sticky-cta {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 90;
+    padding: 0.85rem 1.4rem;
+    background: var(--gold-500);
+    color: var(--bg-base);
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 8px 30px rgba(212, 175, 55, 0.4), 0 0 0 1px rgba(212, 175, 55, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transform: translate(120%, 0);
+    opacity: 0;
+    transition: transform var(--transition-smooth), opacity var(--transition-smooth), filter var(--transition-fast);
+  }
+  .sticky-cta.visible {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  .sticky-cta:hover {
+    filter: brightness(1.1);
+    transform: translate(0, 0) scale(1.03);
+  }
+
+  /* ============ SCROLL REVEAL ============ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1), transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 1100px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 4rem; }
+    .mockup-card { max-width: 480px; margin: 0 auto; }
+    .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+    .price-card.featured { transform: none; }
+    .price-card.featured:hover { transform: translateY(-4px); }
+    .transparency-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1.4fr 1fr 1fr; gap: 2rem; }
+  }
+  @media (max-width: 760px) {
+    .nav-links { display: none; }
+    .mobile-toggle { display: flex; }
+    .nav-cta { display: none; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-item { border-right: none; border-bottom: 1px solid var(--border-faint); padding: 1.5rem 1rem; }
+    .stat-item:nth-child(2) { border-right: none; }
+    .stat-item:nth-child(3), .stat-item:nth-child(4) { border-bottom: none; }
+    .stat-item:nth-child(odd) { border-right: 1px solid var(--border-faint); }
+    .how-grid { grid-template-columns: 1fr; }
+    .edge-grid { grid-template-columns: 1fr; }
+    .trust-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .footer-brand { grid-column: 1 / -1; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .mockup-floating.top { right: 0.5rem; }
+    .mockup-floating.bottom { left: 0.5rem; }
+    .sticky-cta { bottom: 1rem; right: 1rem; padding: 0.75rem 1.1rem; font-size: 0.85rem; }
+  }
+  @media (max-width: 520px) {
+    .hero { padding-top: 6rem; }
+    .hero-ctas .btn { width: 100%; justify-content: center; }
+    .footer-bottom { flex-direction: column; align-items: flex-start; }
+  }
+
+  /* ============ REDUCED MOTION ============ */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .reveal { opacity: 1; transform: none; }
+    .mockup-card { transform: none; animation: none; }
+    .mockup-floating { animation: none; }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--gold-300);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="#" class="logo" aria-label="AJ Pronos accueil">
+      <span class="logo-aj">AJ</span>
+      <span class="logo-pronos">Pronos</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#transparency">Pronos</a></li>
+      <li><a href="#how">Méthode</a></li>
+      <li><a href="#pricing">Tarifs</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <a href="#pricing" class="nav-cta">Commencer gratuit</a>
+    <button class="mobile-toggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-content">
+        <div class="hero-eyebrow reveal">AI-Powered Betting Advice</div>
+        <h1 class="reveal">Le pari sportif,<br><span class="accent">avec méthode.</span></h1>
+        <p class="hero-sub reveal">IA + expertise humaine. ROI public. Sans engagement.</p>
+
+        <div class="hero-kpi reveal">
+          <span class="hero-kpi-label">ROI 30 derniers jours</span>
+          <div class="hero-kpi-value">
+            <span class="plus">+</span><span class="count-up" data-target="18.4" data-decimals="1">0,0</span><span class="percent">%</span>
+          </div>
+          <div class="hero-kpi-sub">Pertes incluses · Mis à jour quotidien</div>
+        </div>
+
+        <div class="hero-ctas reveal">
+          <a href="#transparency" class="btn btn-primary">
+            Voir nos pronos en direct
+            <span class="btn-arrow">→</span>
+          </a>
+          <a href="#pricing" class="btn btn-secondary">
+            Tarifs à partir de 9,90€
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-mockup reveal">
+        <div class="mockup-wrapper">
+          <div class="mockup-floating top">
+            <span class="mockup-floating-dot"></span>
+            IA: 87% confiance
+          </div>
+          <div class="mockup-floating bottom">
+            <span class="mockup-floating-dot"></span>
+            Envoyé 12h32
+          </div>
+          <div class="mockup-card">
+            <div class="mockup-header">
+              <div class="mockup-header-left">
+                <div class="mockup-logo">AJ</div>
+                <span class="mockup-label">Prono du jour</span>
+              </div>
+              <span class="mockup-time">21:00 CET</span>
+            </div>
+            <div class="mockup-match">Ligue 1 · J32 · Parc des Princes</div>
+            <div class="mockup-teams">PSG vs OM</div>
+            <div class="mockup-row">
+              <span class="mockup-row-label">Pari conseillé</span>
+              <span class="mockup-row-value">Plus de 2,5 buts</span>
+            </div>
+            <div class="mockup-row">
+              <span class="mockup-row-label">Cote minimale</span>
+              <span class="mockup-row-value gold">1.85</span>
+            </div>
+            <div class="mockup-row">
+              <span class="mockup-row-label">Mise conseillée</span>
+              <span class="mockup-row-value">2 unités / 5</span>
+            </div>
+            <div class="mockup-badges">
+              <span class="mockup-badge">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>
+                IA validée
+              </span>
+              <span class="mockup-badge">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>
+                Expert validé
+              </span>
+              <span class="mockup-badge">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>
+                WhatsApp envoyé
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS BAND ============ -->
+<section class="stats-band" style="padding-top: 0; padding-bottom: 0;">
+  <div class="container">
+    <div class="stats-grid" style="padding: clamp(2.5rem, 6vw, 4rem) 0;">
+      <div class="stat-item reveal">
+        <div class="stat-value"><span class="plus" style="font-size:0.55em;color:var(--gold-300)">+</span><span class="count-up" data-target="18.4" data-decimals="1">0,0</span>%</div>
+        <div class="stat-label">ROI 30 jours</div>
+      </div>
+      <div class="stat-item reveal">
+        <div class="stat-value"><span class="count-up" data-target="1240" data-decimals="0">0</span>+</div>
+        <div class="stat-label">Paris analysés</div>
+      </div>
+      <div class="stat-item reveal">
+        <div class="stat-value"><span class="count-up" data-target="64.2" data-decimals="1">0,0</span>%</div>
+        <div class="stat-label">Taux de réussite</div>
+      </div>
+      <div class="stat-item reveal">
+        <div class="stat-value"><span class="count-up" data-target="340" data-decimals="0">0</span></div>
+        <div class="stat-label">Membres actifs</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Comment ça marche</div>
+      <h2 class="section-title">3 étapes. <span class="accent">Aucune fioriture.</span></h2>
+      <p class="section-sub">De la collecte de data à la notification WhatsApp : ce qu'il se passe avant que tu reçoives un prono.</p>
+    </div>
+    <div class="how-grid">
+      <div class="how-card reveal">
+        <div class="how-number">01</div>
+        <h3>L'IA collecte</h3>
+        <p>Compos, blessures, forme, h2h, cotes en temps réel. 100x plus de données qu'un humain en 5 secondes.</p>
+      </div>
+      <div class="how-card reveal">
+        <div class="how-number">02</div>
+        <h3>L'expert valide</h3>
+        <p>Chaque pari analysé manuellement par notre pronostiqueur. On publie uniquement ce en quoi on croit.</p>
+      </div>
+      <div class="how-card reveal">
+        <div class="how-number">03</div>
+        <h3>Tu reçois sur WhatsApp</h3>
+        <p>Notification, raisonnement, mise conseillée, cote minimale. Tout, dans un seul message.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EDGE IA ============ -->
+<section>
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">L'edge IA</div>
+      <h2 class="section-title">Une IA <span class="accent">dressée pour le foot.</span></h2>
+      <p class="section-sub">Ce que notre modèle traite avant chaque match — et qu'aucun humain ne pourrait faire en moins de 5 secondes.</p>
+    </div>
+    <div class="edge-grid">
+      <div class="edge-card reveal">
+        <div class="edge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><path d="M2 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/><path d="M16 11h4a3 3 0 013 3v3"/>
+          </svg>
+        </div>
+        <div class="edge-content">
+          <h4>Compositions à jour 1h avant</h4>
+          <p>On capte les compos officielles dès leur publication. Pas de pari sur des infos périmées.</p>
+        </div>
+      </div>
+      <div class="edge-card reveal">
+        <div class="edge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/><circle cx="21" cy="8" r="2" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="edge-content">
+          <h4>Détection automatique value bets</h4>
+          <p>Cote affichée par le bookmaker vs probabilité réelle calculée par notre modèle. On joue l'écart.</p>
+        </div>
+      </div>
+      <div class="edge-card reveal">
+        <div class="edge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7l9-4 9 4"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/>
+          </svg>
+        </div>
+        <div class="edge-content">
+          <h4>Historique h2h sur 5 ans</h4>
+          <p>Confrontations directes, scores, contextes. Le pattern compte autant que la stat.</p>
+        </div>
+      </div>
+      <div class="edge-card reveal">
+        <div class="edge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v6"/><path d="M12 22v-6"/><path d="M4.93 4.93l4.24 4.24"/><path d="M14.83 14.83l4.24 4.24"/><circle cx="12" cy="12" r="4"/>
+          </svg>
+        </div>
+        <div class="edge-content">
+          <h4>Forme dynamique pondérée</h4>
+          <p>Les 5 derniers matchs pèsent plus que la saison entière. Une équipe blessée à 8 titulaires, ça se voit.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRANSPARENCY ============ -->
+<section class="transparency" id="transparency">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Transparence totale</div>
+      <h2 class="section-title">On affiche tout. <span class="accent">Pertes comprises.</span></h2>
+      <p class="section-sub">Pas de captures sélectionnées. Pas de "best of". Voici la courbe de ROI réelle des 30 derniers jours et les 8 derniers paris publiés.</p>
+    </div>
+
+    <div class="transparency-grid">
+      <div class="chart-wrapper reveal">
+        <div class="chart-header">
+          <span class="chart-title">Courbe ROI · 30 jours</span>
+          <span class="chart-value">+18,4%</span>
+        </div>
+        <svg class="chart-svg" viewBox="0 0 500 200" preserveAspectRatio="none" aria-label="Graphique ROI 30 jours">
+          <defs>
+            <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#D4AF37" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#D4AF37" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <line class="grid-line" x1="0" y1="40" x2="500" y2="40"/>
+          <line class="grid-line" x1="0" y1="100" x2="500" y2="100"/>
+          <line class="grid-line" x1="0" y1="160" x2="500" y2="160"/>
+          <path class="area" d="M0,150 L20,140 L40,148 L60,130 L80,135 L100,118 L120,125 L140,105 L160,112 L180,95 L200,108 L220,85 L240,92 L260,75 L280,82 L300,68 L320,78 L340,58 L360,65 L380,52 L400,60 L420,48 L440,42 L460,38 L480,32 L500,28 L500,200 L0,200 Z"/>
+          <path class="line" id="chart-line" d="M0,150 L20,140 L40,148 L60,130 L80,135 L100,118 L120,125 L140,105 L160,112 L180,95 L200,108 L220,85 L240,92 L260,75 L280,82 L300,68 L320,78 L340,58 L360,65 L380,52 L400,60 L420,48 L440,42 L460,38 L480,32 L500,28"/>
+          <circle class="dot" cx="500" cy="28" r="5"/>
+        </svg>
+        <div class="chart-axis">
+          <span>J-30</span>
+          <span>J-20</span>
+          <span>J-10</span>
+          <span>Aujourd'hui</span>
+        </div>
+      </div>
+
+      <div class="bets-table reveal">
+        <div class="bets-table-header">
+          <span class="bets-table-title">Derniers paris</span>
+          <span class="bets-table-title" style="color: var(--gold-500);">6W / 2L</span>
+        </div>
+        <div class="bets-list">
+          <div class="bet-row">
+            <span class="bet-sport">⚽ L1</span>
+            <span class="bet-label">Lens vs Lyon — Plus 2,5</span>
+            <span class="bet-cote">1.90</span>
+            <span class="bet-result win">Gagné</span>
+          </div>
+          <div class="bet-row">
+            <span class="bet-sport">⚽ PL</span>
+            <span class="bet-label">Arsenal — Victoire</span>
+            <span class="bet-cote">1.65</span>
+            <span class="bet-result win">Gagné</span>
+          </div>
+          <div class="bet-row">
+            <span class="bet-sport">⚽ L1</span>
+            <span class="bet-label">Monaco — Mbappé buteur</span>
+            <span class="bet-cote">2.10</span>
+            <span class="bet-result loss">Perdu</span>
+          </div>
+          <div class="bet-row">
+            <span class="bet-sport">⚽ LDC</span>
+            <span class="bet-label">Real vs City — Plus 3,5</span>
+            <span class="bet-cote">2.25</span>
+            <span class="bet-result win">Gagné</span>
+          </div>
+          <div class="bet-row">
+            <span class="bet-sport">⚽ SerieA</span>
+            <span class="bet-label">Inter — Clean sheet</span>
+            <span class="bet-cote">1.95</span>
+            <span class="bet-result win">Gagné</span>
+          </div>
+          <div class="bet-row">
+            <span class="bet-sport">⚽ Liga</span>
+            <span class="bet-label">Atletico — Double chance</span>
+            <span class="bet-cote">1.55</span>
+            <span class="bet-result win">Gagné</span>
+          </div>
+          <div class="bet-row">
+            <span class="bet-sport">⚽ PL</span>
+            <span class="bet-label">Liverpool — Plus 1,5 1ère MT</span>
+            <span class="bet-cote">2.40</span>
+            <span class="bet-result loss">Perdu</span>
+          </div>
+          <div class="bet-row">
+            <span class="bet-sport">⚽ L1</span>
+            <span class="bet-label">PSG vs Nice — BTTS Non</span>
+            <span class="bet-cote">2.05</span>
+            <span class="bet-result win">Gagné</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRICING ============ -->
+<section id="pricing">
+  <div class="container">
+    <div class="section-header reveal" style="text-align: center; margin-left: auto; margin-right: auto;">
+      <div class="section-eyebrow" style="justify-content: center;">Tarifs</div>
+      <h2 class="section-title" style="margin-left: auto; margin-right: auto;">Sans engagement. <span class="accent">Annulable en 1 clic.</span></h2>
+      <p class="section-sub" style="margin-left: auto; margin-right: auto;">4 formules. Du gratuit à l'illimité VIP avec canal WhatsApp privé.</p>
+    </div>
+
+    <div class="pricing-toggle-wrap reveal">
+      <div class="pricing-toggle" id="pricingToggle">
+        <div class="pricing-toggle-pill"></div>
+        <button class="active" data-period="monthly">Mensuel</button>
+        <button data-period="annual">Annuel <span class="pricing-toggle-badge">-20%</span></button>
+      </div>
+    </div>
+
+    <div class="pricing-grid">
+      <div class="price-card reveal">
+        <h3 class="price-name">Découverte</h3>
+        <p class="price-desc">Pour tester la méthode sans débourser un centime.</p>
+        <div class="price-amount">
+          <span class="price-amount-value price-amount-free">Gratuit</span>
+        </div>
+        <div class="price-engagement">À vie</div>
+        <ul class="price-features">
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>1 prono foot / jour</li>
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>Accès au ROI public</li>
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>Sans carte bancaire</li>
+        </ul>
+        <a href="#" class="price-cta">Commencer gratuit</a>
+      </div>
+
+      <div class="price-card featured reveal">
+        <div class="price-badge">★ Le plus populaire</div>
+        <h3 class="price-name">Starter</h3>
+        <p class="price-desc">Tous les pronos foot, l'app, les alertes.</p>
+        <div class="price-amount">
+          <span class="price-amount-value" data-monthly="9,90" data-annual="7,90">9,90</span>
+          <span class="price-amount-period">€ / mois</span>
+        </div>
+        <div class="price-engagement">Sans engagement</div>
+        <ul class="price-features">
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>3 à 5 pronos foot / jour</li>
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>Notifications WhatsApp</li>
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>Espace membre + historique</li>
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>Annulable 1 clic</li>
+        </ul>
+        <a href="#" class="price-cta">Choisir Starter</a>
+      </div>
+
+      <div class="price-card reveal">
+        <h3 class="price-name">Pro</h3>
+        <p class="price-desc">Multi-sports + value bets + analyse détaillée.</p>
+        <div class="price-amount">
+          <span class="price-amount-value" data-monthly="24,90" data-annual="19,90">24,90</span>
+          <span class="price-amount-period">€ / mois</span>
+        </div>
+        <div class="price-engagement">Sans engagement</div>
+        <ul class="price-features">
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>5+ pronos multi-sports / jour</li>
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>Value bets premium</li>
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>Analyse IA détaillée</li>
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>Support prioritaire</li>
+        </ul>
+        <a href="#" class="price-cta">Choisir Pro</a>
+      </div>
+
+      <div class="price-card reveal">
+        <h3 class="price-name">VIP</h3>
+        <p class="price-desc">50 places max. Canal WhatsApp privé.</p>
+        <div class="price-amount">
+          <span class="price-amount-value" data-monthly="59" data-annual="47">59</span>
+          <span class="price-amount-period">€ / mois</span>
+        </div>
+        <div class="price-engagement">50 places · liste d'attente</div>
+        <ul class="price-features">
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>Pronos illimités</li>
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>Canal WhatsApp privé</li>
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>Gros événements (LDC, EURO)</li>
+          <li><svg class="price-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l3 3 7-7"/></svg>Coaching bankroll perso</li>
+        </ul>
+        <a href="#" class="price-cta">Rejoindre VIP</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRUST / TESTIMONIALS ============ -->
+<section>
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Social proof</div>
+      <h2 class="section-title">Rejoint par <span class="accent">340 membres</span> en 4 mois.</h2>
+      <p class="section-sub">Ce que disent ceux qui parient avec méthode depuis le lancement.</p>
+    </div>
+
+    <div class="trust-banner reveal">
+      <div class="trust-banner-value">340</div>
+      <div class="trust-banner-text">membres actifs au mois dernier — dont 78% renouvellent leur abonnement chaque mois.</div>
+    </div>
+
+    <div class="trust-grid">
+      <div class="trust-card reveal">
+        <p class="trust-quote">"Le format WhatsApp est génial. Je reçois le prono, le raisonnement, la mise. Plus besoin de scroller 12 canaux Telegram pleins de pubs."</p>
+        <div class="trust-author">
+          <div class="trust-avatar">TM</div>
+          <div>
+            <div class="trust-name">Thomas M.</div>
+            <div class="trust-meta">Starter · 3 mois</div>
+          </div>
+        </div>
+      </div>
+      <div class="trust-card reveal">
+        <p class="trust-quote">"Ce que j'aime c'est qu'ils affichent les pertes. Je vois la réalité. Sur 90 jours je suis +12% net, ça me suffit largement."</p>
+        <div class="trust-author">
+          <div class="trust-avatar">KB</div>
+          <div>
+            <div class="trust-name">Karim B.</div>
+            <div class="trust-meta">Pro · 4 mois</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq">
+  <div class="container">
+    <div class="section-header reveal" style="text-align: center; margin-left: auto; margin-right: auto;">
+      <div class="section-eyebrow" style="justify-content: center;">FAQ</div>
+      <h2 class="section-title" style="margin-left: auto; margin-right: auto;">Les vraies questions. <span class="accent">Réponses honnêtes.</span></h2>
+    </div>
+
+    <div class="faq-list">
+      <div class="faq-item open">
+        <button class="faq-question" aria-expanded="true">
+          Suis-je sûr de gagner ?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-answer"><div class="faq-answer-inner">Non. On affiche notre ROI réel, pertes incluses. Le pari sportif reste un risque. On vous donne une méthode, pas une garantie.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          C'est légal en France ?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-answer"><div class="faq-answer-inner">Oui. Conseil en pronostics, pas opérateur. Mentions ANJ respectées. On ne prend pas vos paris, on vous conseille.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          Comment je reçois mon prono ?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-answer"><div class="faq-answer-inner">Sur WhatsApp Business ou via votre espace membre du site. Vous choisissez votre canal préféré dans les réglages.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          Puis-je annuler à tout moment ?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-answer"><div class="faq-answer-inner">Oui, sans engagement, en 1 clic depuis votre espace membre. Aucune justification demandée.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          Pourquoi l'IA ?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-answer"><div class="faq-answer-inner">Elle traite 100x plus de données qu'un humain — compos, blessures, h2h, forme dynamique. L'expert valide quand même chaque pari avant publication.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          Combien de pronos par jour ?
+          <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div class="faq-answer"><div class="faq-answer-inner">1 prono (Découverte), 3 à 5 (Starter), 5+ multi-sports (Pro), illimité avec canal privé (VIP).</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA FINAL ============ -->
+<section class="cta-final">
+  <div class="container">
+    <div class="cta-final-inner reveal">
+      <h2>Rejoins les 340 membres qui parient <span class="accent">avec méthode.</span></h2>
+      <p>Gratuit pour démarrer. Annulable en 1 clic. Sans CB pour Découverte.</p>
+      <a href="#pricing" class="btn btn-primary">
+        Commencer gratuitement
+        <span class="btn-arrow">→</span>
+      </a>
+      <div class="cta-final-sub">Sans CB requise pour Découverte</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <span class="logo-aj">AJ</span>
+          <span class="logo-pronos">Pronos</span>
+        </a>
+        <p>Service de conseil en pronostics sportifs. IA pré-analyse + expertise humaine. ROI public. Fondé par Alex (dev) et son associé pronostiqueur expert.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Produit</h5>
+        <ul>
+          <li><a href="#how">Méthode</a></li>
+          <li><a href="#transparency">Transparence ROI</a></li>
+          <li><a href="#pricing">Tarifs</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Légal</h5>
+        <ul>
+          <li><a href="#">Mentions légales</a></li>
+          <li><a href="#">CGV</a></li>
+          <li><a href="#">CGU</a></li>
+          <li><a href="#">Politique de confidentialité</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Contact</h5>
+        <ul>
+          <li><a href="#">WhatsApp Business</a></li>
+          <li><a href="mailto:contact@ajpronos.fr">contact@ajpronos.fr</a></li>
+          <li><a href="#">Centre d'aide</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-warning">
+      <p><strong>Les paris sportifs comportent des risques d'addiction et de pertes financières. Réservé aux +18 ans.</strong></p>
+      <p>Si vous avez un problème : <strong>Joueurs Info Service, 09 74 75 13 13</strong> — joueurs-info-service.fr</p>
+    </div>
+
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 AJ Pronos. Tous droits réservés.</span>
+      <span class="footer-anj">Conforme ANJ · Conseil en pronostics</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ STICKY CTA ============ -->
+<a href="#pricing" class="sticky-cta" id="stickyCta">
+  Commencer gratuit
+  <span class="btn-arrow">→</span>
+</a>
+
+<script>
+(function() {
+  'use strict';
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ===== NAV SCROLL =====
+  const nav = document.getElementById('nav');
+  const stickyCta = document.getElementById('stickyCta');
+  const hero = document.querySelector('.hero');
+
+  function updateScroll() {
+    const scrolled = window.scrollY > 30;
+    nav.classList.toggle('scrolled', scrolled);
+
+    const heroBottom = hero ? hero.offsetTop + hero.offsetHeight : 600;
+    stickyCta.classList.toggle('visible', window.scrollY > heroBottom);
+  }
+  window.addEventListener('scroll', updateScroll, { passive: true });
+  updateScroll();
+
+  // ===== REVEAL ON SCROLL =====
+  const reveals = document.querySelectorAll('.reveal');
+  if (prefersReducedMotion) {
+    reveals.forEach(el => el.classList.add('visible'));
+  } else {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry, idx) => {
+        if (entry.isIntersecting) {
+          const siblings = entry.target.parentElement ? Array.from(entry.target.parentElement.querySelectorAll('.reveal')) : [];
+          const indexInParent = siblings.indexOf(entry.target);
+          const delay = Math.max(0, indexInParent) * 50;
+          setTimeout(() => entry.target.classList.add('visible'), delay);
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -50px 0px' });
+    reveals.forEach(el => revealObserver.observe(el));
+  }
+
+  // ===== COUNT-UP =====
+  const counters = document.querySelectorAll('.count-up');
+  const formatNumber = (n, decimals) => {
+    if (decimals > 0) {
+      return n.toFixed(decimals).replace('.', ',');
+    }
+    return Math.round(n).toLocaleString('fr-FR');
+  };
+
+  if (prefersReducedMotion) {
+    counters.forEach(c => {
+      const target = parseFloat(c.dataset.target);
+      const decimals = parseInt(c.dataset.decimals, 10) || 0;
+      c.textContent = formatNumber(target, decimals);
+    });
+  } else {
+    const countObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const target = parseFloat(el.dataset.target);
+          const decimals = parseInt(el.dataset.decimals, 10) || 0;
+          const duration = 1400;
+          const start = performance.now();
+          const easeOut = t => 1 - Math.pow(1 - t, 3);
+          const step = (now) => {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const value = target * easeOut(progress);
+            el.textContent = formatNumber(value, decimals);
+            if (progress < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+          countObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.4 });
+    counters.forEach(c => countObserver.observe(c));
+  }
+
+  // ===== PRICING TOGGLE =====
+  const toggle = document.getElementById('pricingToggle');
+  const toggleButtons = toggle.querySelectorAll('button');
+  const priceValues = document.querySelectorAll('.price-amount-value[data-monthly]');
+
+  toggleButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const period = btn.dataset.period;
+      toggleButtons.forEach(b => b.classList.toggle('active', b === btn));
+      toggle.classList.toggle('annual', period === 'annual');
+      priceValues.forEach(v => {
+        v.textContent = period === 'annual' ? v.dataset.annual : v.dataset.monthly;
+      });
+    });
+  });
+
+  // ===== FAQ ACCORDION =====
+  const faqItems = document.querySelectorAll('.faq-item');
+  faqItems.forEach(item => {
+    const btn = item.querySelector('.faq-question');
+    btn.addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      faqItems.forEach(other => {
+        other.classList.remove('open');
+        other.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+      });
+      if (!isOpen) {
+        item.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  // ===== CHART DRAW ON SCROLL =====
+  const chartLine = document.getElementById('chart-line');
+  if (chartLine && !prefersReducedMotion) {
+    const length = chartLine.getTotalLength();
+    chartLine.style.strokeDasharray = length;
+    chartLine.style.strokeDashoffset = length;
+    chartLine.style.transition = 'stroke-dashoffset 1800ms cubic-bezier(0.4, 0, 0.2, 1)';
+    const chartObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          chartLine.style.strokeDashoffset = '0';
+          chartObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    chartObserver.observe(chartLine);
+  }
+
+  // ===== MOBILE NAV (basic toggle) =====
+  const mobileToggle = document.querySelector('.mobile-toggle');
+  const navLinks = document.querySelector('.nav-links');
+  if (mobileToggle && navLinks) {
+    mobileToggle.addEventListener('click', () => {
+      const isOpen = navLinks.style.display === 'flex';
+      navLinks.style.display = isOpen ? '' : 'flex';
+      navLinks.style.position = 'absolute';
+      navLinks.style.top = '100%';
+      navLinks.style.left = '0';
+      navLinks.style.right = '0';
+      navLinks.style.flexDirection = 'column';
+      navLinks.style.background = 'rgba(10, 10, 10, 0.95)';
+      navLinks.style.backdropFilter = 'blur(16px)';
+      navLinks.style.padding = '1.5rem 2rem';
+      navLinks.style.borderBottom = '1px solid var(--border-faint)';
+      navLinks.style.gap = '1.25rem';
+      if (isOpen) {
+        navLinks.removeAttribute('style');
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>

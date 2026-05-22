@@ -1,0 +1,1529 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>AJ Pronos — Le pari sportif, avec methode.</title>
+<meta name="description" content="Conseil en paris sportifs. Alex et Julien analysent compositions, blessures, forme et cotes pour chaque pari. ROI public, sans engagement, sur WhatsApp." />
+<meta name="theme-color" content="#FAFAF7" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ---------------------------------------------------------
+   AJ PRONOS — v2 light mode
+   Palette: creme chaud, noir profond, or sobre
+   Fonts: Geist Sans + Geist Mono
+   --------------------------------------------------------- */
+
+:root {
+  --bg-base: #FAFAF7;
+  --bg-elevated: #FFFFFF;
+  --bg-deeper: #F5F4ED;
+  --bg-warm: #FAF6E3;
+
+  --border-faint: rgba(10, 10, 10, 0.06);
+  --border-soft: rgba(10, 10, 10, 0.10);
+  --border-strong: rgba(10, 10, 10, 0.18);
+
+  --text-primary: #0A0A0A;
+  --text-muted: #525252;
+  --text-dim: #737373;
+
+  --gold-300: #E8C95A;
+  --gold-500: #D4AF37;
+  --gold-600: #B8941F;
+  --gold-glow: rgba(212, 175, 55, 0.2);
+
+  --black-primary: #0A0A0A;
+  --success: #047857;
+  --danger:  #B91C1C;
+
+  --radius-card: 16px;
+  --radius-pill: 999px;
+  --radius-soft: 10px;
+
+  --shadow-card: 0 1px 2px rgba(10,10,10,0.04);
+  --shadow-card-hover: 0 8px 32px rgba(10,10,10,0.06), 0 0 0 1px rgba(212,175,55,0.2);
+  --shadow-cta: 0 1px 3px rgba(10,10,10,0.1), 0 4px 12px rgba(10,10,10,0.04);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; }
+*::selection { background: var(--gold-300); color: var(--text-primary); }
+
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: 'Geist', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* grain overlay — subtle */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.04;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.9 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
+
+*:focus { outline: none; }
+*:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------- typography utility ---------- */
+.eyebrow {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--gold-600);
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--gold-500);
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Geist', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+h1 { font-size: clamp(2.4rem, 6vw, 4.6rem); }
+h2 { font-size: clamp(1.8rem, 4.2vw, 3rem); }
+h3 { font-size: clamp(1.15rem, 2vw, 1.4rem); letter-spacing: -0.01em; }
+h4 { font-size: 1rem; letter-spacing: -0.005em; }
+
+p { margin: 0; color: var(--text-muted); }
+.lead { font-size: clamp(1rem, 1.4vw, 1.18rem); line-height: 1.6; color: var(--text-muted); max-width: 60ch; }
+
+.mono { font-family: 'Geist Mono', ui-monospace, monospace; font-weight: 500; }
+
+.italic-gold {
+  font-style: italic;
+  color: var(--gold-600);
+  font-weight: 600;
+  position: relative;
+}
+.italic-gold::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  bottom: -0.05em;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold-500), transparent);
+  opacity: 0.55;
+}
+
+/* ---------- layout ---------- */
+.wrap {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 4vw, 2.5rem);
+  position: relative;
+  z-index: 2;
+}
+
+section { padding: clamp(4rem, 9vw, 7.5rem) 0; position: relative; }
+
+.section-alt { background: var(--bg-deeper); }
+.section-warm { background: var(--bg-warm); }
+
+.section-head {
+  text-align: center;
+  margin: 0 auto clamp(2.5rem, 5vw, 4rem);
+  max-width: 720px;
+}
+.section-head .eyebrow { margin-bottom: 1rem; }
+.section-head h2 { margin-bottom: 1rem; }
+.section-head .lead { margin: 0 auto; }
+
+/* ---------- nav ---------- */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  padding: 1rem 0;
+  background: rgba(250, 250, 247, 0);
+  border-bottom: 1px solid transparent;
+  transition: background 280ms var(--ease-soft), border-color 280ms var(--ease-soft), padding 280ms var(--ease-soft), backdrop-filter 280ms var(--ease-soft);
+}
+.nav.scrolled {
+  background: rgba(250, 250, 247, 0.85);
+  backdrop-filter: saturate(140%) blur(12px);
+  -webkit-backdrop-filter: saturate(140%) blur(12px);
+  border-bottom-color: var(--border-faint);
+  padding: 0.7rem 0;
+}
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.logo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  cursor: pointer;
+}
+.logo-aj {
+  font-family: 'Geist', sans-serif;
+  font-weight: 700;
+  color: var(--gold-600);
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+.logo-pronos {
+  font-family: 'Geist', sans-serif;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.nav-links a {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color 180ms ease;
+}
+.nav-links a:hover { color: var(--text-primary); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.4rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 220ms var(--ease-soft), background 220ms var(--ease-soft), color 220ms var(--ease-soft), border-color 220ms var(--ease-soft), box-shadow 220ms var(--ease-soft);
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--black-primary);
+  color: var(--bg-base);
+  box-shadow: var(--shadow-cta);
+}
+.btn-primary:hover { transform: scale(1.02); background: #000; }
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border-color: rgba(10,10,10,0.15);
+}
+.btn-secondary:hover { border-color: var(--gold-500); color: var(--text-primary); }
+
+.btn-sm { padding: 0.65rem 1.1rem; font-size: 0.85rem; }
+
+.nav-cta { display: inline-flex; }
+
+.burger {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-soft);
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.burger span {
+  display: block;
+  width: 18px;
+  height: 1.5px;
+  background: var(--text-primary);
+  position: relative;
+}
+.burger span::before,
+.burger span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 18px;
+  height: 1.5px;
+  background: var(--text-primary);
+  transition: transform 220ms var(--ease-soft);
+}
+.burger span::before { top: -6px; }
+.burger span::after  { top: 6px; }
+.burger[aria-expanded="true"] span { background: transparent; }
+.burger[aria-expanded="true"] span::before { transform: translateY(6px) rotate(45deg); }
+.burger[aria-expanded="true"] span::after  { transform: translateY(-6px) rotate(-45deg); }
+
+.mobile-menu {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: var(--bg-base);
+  z-index: 40;
+  padding: 5.5rem 1.5rem 2rem;
+  border-bottom: 1px solid var(--border-soft);
+  transform: translateY(-100%);
+  transition: transform 360ms var(--ease-soft);
+}
+.mobile-menu.open { transform: translateY(0); }
+.mobile-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.mobile-menu a {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.mobile-menu .btn { margin-top: 1rem; align-self: flex-start; }
+
+/* ---------- hero ---------- */
+.hero {
+  padding: clamp(7rem, 16vw, 10rem) 0 clamp(3.5rem, 7vw, 6rem);
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top, rgba(212,175,55,0.10), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-content { position: relative; z-index: 2; max-width: 900px; margin: 0 auto; }
+.hero h1 { margin: 1.25rem 0 1.5rem; }
+.hero .lead {
+  margin: 0 auto 2.25rem;
+  max-width: 640px;
+  font-size: clamp(1.05rem, 1.5vw, 1.22rem);
+}
+.hero-ctas {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  justify-content: center;
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 2;
+  opacity: 0.7;
+}
+.scroll-indicator::after {
+  content: "";
+  width: 1px;
+  height: 28px;
+  background: linear-gradient(180deg, var(--gold-500), transparent);
+  animation: scrollPulse 2.4s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.2; transform: scaleY(0.6); }
+  50% { opacity: 1; transform: scaleY(1); }
+}
+
+/* ---------- stats bar ---------- */
+.stats-bar {
+  padding: clamp(2.5rem, 5vw, 4rem) 0;
+  border-top: 1px solid var(--border-faint);
+  border-bottom: 1px solid var(--border-faint);
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  text-align: center;
+}
+.stat {
+  padding: 0.5rem clamp(0.5rem, 2vw, 1.5rem);
+  position: relative;
+}
+.stat + .stat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 1px;
+  background: var(--border-faint);
+}
+.stat-num {
+  display: block;
+  font-family: 'Geist Mono', monospace;
+  font-weight: 500;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.stat-num.accent { color: var(--gold-600); }
+.stat-label {
+  display: block;
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* ---------- methode — 3 etapes ---------- */
+.steps {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  position: relative;
+  max-width: 920px;
+  margin: 0 auto;
+}
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: clamp(1rem, 2.5vw, 2rem);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-faint);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: transform 300ms var(--ease-soft), box-shadow 300ms var(--ease-soft), border-color 300ms var(--ease-soft);
+}
+.step:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgba(212,175,55,0.4);
+}
+.step-num {
+  font-family: 'Geist Mono', monospace;
+  font-weight: 500;
+  font-size: clamp(2.5rem, 5vw, 3.4rem);
+  color: var(--gold-600);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.step-body h3 { margin-bottom: 0.6rem; }
+.step-body p { font-size: 0.98rem; line-height: 1.65; }
+
+/* ---------- "Qui on est" — portraits ---------- */
+.portraits {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+  max-width: 920px;
+  margin: 0 auto;
+}
+.portrait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: clamp(2rem, 4vw, 2.75rem) clamp(1.5rem, 3vw, 2.25rem);
+  background: linear-gradient(180deg, var(--bg-warm), var(--bg-elevated));
+  border: 1px solid var(--border-faint);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: transform 300ms var(--ease-soft), box-shadow 300ms var(--ease-soft), border-color 300ms var(--ease-soft);
+}
+.portrait:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgba(212,175,55,0.4);
+}
+.portrait-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #FFFFFF, var(--bg-warm) 70%);
+  border: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Geist', sans-serif;
+  font-weight: 700;
+  font-size: 4rem;
+  color: var(--gold-600);
+  letter-spacing: -0.04em;
+  margin-bottom: 1.25rem;
+  box-shadow: inset 0 0 0 4px rgba(255,255,255,0.6), 0 4px 14px rgba(212,175,55,0.18);
+}
+.portrait h3 { margin-bottom: 0.3rem; }
+.portrait .role {
+  display: block;
+  font-family: 'Geist Mono', monospace;
+  font-weight: 500;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold-600);
+  margin-bottom: 1rem;
+}
+.portrait p { font-size: 0.97rem; line-height: 1.6; max-width: 38ch; margin: 0 auto; }
+
+/* ---------- "Methode d'analyse" — 2x2 ---------- */
+.analyse-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
+  max-width: 1040px;
+  margin: 0 auto;
+}
+.analyse-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-faint);
+  border-radius: var(--radius-card);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  box-shadow: var(--shadow-card);
+  transition: transform 300ms var(--ease-soft), box-shadow 300ms var(--ease-soft), border-color 300ms var(--ease-soft);
+}
+.analyse-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgba(212,175,55,0.4);
+}
+.analyse-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--bg-warm);
+  border: 1px solid rgba(212,175,55,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  color: var(--gold-600);
+}
+.analyse-icon svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.analyse-card h3 { margin-bottom: 0.6rem; }
+.analyse-card p { font-size: 0.97rem; line-height: 1.6; }
+
+/* ---------- ROI ---------- */
+.roi-wrap {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: start;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.roi-summary {
+  position: sticky;
+  top: 100px;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-faint);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+.roi-summary .eyebrow { margin-bottom: 1rem; }
+.roi-big {
+  font-family: 'Geist Mono', monospace;
+  font-weight: 500;
+  font-size: clamp(2.4rem, 5vw, 3.2rem);
+  color: var(--gold-600);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.roi-period {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+.roi-divider {
+  height: 1px;
+  background: var(--border-faint);
+  margin: 1.4rem 0;
+}
+.roi-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.45rem 0;
+  font-size: 0.92rem;
+}
+.roi-row span:first-child { color: var(--text-muted); }
+.roi-row .mono { color: var(--text-primary); }
+.roi-row .mono.success { color: var(--success); }
+.roi-row .mono.danger { color: var(--danger); }
+
+.bets-list {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-faint);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.bet-row {
+  display: grid;
+  grid-template-columns: 88px 1fr auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-faint);
+  font-size: 0.92rem;
+}
+.bet-row:last-child { border-bottom: 0; }
+.bet-row:hover { background: var(--bg-deeper); }
+.bet-date { font-family: 'Geist Mono', monospace; color: var(--text-dim); font-size: 0.82rem; }
+.bet-desc { color: var(--text-primary); font-weight: 500; }
+.bet-desc small { display: block; color: var(--text-muted); font-weight: 400; margin-top: 0.15rem; font-size: 0.8rem; }
+.bet-odd {
+  font-family: 'Geist Mono', monospace;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  min-width: 44px;
+  text-align: right;
+}
+.bet-result {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  min-width: 56px;
+  text-align: center;
+}
+.bet-result.win  { color: var(--success); background: rgba(4,120,87,0.08); border: 1px solid rgba(4,120,87,0.2); }
+.bet-result.loss { color: var(--danger);  background: rgba(185,28,28,0.06); border: 1px solid rgba(185,28,28,0.2); }
+
+/* ---------- Pricing ---------- */
+.toggle-wrap { display: flex; justify-content: center; margin-bottom: 3rem; }
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+}
+.toggle button {
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.88rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: background 220ms var(--ease-soft), color 220ms var(--ease-soft);
+}
+.toggle button[aria-pressed="true"] {
+  background: var(--black-primary);
+  color: var(--bg-base);
+}
+.toggle .badge {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+  background: var(--gold-500);
+  color: var(--text-primary);
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  max-width: 1180px;
+  margin: 0 auto;
+  align-items: stretch;
+}
+.price-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem 1.5rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-faint);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  position: relative;
+  transition: transform 300ms var(--ease-soft), box-shadow 300ms var(--ease-soft), border-color 300ms var(--ease-soft);
+}
+.price-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: rgba(212,175,55,0.4);
+}
+.price-card.featured {
+  border-color: var(--gold-500);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(10,10,10,0.08), 0 0 0 1px rgba(212,175,55,0.3);
+}
+.price-card.featured:hover { transform: translateY(-6px); }
+.price-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gold-500);
+  color: var(--text-primary);
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 500;
+}
+.price-name {
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-family: 'Geist Mono', monospace;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+.price-amount {
+  font-family: 'Geist Mono', monospace;
+  font-weight: 500;
+  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.price-amount .suffix { color: var(--text-dim); font-size: 0.85rem; margin-left: 0.25rem; }
+.price-hint { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.5rem; min-height: 1.4em; }
+.price-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex: 1;
+}
+.price-list li {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  padding-left: 1.4rem;
+  position: relative;
+  line-height: 1.5;
+}
+.price-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold-500);
+  opacity: 0.5;
+}
+.price-list li.strong { color: var(--text-primary); }
+.price-list li.strong::before { opacity: 1; }
+.price-card .btn { width: 100%; }
+
+/* ---------- FAQ ---------- */
+.faq-list {
+  max-width: 820px;
+  margin: 0 auto;
+  border-top: 1px solid var(--border-faint);
+}
+.faq-item { border-bottom: 1px solid var(--border-faint); }
+.faq-q {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 1.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+  font-family: 'Geist', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1rem, 1.5vw, 1.1rem);
+  color: var(--text-primary);
+  gap: 1rem;
+  letter-spacing: -0.01em;
+}
+.faq-q:hover { color: var(--gold-600); }
+.faq-chev {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 280ms var(--ease-soft);
+  color: var(--text-muted);
+}
+.faq-chev svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.faq-item[aria-expanded="true"] .faq-chev { transform: rotate(180deg); color: var(--gold-600); }
+.faq-a {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 320ms var(--ease-soft);
+}
+.faq-a-inner { padding: 0 0 1.5rem; }
+.faq-a p { font-size: 0.97rem; line-height: 1.65; max-width: 60ch; }
+
+/* ---------- CTA final ---------- */
+.cta-final {
+  text-align: center;
+  background: var(--bg-warm);
+  position: relative;
+  overflow: hidden;
+}
+.cta-final::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(212,175,55,0.12), transparent 65%);
+  pointer-events: none;
+}
+.cta-final .wrap { position: relative; z-index: 1; }
+.cta-final h2 {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  margin-bottom: 2rem;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  background: var(--bg-deeper);
+  border-top: 1px solid var(--border-faint);
+  padding: 4rem 0 2rem;
+  color: var(--text-muted);
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(3, 1fr);
+  gap: clamp(1.5rem, 4vw, 3rem);
+  margin-bottom: 3rem;
+}
+.footer-brand p { font-size: 0.92rem; max-width: 32ch; margin-top: 0.85rem; line-height: 1.6; }
+.footer-col h4 {
+  font-family: 'Geist Mono', monospace;
+  font-weight: 500;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+}
+.footer-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.footer-col a { font-size: 0.92rem; color: var(--text-muted); transition: color 180ms ease; }
+.footer-col a:hover { color: var(--text-primary); }
+
+.legal-strip {
+  border-top: 1px solid var(--border-faint);
+  padding: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.legal-strip p { font-size: 0.82rem; color: var(--text-dim); max-width: 80ch; line-height: 1.55; }
+.legal-strip a { color: var(--gold-600); }
+.copyright {
+  border-top: 1px solid var(--border-faint);
+  padding-top: 1.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* ---------- reveal animation ---------- */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity 900ms var(--ease-out), transform 900ms var(--ease-out); }
+.reveal.in { opacity: 1; transform: translateY(0); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1100px) {
+  .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+  .roi-wrap { grid-template-columns: 1fr; }
+  .roi-summary { position: static; }
+}
+@media (max-width: 760px) {
+  .nav-links, .nav-cta { display: none; }
+  .burger { display: inline-flex; }
+  .analyse-grid { grid-template-columns: 1fr; }
+  .portraits { grid-template-columns: 1fr; }
+  .step { grid-template-columns: 60px 1fr; padding: 1.3rem 1.2rem; }
+  .step-num { font-size: 2.4rem; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .footer-brand { grid-column: 1 / -1; }
+  .bet-row { grid-template-columns: 70px 1fr auto; row-gap: 0.25rem; }
+  .bet-result { grid-column: 3; }
+  .bet-odd { display: none; }
+  .stats-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .stat + .stat::before { display: none; }
+  .stat { border-top: 1px solid var(--border-faint); padding-top: 1.5rem; }
+  .stat:first-child { border-top: 0; padding-top: 0; }
+}
+@media (max-width: 520px) {
+  .pricing-grid { grid-template-columns: 1fr; }
+  .price-card.featured { transform: none; }
+  .price-card.featured:hover { transform: translateY(-2px); }
+  .footer-grid { grid-template-columns: 1fr; }
+  .copyright { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- =========================== NAV =========================== -->
+<nav class="nav" id="nav" aria-label="Navigation principale">
+  <div class="wrap nav-inner">
+    <a href="#top" class="logo" aria-label="AJ Pronos — Accueil">
+      <span class="logo-aj">AJ</span>
+      <span class="logo-pronos">PRONOS</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#methode">Methode</a></li>
+      <li><a href="#qui-on-est">Qui on est</a></li>
+      <li><a href="#pronos">Pronos</a></li>
+      <li><a href="#tarifs">Tarifs</a></li>
+    </ul>
+    <a href="#tarifs" class="btn btn-primary btn-sm nav-cta">Commencer</a>
+    <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-menu">
+      <span></span>
+    </button>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+  <ul>
+    <li><a href="#methode">Methode</a></li>
+    <li><a href="#qui-on-est">Qui on est</a></li>
+    <li><a href="#pronos">Pronos</a></li>
+    <li><a href="#tarifs">Tarifs</a></li>
+    <li><a href="#tarifs" class="btn btn-primary">Commencer</a></li>
+  </ul>
+</div>
+
+<a id="top"></a>
+
+<!-- =========================== HERO =========================== -->
+<header class="hero">
+  <div class="wrap hero-content">
+    <span class="eyebrow reveal">Conseil en paris sportifs</span>
+    <h1 class="reveal">Le pari sportif, <em class="italic-gold">avec methode.</em></h1>
+    <p class="lead reveal">On analyse compositions, blessures, forme et cotes — pari par pari. Julien valide chaque prono avant qu'il parte sur ton WhatsApp.</p>
+    <div class="hero-ctas reveal">
+      <a href="#methode" class="btn btn-primary">Decouvrir la methode</a>
+      <a href="#pronos" class="btn btn-secondary">Voir un prono gratuit</a>
+    </div>
+  </div>
+  <span class="scroll-indicator" aria-hidden="true">Scroll</span>
+</header>
+
+<!-- =========================== STATS BAR =========================== -->
+<section class="stats-bar" aria-label="Indicateurs">
+  <div class="wrap">
+    <div class="stats-grid">
+      <div class="stat reveal">
+        <span class="stat-num accent mono" data-count="18.4" data-suffix="%" data-prefix="+">+0%</span>
+        <span class="stat-label">ROI 30 jours</span>
+      </div>
+      <div class="stat reveal">
+        <span class="stat-num mono" data-count="1240" data-suffix="+">0+</span>
+        <span class="stat-label">Paris analyses</span>
+      </div>
+      <div class="stat reveal">
+        <span class="stat-num mono" data-count="340">0</span>
+        <span class="stat-label">Membres actifs</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================== METHODE — 3 etapes =========================== -->
+<section id="methode" class="section-alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow reveal">Notre methode</span>
+      <h2 class="reveal">Trois etapes, une seule promesse.</h2>
+      <p class="lead reveal">On ne te vend pas une "intuition". On t'expose une methode. Trois etapes, une seule promesse : ne te proposer que ce en quoi on croit.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <div class="step-body">
+          <h3>On analyse</h3>
+          <p>Compositions a jour 1h avant le coup d'envoi. Blessures, suspensions, forme recente, historique head-to-head sur 5 ans, cotes en temps reel chez les bookmakers. Chaque match passe au crible avant qu'on tranche.</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">02</div>
+        <div class="step-body">
+          <h3>Julien selectionne</h3>
+          <p>Chaque pari potentiel est analyse manuellement par Julien. Contexte tactique, dynamique d'equipe, intuition forgee par 10 ans d'analyses : il filtre. On ne publie que ce en quoi on croit vraiment. Souvent, c'est moins d'un match sur trois.</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">03</div>
+        <div class="step-body">
+          <h3>Tu recois sur WhatsApp</h3>
+          <p>Notification avec le pari, le raisonnement detaille, la mise conseillee, et la cote minimale acceptable. Pas de canal Telegram bonde, pas de spam — une conversation propre, sur la messagerie que tu utilises deja tous les jours.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================== QUI ON EST =========================== -->
+<section id="qui-on-est">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow reveal">Qui on est</span>
+      <h2 class="reveal">Deux passionnes qui parient depuis 10 ans.</h2>
+      <p class="lead reveal">Avant d'etre un service, AJ Pronos c'etait nous deux qui partagions nos analyses entre potes. On a fini par tout systematiser. Voila qui on est.</p>
+    </div>
+
+    <div class="portraits">
+      <article class="portrait reveal">
+        <div class="portrait-avatar" aria-hidden="true">A</div>
+        <h3>Alex</h3>
+        <span class="role">Le bras tech</span>
+        <p>Codeur le jour, parieur la nuit. J'ai construit l'outil qu'on aurait voulu avoir pour gagner du temps sur la collecte de donnees.</p>
+      </article>
+      <article class="portrait reveal">
+        <div class="portrait-avatar" aria-hidden="true">J</div>
+        <h3>Julien</h3>
+        <span class="role">Le bras expertise</span>
+        <p>10 ans d'analyses paris sportifs, des cahiers entiers de notes. C'est moi qui valide chaque pari avant qu'il parte.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =========================== ANALYSE METHODE — 4 cards =========================== -->
+<section id="analyse" class="section-alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow reveal">Sous le capot</span>
+      <h2 class="reveal">Notre methode d'analyse.</h2>
+      <p class="lead reveal">Voici ce qu'on regarde, pari par pari. Pas de boule de cristal. Pas de pari a l'instinct. Juste un protocole qu'on applique avec rigueur.</p>
+    </div>
+
+    <div class="analyse-grid">
+      <article class="analyse-card reveal">
+        <div class="analyse-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/></svg>
+        </div>
+        <h3>Compositions a jour</h3>
+        <p>On surveille les compos officielles jusqu'a 1h avant le coup d'envoi. Un titulaire forfait de derniere minute peut tout changer — on le voit avant que le marche n'ajuste.</p>
+      </article>
+
+      <article class="analyse-card reveal">
+        <div class="analyse-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-9"/><path d="M14 7h6v6"/></svg>
+        </div>
+        <h3>Value bets</h3>
+        <p>On compare la cote affichee par les bookmakers a la probabilite reelle qu'on estime. Quand l'ecart est significatif, c'est une opportunite. On l'attrape avant qu'elle disparaisse.</p>
+      </article>
+
+      <article class="analyse-card reveal">
+        <div class="analyse-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 6h6"/><path d="M14 6h6"/><path d="M4 12h6"/><path d="M14 12h6"/><path d="M4 18h6"/><path d="M14 18h6"/></svg>
+        </div>
+        <h3>Head-to-head historique</h3>
+        <p>Cinq ans de confrontations directes. Certaines equipes ont des dynamiques sourdes — rivalites, complexes, stats croisees — qui ne se voient pas dans la forme actuelle.</p>
+      </article>
+
+      <article class="analyse-card reveal">
+        <div class="analyse-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M9 19V9"/><path d="M14 19v-7"/><path d="M19 19V6"/></svg>
+        </div>
+        <h3>Forme dynamique ponderee</h3>
+        <p>Les 5 derniers matchs pesent plus que la saison entiere. Une equipe relancee par un nouveau coach, ca se voit dans les chiffres avant que le marche n'en prenne acte.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =========================== TRANSPARENCE ROI =========================== -->
+<section id="pronos">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow reveal">Transparence ROI</span>
+      <h2 class="reveal">Tout est public, gains et pertes.</h2>
+      <p class="lead reveal">On ne cache rien. Voici les 12 derniers paris envoyes a nos membres, dans l'ordre. Aucune ligne n'a ete retiree. Si on perd, on l'affiche. C'est le seul moyen de te dire honnetement combien on fait gagner.</p>
+    </div>
+
+    <div class="roi-wrap">
+      <aside class="roi-summary reveal">
+        <span class="eyebrow">30 derniers jours</span>
+        <div class="roi-big mono" data-count="18.4" data-suffix="%" data-prefix="+">+0%</div>
+        <span class="roi-period">Retour sur investissement</span>
+        <div class="roi-divider"></div>
+        <div class="roi-row"><span>Gains</span><span class="mono success">+412,80 €</span></div>
+        <div class="roi-row"><span>Pertes</span><span class="mono danger">-188,40 €</span></div>
+        <div class="roi-row"><span>Cote moyenne</span><span class="mono">1.87</span></div>
+        <div class="roi-row"><span>Paris envoyes</span><span class="mono">42</span></div>
+      </aside>
+
+      <div class="bets-list reveal">
+        <div class="bet-row"><span class="bet-date">11 mai</span><span class="bet-desc">PSG - Lyon <small>Plus de 2.5 buts</small></span><span class="bet-odd">1.78</span><span class="bet-result win">Win</span></div>
+        <div class="bet-row"><span class="bet-date">10 mai</span><span class="bet-desc">Real Madrid - Girona <small>Victoire Real</small></span><span class="bet-odd">1.42</span><span class="bet-result win">Win</span></div>
+        <div class="bet-row"><span class="bet-date">09 mai</span><span class="bet-desc">Bayer - Roma <small>Les deux equipes marquent</small></span><span class="bet-odd">1.95</span><span class="bet-result loss">Loss</span></div>
+        <div class="bet-row"><span class="bet-date">08 mai</span><span class="bet-desc">Arsenal - Chelsea <small>Victoire Arsenal</small></span><span class="bet-odd">1.65</span><span class="bet-result win">Win</span></div>
+        <div class="bet-row"><span class="bet-date">07 mai</span><span class="bet-desc">Atletico - Athletic <small>Moins de 3.5 buts</small></span><span class="bet-odd">1.58</span><span class="bet-result win">Win</span></div>
+        <div class="bet-row"><span class="bet-date">06 mai</span><span class="bet-desc">Marseille - Nice <small>Victoire OM</small></span><span class="bet-odd">2.10</span><span class="bet-result loss">Loss</span></div>
+        <div class="bet-row"><span class="bet-date">05 mai</span><span class="bet-desc">Inter - Torino <small>Plus de 2.5 buts</small></span><span class="bet-odd">1.72</span><span class="bet-result win">Win</span></div>
+        <div class="bet-row"><span class="bet-date">04 mai</span><span class="bet-desc">Liverpool - Tottenham <small>Liverpool & +2.5</small></span><span class="bet-odd">2.20</span><span class="bet-result win">Win</span></div>
+        <div class="bet-row"><span class="bet-date">03 mai</span><span class="bet-desc">Dortmund - Mainz <small>Victoire Dortmund</small></span><span class="bet-odd">1.50</span><span class="bet-result win">Win</span></div>
+        <div class="bet-row"><span class="bet-date">02 mai</span><span class="bet-desc">Lille - Lens <small>Match nul ou Lens</small></span><span class="bet-odd">1.92</span><span class="bet-result loss">Loss</span></div>
+        <div class="bet-row"><span class="bet-date">01 mai</span><span class="bet-desc">Barcelone - Valence <small>Victoire Barca -1.5</small></span><span class="bet-odd">2.05</span><span class="bet-result win">Win</span></div>
+        <div class="bet-row"><span class="bet-date">30 avr</span><span class="bet-desc">Naples - Bologne <small>Plus de 2.5 buts</small></span><span class="bet-odd">1.80</span><span class="bet-result win">Win</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================== PRICING =========================== -->
+<section id="tarifs" class="section-alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow reveal">Tarifs</span>
+      <h2 class="reveal">Choisis ton pack.</h2>
+      <p class="lead reveal">Sans engagement. Resiliable en un clic. Le pack Decouverte est gratuit, pour tester sans rien donner.</p>
+    </div>
+
+    <div class="toggle-wrap reveal">
+      <div class="toggle" role="tablist" aria-label="Periode de facturation">
+        <button type="button" data-period="monthly" aria-pressed="true">Mensuel</button>
+        <button type="button" data-period="yearly" aria-pressed="false">Annuel <span class="badge">-20%</span></button>
+      </div>
+    </div>
+
+    <div class="pricing-grid">
+      <article class="price-card reveal">
+        <div class="price-name">Decouverte</div>
+        <div class="price-amount">Gratuit</div>
+        <div class="price-hint">Pour tester.</div>
+        <ul class="price-list">
+          <li class="strong">1 prono foot / jour</li>
+          <li>Sans inscription</li>
+          <li>Notification web</li>
+        </ul>
+        <a href="#" class="btn btn-secondary">Commencer</a>
+      </article>
+
+      <article class="price-card featured reveal">
+        <span class="price-badge">Le plus populaire</span>
+        <div class="price-name">Starter</div>
+        <div class="price-amount" data-monthly="9,90 €" data-yearly="95,00 €">9,90 €<span class="suffix">/ mois</span></div>
+        <div class="price-hint" data-monthly="Sans engagement" data-yearly="Facture annuellement">Sans engagement</div>
+        <ul class="price-list">
+          <li class="strong">Tous les pronos foot (3 a 5 / jour)</li>
+          <li>Acces app & espace membre</li>
+          <li>Alertes push WhatsApp</li>
+          <li>Historique complet</li>
+        </ul>
+        <a href="#" class="btn btn-primary">Choisir Starter</a>
+      </article>
+
+      <article class="price-card reveal">
+        <div class="price-name">Pro</div>
+        <div class="price-amount" data-monthly="24,90 €" data-yearly="239,00 €">24,90 €<span class="suffix">/ mois</span></div>
+        <div class="price-hint" data-monthly="Sans engagement" data-yearly="Facture annuellement">Sans engagement</div>
+        <ul class="price-list">
+          <li class="strong">Multi-sports : foot, tennis, basket</li>
+          <li>Value bets identifies par Julien</li>
+          <li>Analyse detaillee de chaque pari</li>
+          <li>Stats personnalisees</li>
+        </ul>
+        <a href="#" class="btn btn-secondary">Choisir Pro</a>
+      </article>
+
+      <article class="price-card reveal">
+        <div class="price-name">VIP</div>
+        <div class="price-amount" data-monthly="59,00 €" data-yearly="566,00 €">59,00 €<span class="suffix">/ mois</span></div>
+        <div class="price-hint" data-monthly="50 places max" data-yearly="50 places max — annuel">50 places max</div>
+        <ul class="price-list">
+          <li class="strong">Canal WhatsApp prive</li>
+          <li>Gros evenements (Ligue des Champions, finales)</li>
+          <li>ROI tracking personnalise</li>
+          <li>Ligne directe avec Julien</li>
+        </ul>
+        <a href="#" class="btn btn-secondary">Acceder VIP</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =========================== FAQ =========================== -->
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow reveal">FAQ</span>
+      <h2 class="reveal">Les questions qu'on nous pose.</h2>
+    </div>
+
+    <div class="faq-list reveal">
+      <div class="faq-item" aria-expanded="true">
+        <button class="faq-q" aria-controls="faq-1" aria-expanded="true">
+          <span>Suis-je sur de gagner ?</span>
+          <span class="faq-chev" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="faq-a" id="faq-1">
+          <div class="faq-a-inner">
+            <p>Non. Aucun pronostiqueur serieux ne le promet. On affiche notre ROI reel, pertes incluses. Le pari sportif reste un risque.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-controls="faq-2" aria-expanded="false">
+          <span>C'est legal en France ?</span>
+          <span class="faq-chev" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="faq-a" id="faq-2">
+          <div class="faq-a-inner">
+            <p>Oui. Le conseil en pronostics n'est pas reglemente par l'ANJ (seuls les operateurs de paris le sont). On n'organise pas de paris, on conseille.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-controls="faq-3" aria-expanded="false">
+          <span>Comment je recois mon prono ?</span>
+          <span class="faq-chev" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="faq-a" id="faq-3">
+          <div class="faq-a-inner">
+            <p>Sur WhatsApp directement (notification), ou dans ton espace membre sur le site.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-controls="faq-4" aria-expanded="false">
+          <span>Puis-je annuler a tout moment ?</span>
+          <span class="faq-chev" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="faq-a" id="faq-4">
+          <div class="faq-a-inner">
+            <p>Oui. Tous nos packs sont sans engagement, resiliable en 1 clic depuis ton compte.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-controls="faq-5" aria-expanded="false">
+          <span>Qui est derriere AJ Pronos ?</span>
+          <span class="faq-chev" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="faq-a" id="faq-5">
+          <div class="faq-a-inner">
+            <p>Alex (dev/produit) et Julien (analyste, 10 ans dans le pari sportif). Deux passionnes qui en avaient marre de parier au feeling. On a fini par systematiser ce qu'on faisait.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-controls="faq-6" aria-expanded="false">
+          <span>Combien de pronos par jour ?</span>
+          <span class="faq-chev" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="faq-a" id="faq-6">
+          <div class="faq-a-inner">
+            <p>Entre 1 (Decouverte) et 5+ multi-sports (Pro/VIP) selon ton pack.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================== CTA FINAL =========================== -->
+<section class="cta-final">
+  <div class="wrap">
+    <span class="eyebrow reveal">On y va ?</span>
+    <h2 class="reveal" style="margin-top: 1rem;">Pret a parier avec methode ?</h2>
+    <a href="#tarifs" class="btn btn-primary reveal" style="padding: 1rem 1.8rem;">Commencer gratuitement</a>
+  </div>
+</section>
+
+<!-- =========================== FOOTER =========================== -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#top" class="logo">
+          <span class="logo-aj">AJ</span>
+          <span class="logo-pronos">PRONOS</span>
+        </a>
+        <p>Conseil en paris sportifs. Expertise humaine, methode rigoureuse, ROI public. Communication sur WhatsApp Business.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Produit</h4>
+        <ul>
+          <li><a href="#methode">Methode</a></li>
+          <li><a href="#qui-on-est">Qui on est</a></li>
+          <li><a href="#pronos">Historique ROI</a></li>
+          <li><a href="#tarifs">Tarifs</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Mentions legales</a></li>
+          <li><a href="#">CGV</a></li>
+          <li><a href="#">CGU</a></li>
+          <li><a href="#">Politique de confidentialite</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="#">WhatsApp Business</a></li>
+          <li><a href="mailto:hello@ajpronos.fr">hello@ajpronos.fr</a></li>
+          <li><a href="#">Support</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="legal-strip">
+      <p><strong>Les paris sportifs comportent des risques d'addiction et de pertes financieres. Reserve aux +18 ans.</strong></p>
+      <p>Si vous avez un probleme avec le jeu : Joueurs Info Service, <a href="tel:0974751313">09 74 75 13 13</a> — <a href="https://www.joueurs-info-service.fr" rel="noopener">joueurs-info-service.fr</a></p>
+    </div>
+
+    <div class="copyright">
+      <span>© 2026 AJ Pronos — Tous droits reserves</span>
+      <span class="mono">v2.0 — light</span>
+    </div>
+  </div>
+</footer>
+
+<!-- =========================== JS =========================== -->
+<script>
+(function () {
+  'use strict';
+
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // nav scroll state
+  var nav = document.getElementById('nav');
+  function onScroll() {
+    if (window.scrollY > 12) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // mobile burger
+  var burger = document.getElementById('burger');
+  var mobileMenu = document.getElementById('mobile-menu');
+  if (burger && mobileMenu) {
+    burger.addEventListener('click', function () {
+      var open = mobileMenu.classList.toggle('open');
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      mobileMenu.setAttribute('aria-hidden', open ? 'false' : 'true');
+    });
+    mobileMenu.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        mobileMenu.classList.remove('open');
+        burger.setAttribute('aria-expanded', 'false');
+        mobileMenu.setAttribute('aria-hidden', 'true');
+      });
+    });
+  }
+
+  // reveal on scroll + stagger
+  var revealEls = document.querySelectorAll('.reveal');
+  if (reduced) {
+    revealEls.forEach(function (el) { el.classList.add('in'); });
+  } else if ('IntersectionObserver' in window) {
+    var groups = new WeakMap();
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          var section = entry.target.closest('section, header') || entry.target.parentElement;
+          if (!groups.has(section)) groups.set(section, 0);
+          var idx = groups.get(section);
+          groups.set(section, idx + 1);
+          entry.target.style.transitionDelay = (idx * 80) + 'ms';
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    revealEls.forEach(function (el) { io.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  // count up
+  var counters = document.querySelectorAll('[data-count]');
+  function animateCount(el) {
+    var target = parseFloat(el.getAttribute('data-count'));
+    var suffix = el.getAttribute('data-suffix') || '';
+    var prefix = el.getAttribute('data-prefix') || '';
+    var decimals = (target % 1 !== 0) ? 1 : 0;
+    if (reduced) {
+      el.textContent = prefix + target.toLocaleString('fr-FR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix;
+      return;
+    }
+    var dur = 1200;
+    var start = performance.now();
+    function step(now) {
+      var p = Math.min(1, (now - start) / dur);
+      var eased = 1 - Math.pow(1 - p, 3);
+      var val = target * eased;
+      el.textContent = prefix + val.toLocaleString('fr-FR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  if ('IntersectionObserver' in window) {
+    var co = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          animateCount(entry.target);
+          co.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    counters.forEach(function (c) { co.observe(c); });
+  } else {
+    counters.forEach(animateCount);
+  }
+
+  // pricing toggle
+  var toggleBtns = document.querySelectorAll('.toggle button[data-period]');
+  toggleBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var period = btn.getAttribute('data-period');
+      toggleBtns.forEach(function (b) {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+      document.querySelectorAll('[data-monthly][data-yearly]').forEach(function (el) {
+        var value = el.getAttribute('data-' + period);
+        if (!value) return;
+        var suffix = el.querySelector('.suffix');
+        if (suffix) {
+          el.firstChild.nodeValue = value;
+        } else {
+          el.textContent = value;
+        }
+      });
+    });
+  });
+
+  // FAQ accordion
+  var faqItems = document.querySelectorAll('.faq-item');
+  faqItems.forEach(function (item) {
+    var btn = item.querySelector('.faq-q');
+    var panel = item.querySelector('.faq-a');
+    function setOpen(open) {
+      item.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      panel.style.maxHeight = open ? (panel.scrollHeight + 'px') : '0px';
+    }
+    setOpen(item.getAttribute('aria-expanded') === 'true');
+    btn.addEventListener('click', function () {
+      var open = item.getAttribute('aria-expanded') !== 'true';
+      faqItems.forEach(function (other) {
+        if (other !== item) {
+          other.setAttribute('aria-expanded', 'false');
+          other.querySelector('.faq-q').setAttribute('aria-expanded', 'false');
+          other.querySelector('.faq-a').style.maxHeight = '0px';
+        }
+      });
+      setOpen(open);
+    });
+  });
+
+  window.addEventListener('load', function () {
+    var openItem = document.querySelector('.faq-item[aria-expanded="true"]');
+    if (openItem) {
+      var p = openItem.querySelector('.faq-a');
+      p.style.maxHeight = p.scrollHeight + 'px';
+    }
+  });
+
+})();
+</script>
+
+</body>
+</html>

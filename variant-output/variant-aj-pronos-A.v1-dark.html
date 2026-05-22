@@ -1,0 +1,1709 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0A0A0A" />
+<title>AJ Pronos — Le pari sportif, avec methode.</title>
+<meta name="description" content="Conseil en paris sportifs. Notre agent IA analyse compositions, blessures et cotes en temps reel. Un expert humain valide chaque prono avant de te l'envoyer sur WhatsApp." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  /* =========================================================
+     AJ PRONOS — Variant A "Pedagogique"
+     Direction : calme, posee, professionnelle. Beaucoup d'air.
+     ========================================================= */
+
+  :root {
+    --bg-base: #0A0A0A;
+    --bg-elevated: #141414;
+    --bg-deeper: #08080C;
+    --border-faint: rgba(255,255,255,0.08);
+    --border-soft: rgba(255,255,255,0.12);
+    --text-primary: #FAFAFA;
+    --text-muted: #A1A1AA;
+    --text-dim: #71717A;
+    --gold-500: #D4AF37;
+    --gold-300: #F5D77A;
+    --gold-900: #3D2F0A;
+    --gold-glow: rgba(212, 175, 55, 0.15);
+    --success: #10B981;
+    --danger: #EF4444;
+
+    --font-sans: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --container: 1180px;
+    --container-narrow: 880px;
+    --section-y: clamp(5rem, 10vw, 9rem);
+    --radius-card: 16px;
+    --radius-pill: 999px;
+
+    --ease-out: cubic-bezier(.16,.84,.44,1);
+  }
+
+  /* ------- Reset minimal ------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--bg-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  img, svg { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+  ul, ol { margin: 0; padding: 0; list-style: none; }
+
+  ::selection { background: var(--gold-500); color: var(--bg-base); }
+
+  /* ------- Grain texture (subtle noise) ------- */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+  }
+
+  /* ------- Focus visible ------- */
+  :focus-visible {
+    outline: 2px solid var(--gold-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ------- Layout helpers ------- */
+  .container {
+    width: 100%;
+    max-width: var(--container);
+    margin: 0 auto;
+    padding-left: clamp(1.25rem, 4vw, 2.5rem);
+    padding-right: clamp(1.25rem, 4vw, 2.5rem);
+  }
+  .container--narrow {
+    max-width: var(--container-narrow);
+  }
+  section { position: relative; padding-top: var(--section-y); padding-bottom: var(--section-y); }
+  .section--deeper { background: var(--bg-deeper); }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background: var(--gold-500);
+    opacity: 0.6;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0;
+    color: var(--text-primary);
+  }
+  h1 { font-size: clamp(2.5rem, 7vw, 5rem); }
+  h2 { font-size: clamp(2.25rem, 5.5vw, 4rem); }
+  h3 { font-size: clamp(1.25rem, 2.4vw, 1.625rem); letter-spacing: -0.015em; }
+  h4 { font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.01em; }
+
+  p { margin: 0; color: var(--text-muted); }
+  .lead {
+    font-size: clamp(1rem, 1.6vw, 1.1875rem);
+    line-height: 1.65;
+    color: var(--text-muted);
+    max-width: 56ch;
+  }
+
+  /* ------- Buttons ------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.95rem 1.6rem;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    letter-spacing: -0.005em;
+    transition: transform 300ms var(--ease-out), background 300ms var(--ease-out), border-color 300ms var(--ease-out), box-shadow 300ms var(--ease-out), color 300ms var(--ease-out);
+    will-change: transform;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--gold-500);
+    color: var(--bg-base);
+    box-shadow: 0 4px 30px rgba(212,175,55,0.2);
+  }
+  .btn-primary:hover {
+    transform: scale(1.02);
+    background: var(--gold-300);
+    box-shadow: 0 6px 40px rgba(212,175,55,0.35);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-soft);
+  }
+  .btn-secondary:hover {
+    border-color: var(--gold-500);
+    color: var(--gold-300);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    padding: 0.6rem 0;
+  }
+  .btn-ghost:hover { color: var(--gold-300); }
+  .btn-arrow::after {
+    content: "→";
+    transition: transform 300ms var(--ease-out);
+  }
+  .btn-arrow:hover::after { transform: translateX(3px); }
+
+  /* ============================================================
+     NAVIGATION
+     ============================================================ */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 1rem 0;
+    background: transparent;
+    transition: background 300ms var(--ease-out), border-color 300ms var(--ease-out), backdrop-filter 300ms var(--ease-out);
+    border-bottom: 1px solid transparent;
+  }
+  .nav.is-scrolled {
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: saturate(160%) blur(14px);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    border-bottom-color: var(--border-faint);
+  }
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+  .logo {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    line-height: 1;
+  }
+  .logo__mark {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--gold-500);
+    letter-spacing: -0.02em;
+  }
+  .logo__word {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .nav__links {
+    display: none;
+    align-items: center;
+    gap: 2.2rem;
+  }
+  .nav__link {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    transition: color 200ms var(--ease-out);
+    position: relative;
+  }
+  .nav__link:hover { color: var(--text-primary); }
+  .nav__link::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 0; right: 0;
+    height: 1px;
+    background: var(--gold-500);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 300ms var(--ease-out);
+  }
+  .nav__link:hover::after { transform: scaleX(1); }
+
+  .nav__cta { display: none; }
+
+  .nav__burger {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-soft);
+    border-radius: 50%;
+  }
+  .nav__burger span {
+    width: 14px;
+    height: 1px;
+    background: var(--text-primary);
+    transition: transform 300ms var(--ease-out), opacity 200ms var(--ease-out);
+  }
+  .nav.is-open .nav__burger span:nth-child(1) { transform: translateY(3px) rotate(45deg); }
+  .nav.is-open .nav__burger span:nth-child(2) { opacity: 0; }
+  .nav.is-open .nav__burger span:nth-child(3) { transform: translateY(-3px) rotate(-45deg); }
+
+  /* Mobile drawer */
+  .nav__mobile {
+    position: fixed;
+    inset: 64px 0 0 0;
+    background: var(--bg-base);
+    padding: 2.5rem clamp(1.25rem, 4vw, 2.5rem);
+    transform: translateY(-110%);
+    transition: transform 400ms var(--ease-out);
+    z-index: 99;
+    border-top: 1px solid var(--border-faint);
+  }
+  .nav.is-open .nav__mobile { transform: translateY(0); }
+  .nav__mobile a {
+    display: block;
+    padding: 1rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    border-bottom: 1px solid var(--border-faint);
+  }
+  .nav__mobile .btn { margin-top: 2rem; width: 100%; }
+
+  @media (min-width: 760px) {
+    .nav__links { display: inline-flex; }
+    .nav__cta { display: inline-flex; }
+    .nav__burger { display: none; }
+    .nav__mobile { display: none; }
+  }
+
+  /* ============================================================
+     HERO
+     ============================================================ */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding-top: clamp(7rem, 16vh, 10rem);
+    padding-bottom: clamp(4rem, 8vh, 6rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    text-align: center;
+    background: var(--bg-base);
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(212,175,55,0.06), transparent 60%);
+    pointer-events: none;
+  }
+  .hero::after {
+    /* subtle grid lines */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 80px 80px;
+    mask-image: radial-gradient(ellipse at center, black 35%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 35%, transparent 75%);
+    pointer-events: none;
+  }
+  .hero__inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+  .hero h1 {
+    max-width: 14ch;
+    margin: 0 auto;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--gold-500);
+    font-weight: 700;
+    display: inline-block;
+  }
+  .hero__sub {
+    max-width: 58ch;
+    margin: 0 auto;
+    font-size: clamp(1rem, 1.5vw, 1.1875rem);
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+  .hero__scroll {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    z-index: 2;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .hero__scroll-line {
+    width: 1px;
+    height: 36px;
+    background: linear-gradient(to bottom, var(--gold-500), transparent);
+    animation: scrollPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(0.6); transform-origin: top; }
+    50% { opacity: 1; transform: scaleY(1); }
+  }
+
+  /* ============================================================
+     STATS BAND (Bandeau preuve)
+     ============================================================ */
+  .stats-band {
+    padding: clamp(2.5rem, 5vw, 4rem) 0;
+    border-top: 1px solid var(--border-faint);
+    border-bottom: 1px solid var(--border-faint);
+    background: var(--bg-deeper);
+  }
+  .stats-band__inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    text-align: center;
+  }
+  .stat__value {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    display: block;
+  }
+  .stat__value--gold { color: var(--gold-500); }
+  .stat__label {
+    margin-top: 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  @media (min-width: 760px) {
+    .stats-band__inner {
+      grid-template-columns: 1fr 1px 1fr 1px 1fr;
+      align-items: center;
+      gap: 0;
+    }
+    .stats-band__divider {
+      width: 1px;
+      height: 60px;
+      background: var(--border-faint);
+      margin: 0 auto;
+    }
+  }
+
+  /* ============================================================
+     SECTION HEADER (reused)
+     ============================================================ */
+  .section-head {
+    max-width: 760px;
+    margin-bottom: clamp(3rem, 6vw, 5rem);
+  }
+  .section-head--center {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .section-head__title {
+    margin-top: 1.2rem;
+  }
+  .section-head__lead {
+    margin-top: 1.5rem;
+  }
+  .section-head--center .section-head__lead { margin-left: auto; margin-right: auto; }
+  .section-head--center .eyebrow { justify-content: center; }
+  .section-head--center .eyebrow::before { display: none; }
+  .section-head--center .eyebrow::after {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background: var(--gold-500);
+    opacity: 0.6;
+    margin-left: 0.6rem;
+  }
+
+  /* ============================================================
+     METHODE — 3 STEPS
+     ============================================================ */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .step {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: start;
+    padding: clamp(1.75rem, 4vw, 2.75rem);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: var(--radius-card);
+    transition: border-color 300ms var(--ease-out), transform 300ms var(--ease-out), background 300ms var(--ease-out);
+  }
+  .step:hover {
+    border-color: rgba(212,175,55,0.3);
+    transform: translateY(-2px);
+  }
+  .step__num {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+    color: var(--gold-500);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    min-width: 2.5ch;
+  }
+  .step__body h3 {
+    margin-bottom: 0.85rem;
+  }
+  .step__body p {
+    max-width: 60ch;
+    line-height: 1.7;
+  }
+  .step__connector {
+    position: absolute;
+    left: clamp(2.5rem, 5vw, 4rem);
+    bottom: -1rem;
+    height: 1rem;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--gold-500), transparent);
+    opacity: 0.4;
+  }
+  .step:last-child .step__connector { display: none; }
+
+  /* ============================================================
+     IA EDGE — 2x2 grid
+     ============================================================ */
+  .edge-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  @media (min-width: 760px) {
+    .edge-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+  }
+  .edge-card {
+    padding: clamp(1.75rem, 3vw, 2.25rem);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: var(--radius-card);
+    transition: border-color 300ms var(--ease-out), transform 300ms var(--ease-out);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .edge-card:hover {
+    border-color: rgba(212,175,55,0.3);
+    transform: translateY(-2px);
+  }
+  .edge-card__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(212,175,55,0.08);
+    border: 1px solid rgba(212,175,55,0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold-500);
+  }
+  .edge-card__icon svg { width: 20px; height: 20px; }
+  .edge-card h3 { font-size: 1.125rem; }
+  .edge-card p { line-height: 1.65; }
+
+  /* ============================================================
+     ROI TRANSPARENCY
+     ============================================================ */
+  .roi-wrap {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2rem, 4vw, 3rem);
+    align-items: start;
+  }
+  @media (min-width: 1100px) {
+    .roi-wrap { grid-template-columns: 1.05fr 0.95fr; }
+  }
+  .roi-summary {
+    padding: clamp(1.75rem, 3vw, 2.5rem);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: var(--radius-card);
+    position: sticky;
+    top: 100px;
+  }
+  .roi-summary__big {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: clamp(3rem, 7vw, 4.5rem);
+    line-height: 1;
+    color: var(--gold-500);
+    letter-spacing: -0.03em;
+  }
+  .roi-summary__label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 0.7rem;
+  }
+  .roi-summary__mini {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--border-faint);
+  }
+  .roi-mini__num {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+  .roi-mini__num .pos { color: var(--success); }
+  .roi-mini__num .neg { color: var(--danger); }
+  .roi-mini__label {
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+
+  .roi-list {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+  }
+  .roi-list__head {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-faint);
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .roi-list__head .col-meta { display: none; }
+  @media (min-width: 760px) {
+    .roi-list__head { grid-template-columns: 88px 56px 1fr 80px 80px; }
+    .roi-list__head .col-meta { display: block; }
+  }
+
+  .roi-row {
+    padding: 0.95rem 1.5rem;
+    border-bottom: 1px solid var(--border-faint);
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    transition: background 200ms var(--ease-out);
+  }
+  .roi-row:last-child { border-bottom: 0; }
+  .roi-row:hover { background: rgba(255,255,255,0.02); }
+  .roi-row__date {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+  .roi-row__sport {
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  .roi-row__pick {
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .roi-row__pick small { display: block; color: var(--text-dim); font-weight: 400; font-size: 0.78rem; margin-top: 0.15rem; }
+  .roi-row__odd {
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .roi-row__res {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid;
+    text-align: center;
+    min-width: 64px;
+  }
+  .roi-row__res--win { color: var(--success); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08); }
+  .roi-row__res--loss { color: var(--danger); border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.08); }
+  @media (min-width: 760px) {
+    .roi-row { grid-template-columns: 88px 56px 1fr 80px 80px; }
+    .roi-row__sport { display: block; }
+    .roi-row__odd { display: block; }
+  }
+
+  .roi-disclaimer {
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    max-width: 60ch;
+  }
+
+  /* ============================================================
+     PRICING
+     ============================================================ */
+  .pricing-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: var(--radius-pill);
+    margin: 2rem auto 3.5rem;
+  }
+  .pricing-toggle__btn {
+    padding: 0.55rem 1.15rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: color 300ms var(--ease-out), background 300ms var(--ease-out);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .pricing-toggle__btn.is-active {
+    background: var(--gold-500);
+    color: var(--bg-base);
+    font-weight: 600;
+  }
+  .pricing-toggle__badge {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    background: rgba(10,10,10,0.18);
+  }
+  .pricing-toggle__btn:not(.is-active) .pricing-toggle__badge {
+    background: rgba(212,175,55,0.15);
+    color: var(--gold-300);
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  @media (min-width: 760px) { .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1100px) { .pricing-grid { grid-template-columns: repeat(4, 1fr); } }
+
+  .price-card {
+    position: relative;
+    padding: 1.75rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: var(--radius-card);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    transition: border-color 300ms var(--ease-out), transform 300ms var(--ease-out), background 300ms var(--ease-out);
+  }
+  .price-card:hover {
+    border-color: rgba(212,175,55,0.3);
+    transform: translateY(-2px);
+  }
+  .price-card--featured {
+    border-color: rgba(212,175,55,0.4);
+    background: linear-gradient(180deg, rgba(212,175,55,0.04), transparent 60%), var(--bg-elevated);
+    box-shadow: 0 0 0 1px rgba(212,175,55,0.1), 0 12px 60px -10px rgba(212,175,55,0.12);
+  }
+  .price-card__badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem;
+    background: var(--gold-500);
+    color: var(--bg-base);
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+  }
+  .price-card__name {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1.0625rem;
+    color: var(--text-primary);
+    letter-spacing: -0.005em;
+  }
+  .price-card__price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+  .price-card__amount {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    line-height: 1;
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+  }
+  .price-card__unit {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+  .price-card__hint {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 0.35rem;
+  }
+  .price-card__features {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin: 0;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-faint);
+  }
+  .price-card__features li {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    padding-left: 1.4rem;
+    position: relative;
+  }
+  .price-card__features li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--gold-500);
+    border-radius: 50%;
+  }
+  .price-card .btn {
+    margin-top: auto;
+    width: 100%;
+  }
+
+  /* ============================================================
+     FAQ
+     ============================================================ */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    max-width: 820px;
+    margin: 0 auto;
+  }
+  .faq-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-faint);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    transition: border-color 300ms var(--ease-out);
+  }
+  .faq-item.is-open { border-color: rgba(212,175,55,0.3); }
+  .faq-q {
+    width: 100%;
+    text-align: left;
+    padding: 1.4rem 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    font-size: 1.0625rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.4;
+  }
+  .faq-q__icon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border-soft);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: border-color 300ms var(--ease-out), background 300ms var(--ease-out);
+  }
+  .faq-q__icon::before,
+  .faq-q__icon::after {
+    content: "";
+    position: absolute;
+    background: var(--text-primary);
+    transition: transform 300ms var(--ease-out), opacity 200ms var(--ease-out);
+  }
+  .faq-q__icon::before { width: 10px; height: 1px; }
+  .faq-q__icon::after { width: 1px; height: 10px; }
+  .faq-item.is-open .faq-q__icon { background: var(--gold-500); border-color: var(--gold-500); }
+  .faq-item.is-open .faq-q__icon::before { background: var(--bg-base); }
+  .faq-item.is-open .faq-q__icon::after { opacity: 0; }
+
+  .faq-a {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 400ms var(--ease-out);
+  }
+  .faq-a__inner {
+    padding: 0 1.6rem 1.5rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 70ch;
+  }
+
+  /* ============================================================
+     CTA FINAL
+     ============================================================ */
+  .cta-final {
+    text-align: center;
+    background: radial-gradient(ellipse at center, rgba(212,175,55,0.08), transparent 65%), var(--bg-deeper);
+    border-top: 1px solid var(--border-faint);
+    border-bottom: 1px solid var(--border-faint);
+    padding: clamp(5rem, 10vw, 8rem) 0;
+  }
+  .cta-final h2 { max-width: 18ch; margin: 0 auto; }
+  .cta-final p { margin: 1.5rem auto 2.25rem; max-width: 52ch; }
+
+  /* ============================================================
+     FOOTER
+     ============================================================ */
+  .footer {
+    background: var(--bg-base);
+    padding: clamp(4rem, 7vw, 6rem) 0 2rem;
+    border-top: 1px solid var(--border-faint);
+  }
+  .footer__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    margin-bottom: 3.5rem;
+  }
+  @media (min-width: 760px) {
+    .footer__grid {
+      grid-template-columns: 1.4fr repeat(3, 1fr);
+      gap: 3rem;
+    }
+  }
+  .footer__brand p {
+    margin-top: 1.25rem;
+    max-width: 38ch;
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+  .footer__col h4 {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+  }
+  .footer__col ul { display: flex; flex-direction: column; gap: 0.7rem; }
+  .footer__col a {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    transition: color 200ms var(--ease-out);
+  }
+  .footer__col a:hover { color: var(--gold-300); }
+
+  .footer__legal {
+    padding: 2rem 0;
+    border-top: 1px solid var(--border-faint);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .footer__legal strong { color: var(--text-muted); font-weight: 500; }
+  .footer__legal a { color: var(--text-muted); text-decoration: underline; text-decoration-color: rgba(255,255,255,0.15); text-underline-offset: 3px; }
+  .footer__legal a:hover { color: var(--gold-300); text-decoration-color: var(--gold-500); }
+
+  .footer__copy {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-faint);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+  }
+
+  /* ============================================================
+     REVEAL ANIMATIONS
+     ============================================================ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 900ms var(--ease-out), transform 900ms var(--ease-out);
+    transition-delay: var(--delay, 0ms);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+    .reveal { opacity: 1; transform: none; }
+    .hero__scroll-line { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     NAVIGATION
+     ============================================================ -->
+<header class="nav" id="nav">
+  <div class="container nav__inner">
+    <a href="#" class="logo" aria-label="AJ Pronos, retour en haut">
+      <span class="logo__mark">AJ</span>
+      <span class="logo__word">Pronos</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Navigation principale">
+      <a class="nav__link" href="#methode">Methode</a>
+      <a class="nav__link" href="#pronos">Pronos</a>
+      <a class="nav__link" href="#tarifs">Tarifs</a>
+      <a class="nav__link" href="#faq">FAQ</a>
+    </nav>
+
+    <a href="#tarifs" class="btn btn-primary nav__cta">Commencer</a>
+
+    <button class="nav__burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="navMobile">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <div class="nav__mobile" id="navMobile" aria-hidden="true">
+    <a href="#methode">Methode</a>
+    <a href="#pronos">Pronos</a>
+    <a href="#tarifs">Tarifs</a>
+    <a href="#faq">FAQ</a>
+    <a href="#tarifs" class="btn btn-primary">Commencer gratuitement</a>
+  </div>
+</header>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="hero" aria-label="Introduction">
+  <div class="container hero__inner">
+    <span class="eyebrow reveal">Conseil en paris sportifs</span>
+    <h1 class="reveal" style="--delay: 80ms;">Le pari sportif, <em>avec methode.</em></h1>
+    <p class="hero__sub reveal" style="--delay: 160ms;">
+      Notre agent IA analyse les compositions, les blessures, la forme et les cotes en temps reel. Un expert humain valide chaque prono avant de te l'envoyer sur WhatsApp.
+    </p>
+    <div class="hero__ctas reveal" style="--delay: 240ms;">
+      <a href="#methode" class="btn btn-primary btn-arrow">Decouvrir la methode</a>
+      <a href="#decouverte" class="btn btn-secondary">Voir un prono gratuit</a>
+    </div>
+  </div>
+
+  <a href="#preuve" class="hero__scroll" aria-label="Faire defiler vers la suite">
+    <span>Scroll</span>
+    <span class="hero__scroll-line" aria-hidden="true"></span>
+  </a>
+</section>
+
+<!-- ============================================================
+     STATS BAND
+     ============================================================ -->
+<section class="stats-band" id="preuve" aria-label="Bandeau de preuve sociale">
+  <div class="container stats-band__inner">
+    <div class="stat reveal">
+      <span class="stat__value stat__value--gold" data-count-up data-target="18.4" data-suffix="%" data-prefix="+" data-decimals="1">+0,0%</span>
+      <span class="stat__label">ROI 30 jours</span>
+    </div>
+    <div class="stats-band__divider" aria-hidden="true"></div>
+    <div class="stat reveal" style="--delay: 100ms;">
+      <span class="stat__value" data-count-up data-target="1240" data-suffix="+">0</span>
+      <span class="stat__label">Paris analyses</span>
+    </div>
+    <div class="stats-band__divider" aria-hidden="true"></div>
+    <div class="stat reveal" style="--delay: 200ms;">
+      <span class="stat__value" data-count-up data-target="340">0</span>
+      <span class="stat__label">Membres actifs</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     METHODE — 3 STEPS
+     ============================================================ -->
+<section id="methode" aria-label="Notre methode">
+  <div class="container">
+    <header class="section-head reveal">
+      <span class="eyebrow">Notre methode</span>
+      <h2 class="section-head__title">Trois etapes. Une seule promesse&nbsp;: ne te proposer que ce en quoi on croit.</h2>
+      <p class="section-head__lead lead">
+        On ne te vend pas une "intuition". On combine la puissance d'analyse de notre IA avec le jugement d'un pronostiqueur experimente. C'est cette double validation qui fait notre difference.
+      </p>
+    </header>
+
+    <ol class="steps">
+      <li class="step reveal">
+        <span class="step__num" aria-hidden="true">01</span>
+        <div class="step__body">
+          <h3>L'IA collecte</h3>
+          <p>Compositions, blessures, forme recente, head-to-head, cotes en temps reel. 100x plus de donnees qu'un humain en 5 secondes. Pas de biais, pas d'a-priori&nbsp;: juste les chiffres bruts qui composent la realite d'un match.</p>
+        </div>
+        <span class="step__connector" aria-hidden="true"></span>
+      </li>
+      <li class="step reveal" style="--delay: 100ms;">
+        <span class="step__num" aria-hidden="true">02</span>
+        <div class="step__body">
+          <h3>L'expert valide</h3>
+          <p>Chaque pari propose par l'IA est analyse manuellement par notre pronostiqueur. Contexte, intuition, lecture tactique, dynamique d'equipe&nbsp;: il filtre. On ne publie que ce en quoi on croit. Souvent, c'est moins de la moitie des picks proposes.</p>
+        </div>
+        <span class="step__connector" aria-hidden="true"></span>
+      </li>
+      <li class="step reveal" style="--delay: 200ms;">
+        <span class="step__num" aria-hidden="true">03</span>
+        <div class="step__body">
+          <h3>Tu recois sur WhatsApp</h3>
+          <p>Notification avec le pari, le raisonnement, la mise conseillee, et la cote minimale acceptable. Pas de canal Telegram bondee, pas de spam&nbsp;: une conversation propre, sur la messagerie que tu utilises deja tous les jours.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================================================
+     IA EDGE
+     ============================================================ -->
+<section class="section--deeper" id="ia-edge" aria-label="L'edge IA">
+  <div class="container">
+    <header class="section-head section-head--center reveal">
+      <span class="eyebrow">L'edge IA</span>
+      <h2 class="section-head__title">Pourquoi l'IA change la donne.</h2>
+      <p class="section-head__lead lead">
+        L'IA seule, c'est un gadget. Mais combinee a un expert, elle devient une loupe&nbsp;: elle voit ce qu'un humain ne peut pas voir en temps reel, et libere notre pronostiqueur pour faire ce qu'il fait le mieux, juger.
+      </p>
+    </header>
+
+    <div class="edge-grid">
+      <article class="edge-card reveal">
+        <span class="edge-card__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M5 21v-1a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v1"/></svg>
+        </span>
+        <h3>Composition d'equipe a jour 1h avant le match</h3>
+        <p>Notre systeme scrute les annonces officielles des clubs en continu. Un titulaire forfait de derniere minute change tout&nbsp;: on le voit avant que le marche n'ajuste.</p>
+      </article>
+
+      <article class="edge-card reveal" style="--delay: 100ms;">
+        <span class="edge-card__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 3 5-7"/></svg>
+        </span>
+        <h3>Detection automatique des "value bets"</h3>
+        <p>L'IA compare en permanence la cote affichee par les bookmakers a la probabilite reelle calculee. Quand l'ecart est significatif, c'est un value bet&nbsp;: on l'attrape avant qu'il disparaisse.</p>
+      </article>
+
+      <article class="edge-card reveal" style="--delay: 200ms;">
+        <span class="edge-card__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/></svg>
+        </span>
+        <h3>Historique head-to-head sur 5 ans</h3>
+        <p>Certaines confrontations ont des dynamiques sourdes&nbsp;: rivalites, complexes, stats croisees. Cinq ans d'historique, pondere par contexte, integre dans chaque modele.</p>
+      </article>
+
+      <article class="edge-card reveal" style="--delay: 300ms;">
+        <span class="edge-card__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+        </span>
+        <h3>Forme dynamique ponderee</h3>
+        <p>Les 5 derniers matchs comptent plus que la saison entiere. Une equipe relancee par un nouveau coach, ca se voit dans les chiffres avant que le marche n'en prenne acte.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ROI TRANSPARENCY
+     ============================================================ -->
+<section id="pronos" aria-label="Transparence ROI">
+  <div class="container">
+    <header class="section-head reveal">
+      <span class="eyebrow">Transparence</span>
+      <h2 class="section-head__title">Tout est public, gains et pertes.</h2>
+      <p class="section-head__lead lead">
+        On ne cache rien. Voici les 12 derniers paris envoyes a nos membres, dans l'ordre. Aucune ligne n'a ete retiree. Si on perd, on l'affiche. C'est le seul moyen de te dire honnetement combien on fait gagner.
+      </p>
+    </header>
+
+    <div class="roi-wrap">
+      <aside class="roi-summary reveal">
+        <div class="roi-summary__big" data-count-up data-target="18.4" data-suffix="%" data-prefix="+" data-decimals="1">+0,0%</div>
+        <div class="roi-summary__label">ROI cumule — 30 derniers jours</div>
+        <div class="roi-summary__mini">
+          <div>
+            <div class="roi-mini__num"><span class="pos">+38</span></div>
+            <div class="roi-mini__label">Paris gagnes</div>
+          </div>
+          <div>
+            <div class="roi-mini__num"><span class="neg">−21</span></div>
+            <div class="roi-mini__label">Paris perdus</div>
+          </div>
+          <div>
+            <div class="roi-mini__num">64,4%</div>
+            <div class="roi-mini__label">Taux de reussite</div>
+          </div>
+          <div>
+            <div class="roi-mini__num">2,18</div>
+            <div class="roi-mini__label">Cote moyenne</div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="roi-list reveal" style="--delay: 100ms;">
+        <div class="roi-list__head" role="row">
+          <div>Date</div>
+          <div class="col-meta">Sport</div>
+          <div>Pari</div>
+          <div class="col-meta">Cote</div>
+          <div>Resultat</div>
+        </div>
+
+        <div class="roi-row"><span class="roi-row__date">11 mai</span><span class="roi-row__sport">FOOT</span><span class="roi-row__pick">Inter +1.5 buts <small>Inter — Lazio · Serie A</small></span><span class="roi-row__odd">1.68</span><span class="roi-row__res roi-row__res--win">Win</span></div>
+        <div class="roi-row"><span class="roi-row__date">10 mai</span><span class="roi-row__sport">FOOT</span><span class="roi-row__pick">PSG &amp; Monaco gagnent <small>Double chance · Ligue 1</small></span><span class="roi-row__odd">2.45</span><span class="roi-row__res roi-row__res--win">Win</span></div>
+        <div class="roi-row"><span class="roi-row__date">10 mai</span><span class="roi-row__sport">TENNIS</span><span class="roi-row__pick">Sinner gagne 2-0 <small>Sinner — Tsitsipas · Rome</small></span><span class="roi-row__odd">2.10</span><span class="roi-row__res roi-row__res--loss">Loss</span></div>
+        <div class="roi-row"><span class="roi-row__date">09 mai</span><span class="roi-row__sport">FOOT</span><span class="roi-row__pick">Over 2.5 buts <small>Liverpool — Tottenham</small></span><span class="roi-row__odd">1.80</span><span class="roi-row__res roi-row__res--win">Win</span></div>
+        <div class="roi-row"><span class="roi-row__date">08 mai</span><span class="roi-row__sport">FOOT</span><span class="roi-row__pick">Real Madrid victoire <small>Demi-finale · LDC</small></span><span class="roi-row__odd">1.95</span><span class="roi-row__res roi-row__res--win">Win</span></div>
+        <div class="roi-row"><span class="roi-row__date">07 mai</span><span class="roi-row__sport">FOOT</span><span class="roi-row__pick">BTTS Bayer Leverkusen <small>Bundesliga</small></span><span class="roi-row__odd">1.72</span><span class="roi-row__res roi-row__res--win">Win</span></div>
+        <div class="roi-row"><span class="roi-row__date">06 mai</span><span class="roi-row__sport">BASKET</span><span class="roi-row__pick">Boston Celtics −5.5 <small>Playoffs NBA</small></span><span class="roi-row__odd">1.91</span><span class="roi-row__res roi-row__res--loss">Loss</span></div>
+        <div class="roi-row"><span class="roi-row__date">05 mai</span><span class="roi-row__sport">FOOT</span><span class="roi-row__pick">Atletico victoire mi-temps <small>Liga</small></span><span class="roi-row__odd">2.35</span><span class="roi-row__res roi-row__res--win">Win</span></div>
+        <div class="roi-row"><span class="roi-row__date">04 mai</span><span class="roi-row__sport">FOOT</span><span class="roi-row__pick">Marseille gagne &amp; +1.5 <small>Ligue 1</small></span><span class="roi-row__odd">2.05</span><span class="roi-row__res roi-row__res--win">Win</span></div>
+        <div class="roi-row"><span class="roi-row__date">03 mai</span><span class="roi-row__sport">TENNIS</span><span class="roi-row__pick">Alcaraz 2-0 <small>Madrid Open</small></span><span class="roi-row__odd">1.55</span><span class="roi-row__res roi-row__res--win">Win</span></div>
+        <div class="roi-row"><span class="roi-row__date">02 mai</span><span class="roi-row__sport">FOOT</span><span class="roi-row__pick">Bayern Munich −1 handicap <small>Bundesliga</small></span><span class="roi-row__odd">1.88</span><span class="roi-row__res roi-row__res--loss">Loss</span></div>
+        <div class="roi-row"><span class="roi-row__date">01 mai</span><span class="roi-row__sport">FOOT</span><span class="roi-row__pick">Over 1.5 buts mi-temps <small>Manchester City</small></span><span class="roi-row__odd">2.20</span><span class="roi-row__res roi-row__res--win">Win</span></div>
+
+        <p class="roi-disclaimer" style="padding: 1.25rem 1.5rem;">Les 30 derniers jours sont resumes ici&nbsp;: aucune ligne n'a ete masquee. Historique complet disponible pour tous les abonnes dans l'espace membre.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PRICING
+     ============================================================ -->
+<section class="section--deeper" id="tarifs" aria-label="Tarifs et abonnements">
+  <div class="container">
+    <header class="section-head section-head--center reveal">
+      <span class="eyebrow">Tarifs</span>
+      <h2 class="section-head__title">Choisis ton pack, sans engagement.</h2>
+      <p class="section-head__lead lead">
+        Tous les packs sont resiliables en 1 clic. Tu peux commencer en gratuit pour tester nos pronos, puis monter en gamme quand tu te sens pret. Aucun frais cache, aucune relance.
+      </p>
+
+      <div class="pricing-toggle reveal" role="tablist" aria-label="Periodicite tarifaire" style="--delay: 100ms;">
+        <button class="pricing-toggle__btn is-active" data-period="monthly" role="tab" aria-selected="true">Mensuel</button>
+        <button class="pricing-toggle__btn" data-period="yearly" role="tab" aria-selected="false">
+          Annuel
+          <span class="pricing-toggle__badge">−20%</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="pricing-grid">
+      <article class="price-card reveal">
+        <header>
+          <div class="price-card__name">Decouverte</div>
+          <div class="price-card__price"><span class="price-card__amount">0&nbsp;€</span></div>
+          <p class="price-card__hint">Sans inscription</p>
+        </header>
+        <ul class="price-card__features">
+          <li>1 prono foot par jour</li>
+          <li>Raisonnement complet du pari</li>
+          <li>Pas de carte bancaire requise</li>
+        </ul>
+        <a href="#decouverte" class="btn btn-secondary">Tester gratuitement</a>
+      </article>
+
+      <article class="price-card price-card--featured reveal" style="--delay: 80ms;">
+        <span class="price-card__badge">Le plus populaire</span>
+        <header>
+          <div class="price-card__name">Starter</div>
+          <div class="price-card__price">
+            <span class="price-card__amount" data-price data-monthly="9,90" data-yearly="7,92">9,90&nbsp;€</span>
+            <span class="price-card__unit" data-unit data-monthly="/mois" data-yearly="/mois">/mois</span>
+          </div>
+          <p class="price-card__hint">Sans engagement, resiliable en 1 clic</p>
+        </header>
+        <ul class="price-card__features">
+          <li>Tous les pronos foot (3 a 5 par jour)</li>
+          <li>Acces a l'app et au site membre</li>
+          <li>Alertes push instantanees</li>
+          <li>WhatsApp Business inclus</li>
+        </ul>
+        <a href="#" class="btn btn-primary">Commencer maintenant</a>
+      </article>
+
+      <article class="price-card reveal" style="--delay: 160ms;">
+        <header>
+          <div class="price-card__name">Pro</div>
+          <div class="price-card__price">
+            <span class="price-card__amount" data-price data-monthly="24,90" data-yearly="19,92">24,90&nbsp;€</span>
+            <span class="price-card__unit" data-unit data-monthly="/mois" data-yearly="/mois">/mois</span>
+          </div>
+          <p class="price-card__hint">Pour les parieurs multi-sports</p>
+        </header>
+        <ul class="price-card__features">
+          <li>Multi-sports (foot, tennis, basket)</li>
+          <li>Value bets identifies par l'IA</li>
+          <li>Analyse detaillee avant chaque pari</li>
+          <li>Statistiques avancees</li>
+        </ul>
+        <a href="#" class="btn btn-secondary">Passer Pro</a>
+      </article>
+
+      <article class="price-card reveal" style="--delay: 240ms;">
+        <header>
+          <div class="price-card__name">VIP</div>
+          <div class="price-card__price">
+            <span class="price-card__amount" data-price data-monthly="59" data-yearly="47,20">59&nbsp;€</span>
+            <span class="price-card__unit" data-unit data-monthly="/mois" data-yearly="/mois">/mois</span>
+          </div>
+          <p class="price-card__hint">50 places max, acces sur dossier</p>
+        </header>
+        <ul class="price-card__features">
+          <li>Canal WhatsApp prive avec l'expert</li>
+          <li>Gros evenements (LDC, Roland Garros, NBA Finals)</li>
+          <li>Suivi ROI personnel</li>
+          <li>Mises &amp; bankroll conseillees</li>
+        </ul>
+        <a href="#" class="btn btn-secondary">Demander acces</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FAQ
+     ============================================================ -->
+<section id="faq" aria-label="Foire aux questions">
+  <div class="container container--narrow">
+    <header class="section-head section-head--center reveal">
+      <span class="eyebrow">FAQ</span>
+      <h2 class="section-head__title">Ce qu'on nous demande le plus souvent.</h2>
+    </header>
+
+    <div class="faq-list">
+      <article class="faq-item is-open reveal">
+        <button class="faq-q" aria-expanded="true">
+          Suis-je sur de gagner&nbsp;?
+          <span class="faq-q__icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a__inner">
+            Non. Aucun pronostiqueur serieux ne le promet. On affiche notre ROI reel, pertes incluses. Le pari sportif reste un risque, et il doit etre considere comme un loisir avec une bankroll dediee, pas comme une source de revenu.
+          </div>
+        </div>
+      </article>
+
+      <article class="faq-item reveal" style="--delay: 80ms;">
+        <button class="faq-q" aria-expanded="false">
+          C'est legal en France&nbsp;?
+          <span class="faq-q__icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a__inner">
+            Oui. Le conseil en pronostics n'est pas reglemente par l'ANJ (seuls les operateurs de paris le sont). On n'organise pas de paris, on conseille. Notre activite est declaree en France et nous payons nos impots ici.
+          </div>
+        </div>
+      </article>
+
+      <article class="faq-item reveal" style="--delay: 160ms;">
+        <button class="faq-q" aria-expanded="false">
+          Comment je recois mon prono&nbsp;?
+          <span class="faq-q__icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a__inner">
+            Sur WhatsApp directement (notification), ou dans ton espace membre sur le site. On ne passe pas par Telegram&nbsp;: WhatsApp est plus sur, plus propre, et c'est la messagerie que tu utilises deja tous les jours.
+          </div>
+        </div>
+      </article>
+
+      <article class="faq-item reveal" style="--delay: 240ms;">
+        <button class="faq-q" aria-expanded="false">
+          Puis-je annuler a tout moment&nbsp;?
+          <span class="faq-q__icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a__inner">
+            Oui. Tous nos packs sont sans engagement, resiliable en 1 clic depuis ton compte. Tu gardes l'acces jusqu'a la fin du mois deja paye, sans frais de sortie.
+          </div>
+        </div>
+      </article>
+
+      <article class="faq-item reveal" style="--delay: 320ms;">
+        <button class="faq-q" aria-expanded="false">
+          Pourquoi l'IA&nbsp;?
+          <span class="faq-q__icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a__inner">
+            Elle traite 100x plus de donnees qu'un humain en 5 secondes. Mais elle ne decide pas seule&nbsp;: notre expert valide chaque pick. L'IA est un outil, pas une boule de cristal. C'est la combinaison des deux qui fait la difference.
+          </div>
+        </div>
+      </article>
+
+      <article class="faq-item reveal" style="--delay: 400ms;">
+        <button class="faq-q" aria-expanded="false">
+          Combien de pronos par jour&nbsp;?
+          <span class="faq-q__icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-a">
+          <div class="faq-a__inner">
+            1 (Decouverte), 3 a 5 (Starter), 5+ multi-sports (Pro), illimite sur les gros evenements (VIP). On prefere t'envoyer moins de pronos de qualite que de remplir un calendrier pour faire du volume.
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CTA FINAL
+     ============================================================ -->
+<section class="cta-final" aria-label="Appel final">
+  <div class="container container--narrow">
+    <span class="eyebrow reveal" style="justify-content: center;">Prochaine etape</span>
+    <h2 class="reveal" style="--delay: 80ms; margin-top: 1.2rem;">Pret a parier avec methode&nbsp;?</h2>
+    <p class="lead reveal" style="--delay: 160ms;">
+      Demarre avec le pack Decouverte&nbsp;: 1 prono foot offert chaque jour, sans inscription. Si ca te plait, tu montes en gamme quand tu veux.
+    </p>
+    <div class="reveal" style="--delay: 240ms;">
+      <a href="#tarifs" class="btn btn-primary btn-arrow">Commencer gratuitement</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="footer" id="contact">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a href="#" class="logo">
+          <span class="logo__mark">AJ</span>
+          <span class="logo__word">Pronos</span>
+        </a>
+        <p>
+          Conseil en paris sportifs. Agent IA d'analyse + expert humain qui valide chaque prono. Transparence ROI publique. Communication sur WhatsApp Business.
+        </p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Produit</h4>
+        <ul>
+          <li><a href="#methode">Methode</a></li>
+          <li><a href="#pronos">Pronos publics</a></li>
+          <li><a href="#tarifs">Tarifs</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Mentions legales</a></li>
+          <li><a href="#">CGV</a></li>
+          <li><a href="#">CGU</a></li>
+          <li><a href="#">Politique de confidentialite</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Ressources</h4>
+        <ul>
+          <li><a href="https://www.joueurs-info-service.fr" target="_blank" rel="noopener">Joueurs Info Service</a></li>
+          <li><a href="#">Glossaire des paris</a></li>
+          <li><a href="#">Blog &amp; analyses</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__legal">
+      <p>
+        <strong>Les paris sportifs comportent des risques d'addiction et de pertes financieres. Reserve aux personnes majeures (+18 ans).</strong>
+      </p>
+      <p>
+        Si vous avez un probleme avec le jeu&nbsp;: <strong>Joueurs Info Service, 09 74 75 13 13</strong> — <a href="https://www.joueurs-info-service.fr" target="_blank" rel="noopener">joueurs-info-service.fr</a>
+      </p>
+    </div>
+
+    <div class="footer__copy">
+      <span>© 2026 AJ Pronos — Tous droits reserves</span>
+      <span>Fait en France · WhatsApp Business · Pas de Telegram</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    'use strict';
+
+    var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ------- Nav scroll state ------- */
+    var nav = document.getElementById('nav');
+    function onScroll() {
+      if (window.scrollY > 24) nav.classList.add('is-scrolled');
+      else nav.classList.remove('is-scrolled');
+    }
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    /* ------- Mobile menu ------- */
+    var burger = document.getElementById('burger');
+    var navMobile = document.getElementById('navMobile');
+    burger.addEventListener('click', function () {
+      var open = nav.classList.toggle('is-open');
+      burger.setAttribute('aria-expanded', String(open));
+      navMobile.setAttribute('aria-hidden', String(!open));
+      document.body.style.overflow = open ? 'hidden' : '';
+    });
+    // Close mobile menu on link click
+    navMobile.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        nav.classList.remove('is-open');
+        burger.setAttribute('aria-expanded', 'false');
+        navMobile.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      });
+    });
+
+    /* ------- Reveal on scroll ------- */
+    var revealEls = document.querySelectorAll('.reveal');
+    if (prefersReduced || !('IntersectionObserver' in window)) {
+      revealEls.forEach(function (el) { el.classList.add('is-visible'); });
+    } else {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+      revealEls.forEach(function (el) { io.observe(el); });
+    }
+
+    /* ------- Count-up numbers ------- */
+    function formatNumber(value, decimals) {
+      if (decimals && decimals > 0) {
+        return value.toFixed(decimals).replace('.', ',');
+      }
+      // thousands sep for ints
+      return Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+    var counters = document.querySelectorAll('[data-count-up]');
+    function runCounter(el) {
+      var target = parseFloat(el.getAttribute('data-target'));
+      var decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+      var suffix = el.getAttribute('data-suffix') || '';
+      var prefix = el.getAttribute('data-prefix') || '';
+      if (prefersReduced) {
+        el.textContent = prefix + formatNumber(target, decimals) + suffix;
+        return;
+      }
+      var start = null;
+      var duration = 1400;
+      function frame(ts) {
+        if (start === null) start = ts;
+        var p = Math.min(1, (ts - start) / duration);
+        // easeOutQuad
+        var eased = 1 - (1 - p) * (1 - p);
+        var current = target * eased;
+        el.textContent = prefix + formatNumber(current, decimals) + suffix;
+        if (p < 1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+    if ('IntersectionObserver' in window) {
+      var counterIo = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            runCounter(entry.target);
+            counterIo.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+      counters.forEach(function (el) { counterIo.observe(el); });
+    } else {
+      counters.forEach(runCounter);
+    }
+
+    /* ------- FAQ accordion ------- */
+    var faqs = document.querySelectorAll('.faq-item');
+    function setFaqState(item, open) {
+      var btn = item.querySelector('.faq-q');
+      var ans = item.querySelector('.faq-a');
+      if (open) {
+        item.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+        ans.style.maxHeight = ans.scrollHeight + 'px';
+      } else {
+        item.classList.remove('is-open');
+        btn.setAttribute('aria-expanded', 'false');
+        ans.style.maxHeight = '0px';
+      }
+    }
+    faqs.forEach(function (item) {
+      // initialize default-open state
+      if (item.classList.contains('is-open')) {
+        var ans = item.querySelector('.faq-a');
+        // defer to ensure layout
+        requestAnimationFrame(function () { ans.style.maxHeight = ans.scrollHeight + 'px'; });
+      }
+      var btn = item.querySelector('.faq-q');
+      btn.addEventListener('click', function () {
+        var open = !item.classList.contains('is-open');
+        // close siblings
+        faqs.forEach(function (other) {
+          if (other !== item) setFaqState(other, false);
+        });
+        setFaqState(item, open);
+      });
+    });
+    // Recompute open heights on resize
+    window.addEventListener('resize', function () {
+      faqs.forEach(function (item) {
+        if (item.classList.contains('is-open')) {
+          var ans = item.querySelector('.faq-a');
+          ans.style.maxHeight = ans.scrollHeight + 'px';
+        }
+      });
+    });
+
+    /* ------- Pricing toggle ------- */
+    var toggleBtns = document.querySelectorAll('.pricing-toggle__btn');
+    var prices = document.querySelectorAll('[data-price]');
+    var units = document.querySelectorAll('[data-unit]');
+    function applyPeriod(period) {
+      toggleBtns.forEach(function (b) {
+        var active = b.getAttribute('data-period') === period;
+        b.classList.toggle('is-active', active);
+        b.setAttribute('aria-selected', String(active));
+      });
+      prices.forEach(function (p) {
+        p.textContent = p.getAttribute('data-' + period) + ' €';
+      });
+      units.forEach(function (u) {
+        u.textContent = u.getAttribute('data-' + period);
+      });
+    }
+    toggleBtns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        applyPeriod(b.getAttribute('data-period'));
+      });
+    });
+
+    /* ------- Smooth scroll for in-page anchors that need offset ------- */
+    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        var id = a.getAttribute('href');
+        if (id.length < 2) return;
+        var target = document.querySelector(id);
+        if (!target) return;
+        e.preventDefault();
+        var top = target.getBoundingClientRect().top + window.scrollY - 64;
+        window.scrollTo({ top: top, behavior: prefersReduced ? 'auto' : 'smooth' });
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AJ Pronos — Comparaison variants A / B / C</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #050505;
+    color: #FAFAFA;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: #0A0A0A;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+    gap: 16px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+  }
+  .brand strong { color: #D4AF37; font-weight: 700; }
+  .brand span { color: #A1A1AA; font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  .selector {
+    display: flex;
+    gap: 4px;
+    background: #141414;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .pill {
+    appearance: none;
+    background: transparent;
+    color: #A1A1AA;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 200ms ease;
+  }
+  .pill:hover { color: #FAFAFA; }
+  .pill.active {
+    background: #D4AF37;
+    color: #0A0A0A;
+    font-weight: 600;
+  }
+
+  .hint {
+    font-size: 12px;
+    color: #71717A;
+    font-family: 'Geist Mono', monospace;
+    letter-spacing: 0.02em;
+  }
+  .hint kbd {
+    background: #141414;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: inherit;
+    font-size: 11px;
+    color: #FAFAFA;
+  }
+
+  .stage {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+    transition: grid-template-columns 400ms cubic-bezier(0.16, 0.84, 0.44, 1);
+  }
+  .stage.solo-a { grid-template-columns: 1fr 0 0; }
+  .stage.solo-b { grid-template-columns: 0 1fr 0; }
+  .stage.solo-c { grid-template-columns: 0 0 1fr; }
+
+  .frame {
+    position: relative;
+    background: #0A0A0A;
+    overflow: hidden;
+    transition: opacity 300ms ease;
+  }
+  .frame iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  .frame-label {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #FAFAFA;
+    pointer-events: none;
+    opacity: 0.9;
+  }
+  .frame-label .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #D4AF37;
+  }
+  .frame-label .name {
+    color: #A1A1AA;
+    text-transform: none;
+    letter-spacing: 0;
+    font-family: 'Geist', sans-serif;
+    font-size: 11px;
+  }
+
+  /* Mobile : display:none/block au lieu d'opacity (fix iOS Safari iframes stacked bug) */
+  @media (max-width: 1100px) {
+    .stage {
+      grid-template-columns: 1fr !important;
+    }
+    .frame { display: none; }
+    .stage.show-a .frame.frame-a,
+    .stage.show-b .frame.frame-b,
+    .stage.show-c .frame.frame-c { display: block; }
+  }
+
+  @media (max-width: 760px) {
+    .topbar { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+    .brand { font-size: 13px; }
+    .hint { display: none; }
+    .pill { padding: 7px 14px; font-size: 12px; }
+  }
+
+  @media (max-width: 520px) {
+    .brand span { display: none; }
+    .selector { width: 100%; justify-content: center; }
+    .pill { flex: 1; }
+  }
+
+  @media (max-width: 380px) {
+    .topbar { padding: 8px 10px; }
+    .brand { font-size: 12px; }
+  }
+
+  @media (max-width: 320px) {
+    .pill { padding: 6px 10px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <strong>AJ</strong><span>PRONOS — VARIANTS</span>
+  </div>
+
+  <div class="selector" role="tablist" aria-label="Sélection variant">
+    <button class="pill active" data-view="all" role="tab" aria-selected="true">All</button>
+    <button class="pill" data-view="a" role="tab" aria-selected="false">A · Pédagogique</button>
+    <button class="pill" data-view="b" role="tab" aria-selected="false">B · Punchy</button>
+    <button class="pill" data-view="c" role="tab" aria-selected="false">C · Storytelling</button>
+  </div>
+
+  <div class="hint">Raccourcis <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> <kbd>0</kbd></div>
+</header>
+
+<main class="stage" id="stage">
+  <div class="frame frame-a">
+    <div class="frame-label"><span class="dot"></span>A<span class="name">Pédagogique</span></div>
+    <iframe src="variant-aj-pronos-A.html" loading="lazy" title="Variant A — Pédagogique"></iframe>
+  </div>
+  <div class="frame frame-b">
+    <div class="frame-label"><span class="dot"></span>B<span class="name">Punchy</span></div>
+    <iframe src="variant-aj-pronos-B.html" loading="lazy" title="Variant B — Punchy / Marketing"></iframe>
+  </div>
+  <div class="frame frame-c">
+    <div class="frame-label"><span class="dot"></span>C<span class="name">Storytelling</span></div>
+    <iframe src="variant-aj-pronos-C.html" loading="lazy" title="Variant C — Storytelling / Humain"></iframe>
+  </div>
+</main>
+
+<script>
+  const stage = document.getElementById('stage');
+  const pills = document.querySelectorAll('.pill');
+  const isMobile = () => window.matchMedia('(max-width: 1100px)').matches;
+
+  function setView(view) {
+    stage.classList.remove('solo-a', 'solo-b', 'solo-c', 'show-a', 'show-b', 'show-c');
+    pills.forEach(p => {
+      const active = p.dataset.view === view;
+      p.classList.toggle('active', active);
+      p.setAttribute('aria-selected', active);
+    });
+    if (view === 'a') stage.classList.add(isMobile() ? 'show-a' : 'solo-a');
+    else if (view === 'b') stage.classList.add(isMobile() ? 'show-b' : 'solo-b');
+    else if (view === 'c') stage.classList.add(isMobile() ? 'show-c' : 'solo-c');
+    else if (view === 'all' && isMobile()) stage.classList.add('show-a');
+  }
+
+  pills.forEach(pill => {
+    pill.addEventListener('click', () => setView(pill.dataset.view));
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    const key = e.key.toLowerCase();
+    if (key === 'a') setView('a');
+    else if (key === 'b') setView('b');
+    else if (key === 'c') setView('c');
+    else if (key === '0' || key === 'escape') setView('all');
+  });
+
+  // Mobile default to A
+  if (isMobile()) setView('a');
+
+  window.addEventListener('resize', () => {
+    const active = document.querySelector('.pill.active')?.dataset.view || 'all';
+    setView(active);
+  });
+</script>
+
+</body>
+</html>

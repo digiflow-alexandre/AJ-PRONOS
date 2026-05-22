@@ -1,0 +1,1295 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0A0A0A" />
+<title>AJ Pronos — Deux passionnés de foot. Une obsession : parier intelligent.</title>
+<meta name="description" content="On en avait marre de perdre au feeling. Une IA qui analyse tout, un expert qui décide, et un message WhatsApp qui change tout." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+  /* =========================================================
+     AJ PRONOS — Variant C — Storytelling / Humain
+     Palette stricte, fonts Geist + Instrument Serif (édito)
+     ========================================================= */
+
+  :root {
+    /* Palette stricte */
+    --bg-base: #0A0A0A;
+    --bg-elevated: #141414;
+    --bg-deeper: #08080C;
+    --border-faint: rgba(255, 255, 255, 0.08);
+    --border-soft: rgba(255, 255, 255, 0.12);
+    --text-primary: #FAFAFA;
+    --text-muted: #A1A1AA;
+    --text-dim: #71717A;
+    --gold-500: #D4AF37;
+    --gold-300: #F5D77A;
+    --gold-900: #3D2F0A;
+    --gold-glow: rgba(212, 175, 55, 0.15);
+    --success: #10B981;
+    --danger: #EF4444;
+
+    /* Fonts */
+    --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --font-serif: "Instrument Serif", "Times New Roman", Georgia, serif;
+
+    /* Rythme */
+    --r-1: 0.5rem;
+    --r-2: 1rem;
+    --r-3: 1.5rem;
+    --r-4: 2rem;
+    --r-5: 3rem;
+    --r-6: 4rem;
+    --r-7: 6rem;
+
+    --maxw: 1180px;
+    --maxw-narrow: 760px;
+    --maxw-prose: 65ch;
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+
+    --t-slow: 700ms cubic-bezier(.22,.61,.36,1);
+    --t-base: 350ms cubic-bezier(.22,.61,.36,1);
+    --t-fast: 200ms ease-out;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: clamp(15px, 0.92vw + 12px, 17px);
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  /* Grain SVG très subtil sur le fond */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .8 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* Conteneurs */
+  .wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding-inline: clamp(1.25rem, 4vw, 2.5rem); position: relative; z-index: 2; }
+  .wrap-narrow { max-width: var(--maxw-narrow); }
+  .prose { max-width: var(--maxw-prose); }
+
+  /* Typo */
+  h1, h2, h3, h4 { color: var(--text-primary); font-weight: 600; letter-spacing: -0.015em; line-height: 1.15; margin: 0; }
+  h1 { font-size: clamp(2.4rem, 5.6vw, 4.6rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.05; }
+  h2 { font-size: clamp(1.7rem, 3.2vw, 2.6rem); letter-spacing: -0.02em; }
+  h3 { font-size: clamp(1.15rem, 1.6vw, 1.4rem); }
+  p { margin: 0; color: var(--text-muted); }
+
+  .serif { font-family: var(--font-serif); font-weight: 400; }
+  .serif-it { font-family: var(--font-serif); font-style: italic; font-weight: 400; }
+  .mono { font-family: var(--font-mono); }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .eyebrow::before {
+    content: ""; width: 1.6rem; height: 1px; background: var(--gold-500); opacity: .7;
+  }
+
+  a { color: inherit; text-decoration: none; transition: color var(--t-fast); }
+  a:hover { color: var(--gold-300); }
+
+  ::selection { background: var(--gold-500); color: #0A0A0A; }
+
+  :focus-visible { outline: 2px solid var(--gold-500); outline-offset: 3px; border-radius: 4px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem;
+    padding: 0.85rem 1.4rem;
+    font-family: var(--font-sans); font-size: 0.95rem; font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    cursor: pointer; user-select: none;
+    transition: all var(--t-base);
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--gold-500); color: #0A0A0A; border-color: var(--gold-500);
+  }
+  .btn-primary:hover {
+    background: var(--gold-300); border-color: var(--gold-300);
+    transform: scale(1.01);
+    color: #0A0A0A;
+  }
+  .btn-ghost {
+    background: transparent; color: var(--text-primary);
+    border-color: var(--border-soft);
+  }
+  .btn-ghost:hover {
+    border-color: var(--gold-500); color: var(--gold-300);
+  }
+  .btn-sm { padding: 0.6rem 1rem; font-size: 0.85rem; }
+  .btn .arr { transition: transform var(--t-base); display: inline-block; }
+  .btn:hover .arr { transform: translateX(3px); }
+
+  /* =========================================================
+     NAV
+     ========================================================= */
+  .nav {
+    position: sticky; top: 0; z-index: 60;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    background: rgba(10,10,10,0.65);
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--t-base), background var(--t-base);
+  }
+  .nav.scrolled { border-bottom-color: var(--border-faint); background: rgba(10,10,10,0.82); }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-block: 1rem;
+  }
+  .brand { display: inline-flex; align-items: baseline; gap: 0.55rem; }
+  .brand-aj { font-family: var(--font-sans); font-weight: 700; font-size: 1.15rem; color: var(--gold-500); letter-spacing: -0.02em; }
+  .brand-pronos { font-family: var(--font-sans); font-weight: 500; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 0.25em; text-transform: uppercase; font-variant-caps: all-small-caps; }
+
+  .nav-links { display: none; gap: 2rem; align-items: center; }
+  .nav-links a { font-size: 0.9rem; color: var(--text-muted); }
+  .nav-links a:hover { color: var(--text-primary); }
+  .nav-cta { display: none; }
+
+  @media (min-width: 760px) {
+    .nav-links { display: inline-flex; }
+    .nav-cta { display: inline-flex; }
+  }
+
+  .burger {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px;
+    background: transparent; border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm); color: var(--text-primary);
+    cursor: pointer;
+  }
+  @media (min-width: 760px) { .burger { display: none; } }
+  .burger span { display:block; width:16px; height:1.5px; background: currentColor; position: relative; }
+  .burger span::before, .burger span::after { content:""; position:absolute; left:0; width:16px; height:1.5px; background:currentColor; transition: transform var(--t-fast); }
+  .burger span::before { top:-5px; } .burger span::after { top:5px; }
+
+  .mobile-menu {
+    display: none;
+    border-top: 1px solid var(--border-faint);
+    background: var(--bg-base);
+  }
+  .mobile-menu.open { display: block; }
+  .mobile-menu nav { display: flex; flex-direction: column; gap: .3rem; padding: 1rem 0 1.5rem; }
+  .mobile-menu a { padding: .8rem 0; font-size: 1rem; color: var(--text-primary); border-bottom: 1px solid var(--border-faint); }
+  .mobile-menu .btn { margin-top: 1rem; align-self: flex-start; }
+
+  /* =========================================================
+     HERO ÉDITORIAL
+     ========================================================= */
+  .hero {
+    position: relative;
+    padding: clamp(5rem, 12vh, 9rem) 0 clamp(3.5rem, 8vh, 6rem);
+    overflow: hidden;
+    text-align: center;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: -10% -10% auto -10%;
+    height: 80%;
+    background:
+      radial-gradient(60% 50% at 50% 30%, var(--gold-glow), transparent 70%);
+    opacity: .55;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero-inner { position: relative; z-index: 1; }
+  .hero h1 {
+    margin-top: 1.4rem;
+    max-width: 18ch;
+    margin-inline: auto;
+  }
+  .hero h1 .word-italic {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--gold-300);
+    letter-spacing: -0.005em;
+  }
+  .hero h1 .line { display: block; }
+  .hero-sub {
+    margin: 1.6rem auto 0;
+    max-width: 56ch;
+    font-size: clamp(1rem, 1.2vw + 0.4rem, 1.18rem);
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  .hero-cta {
+    margin-top: 2.4rem;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  /* =========================================================
+     BANDEAU STATS — sobre
+     ========================================================= */
+  .stats-band {
+    border-block: 1px solid var(--border-faint);
+    background: var(--bg-deeper);
+    padding-block: clamp(2rem, 4vw, 3rem);
+  }
+  .stats-grid {
+    display: grid; gap: 2rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 760px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  .stat {
+    text-align: center;
+    padding-inline: 1rem;
+    border-left: 1px solid transparent;
+  }
+  @media (min-width: 760px) {
+    .stat + .stat { border-left-color: var(--border-faint); }
+  }
+  .stat-value {
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+    color: var(--gold-500);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .stat-label {
+    margin-top: .55rem;
+    font-size: .82rem;
+    color: var(--text-dim);
+    letter-spacing: .04em;
+  }
+
+  /* =========================================================
+     SECTIONS génériques
+     ========================================================= */
+  section { position: relative; z-index: 2; }
+  .section { padding-block: clamp(4.5rem, 10vw, 7.5rem); }
+  .section-alt { background: var(--bg-deeper); }
+  .section-head { max-width: 56ch; margin-bottom: clamp(2.5rem, 5vw, 4rem); }
+  .section-head h2 { margin-top: 1.2rem; }
+  .section-head p { margin-top: 1rem; }
+
+  /* =========================================================
+     QUI ON EST — portraits stylisés
+     ========================================================= */
+  .qui-intro {
+    max-width: 60ch;
+    margin-bottom: 3rem;
+    font-size: clamp(1.05rem, 1vw + .6rem, 1.2rem);
+    color: var(--text-muted);
+    line-height: 1.75;
+  }
+  .portraits {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 760px) {
+    .portraits { grid-template-columns: 1fr 1fr; gap: 2rem; }
+  }
+  .portrait-card {
+    border: 1px solid var(--border-faint);
+    background: var(--bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    transition: border-color var(--t-base), transform var(--t-base);
+  }
+  .portrait-card:hover {
+    border-color: var(--border-soft);
+    transform: translateY(-2px);
+  }
+  .portrait-avatar {
+    width: 120px; height: 120px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--gold-900) 0%, var(--bg-elevated) 100%);
+    border: 1px solid var(--border-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 4.2rem;
+    color: var(--gold-300);
+    margin-bottom: 1.5rem;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 10px 30px rgba(0,0,0,.4);
+  }
+  .portrait-name {
+    font-size: 1.25rem; font-weight: 600; color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+  .portrait-role {
+    font-family: var(--font-mono);
+    font-size: .75rem; text-transform: uppercase; letter-spacing: .15em;
+    color: var(--gold-500);
+    margin-bottom: 1rem;
+  }
+  .portrait-bio {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  /* =========================================================
+     NOTRE MÉTHODE — éditorial avec dropcaps
+     ========================================================= */
+  .method-intro {
+    margin-bottom: 4rem;
+    max-width: 55ch;
+    font-size: clamp(1.05rem, 1vw + .6rem, 1.2rem);
+    color: var(--text-muted);
+  }
+  .step {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding-block: clamp(2rem, 4vw, 3.5rem);
+    border-top: 1px solid var(--border-faint);
+    max-width: 920px;
+  }
+  .step:last-of-type { border-bottom: 1px solid var(--border-faint); }
+  @media (min-width: 760px) {
+    .step { grid-template-columns: 120px 1fr; gap: 2.5rem; }
+  }
+  .step-num {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(3rem, 5vw, 4.5rem);
+    color: var(--gold-500);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .step-body h3 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: clamp(1.25rem, 1.6vw + .4rem, 1.6rem);
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+  .step-body h3 .dropcap {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.7em;
+    color: var(--gold-500);
+    line-height: 0.9;
+    float: left;
+    margin-right: .15em;
+    margin-top: -0.05em;
+  }
+  .step-body p {
+    color: var(--text-muted);
+    line-height: 1.8;
+    font-size: 1.02rem;
+    max-width: 60ch;
+  }
+
+  /* =========================================================
+     PULL QUOTE
+     ========================================================= */
+  .pullquote {
+    background: var(--bg-deeper);
+    border-block: 1px solid var(--border-faint);
+    padding-block: clamp(5rem, 11vw, 8rem);
+    text-align: center;
+  }
+  .pullquote-inner { max-width: 920px; margin: 0 auto; padding-inline: clamp(1.25rem, 4vw, 2rem); }
+  .pullquote q {
+    display: block;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--gold-300);
+    quotes: none;
+  }
+  .pullquote q::before, .pullquote q::after { content: ""; }
+  .pullquote-author {
+    margin-top: 2.5rem;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-style: italic;
+    font-size: .95rem;
+    color: var(--text-muted);
+    letter-spacing: .02em;
+  }
+  .pullquote-author::before {
+    content: ""; display: inline-block;
+    width: 2rem; height: 1px; background: var(--gold-500); opacity: .6;
+    vertical-align: middle; margin-right: .8rem;
+  }
+
+  /* =========================================================
+     PROMESSES — anti-bullshit
+     ========================================================= */
+  .promesses-list {
+    list-style: none; padding: 0; margin: 2.5rem 0 0;
+    display: grid; gap: 1.1rem;
+    max-width: 60ch;
+  }
+  .promesses-list li {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 1rem;
+    align-items: start;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-faint);
+    color: var(--text-primary);
+    font-size: 1.02rem;
+    line-height: 1.6;
+  }
+  .promesses-list li:last-child { border-bottom: 0; }
+  .promesses-list .check {
+    width: 24px; height: 24px;
+    border-radius: 999px;
+    border: 1px solid rgba(212,175,55,.4);
+    background: rgba(212,175,55,.07);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--gold-500);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .promesses-list .check svg { width: 12px; height: 12px; }
+
+  /* =========================================================
+     ROI — transparence
+     ========================================================= */
+  .roi-table-wrap {
+    margin-top: 2.5rem;
+    border: 1px solid var(--border-faint);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    overflow: hidden;
+  }
+  .roi-table-head, .roi-row {
+    display: grid;
+    grid-template-columns: 80px 60px 1fr 60px 60px;
+    gap: 0.75rem;
+    padding: 0.85rem 1.2rem;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: .8rem;
+  }
+  .roi-table-head {
+    background: var(--bg-deeper);
+    border-bottom: 1px solid var(--border-faint);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    font-size: .68rem;
+  }
+  .roi-row {
+    border-bottom: 1px solid var(--border-faint);
+    color: var(--text-muted);
+    transition: background var(--t-fast);
+  }
+  .roi-row:last-child { border-bottom: 0; }
+  .roi-row:hover { background: rgba(255,255,255,.02); }
+  .roi-row .pari { color: var(--text-primary); font-family: var(--font-sans); font-size: .9rem; }
+  .roi-row .cote { color: var(--text-primary); text-align: right; }
+  .roi-row .res { text-align: right; font-weight: 500; }
+  .roi-row.win .res { color: var(--success); }
+  .roi-row.loss .res { color: var(--danger); }
+  .roi-row.win .pari::before, .roi-row.loss .pari::before {
+    content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 999px; margin-right: .5rem; vertical-align: middle;
+  }
+  .roi-row.win .pari::before { background: var(--success); }
+  .roi-row.loss .pari::before { background: var(--danger); }
+
+  .roi-summary {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.2rem 1.4rem;
+    background: var(--bg-deeper);
+    border-top: 1px solid var(--border-soft);
+    font-family: var(--font-mono);
+  }
+  .roi-summary .label { color: var(--text-dim); font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; }
+  .roi-summary .value { color: var(--gold-500); font-size: 1.25rem; font-weight: 500; }
+
+  @media (max-width: 760px) {
+    .roi-table-head, .roi-row { grid-template-columns: 60px 1fr 50px 50px; }
+    .roi-table-head .col-sport, .roi-row .sport { display: none; }
+  }
+
+  /* =========================================================
+     PRICING
+     ========================================================= */
+  .pricing-sub {
+    margin-top: 1rem;
+    color: var(--text-muted);
+    max-width: 55ch;
+  }
+  .pricing-grid {
+    margin-top: 3rem;
+    display: grid; gap: 1.25rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 760px) { .pricing-grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1100px) { .pricing-grid { grid-template-columns: repeat(4, 1fr); } }
+
+  .price-card {
+    border: 1px solid var(--border-faint);
+    background: var(--bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: 2rem 1.6rem;
+    display: flex; flex-direction: column;
+    transition: border-color var(--t-base), transform var(--t-base);
+  }
+  .price-card:hover {
+    border-color: rgba(212,175,55,.35);
+    transform: translateY(-2px);
+  }
+  .price-name {
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: 1.05rem; color: var(--text-primary);
+    margin-bottom: .25rem;
+  }
+  .price-name .label-mono {
+    display: block;
+    font-family: var(--font-mono); font-size: .7rem; font-weight: 500;
+    color: var(--gold-500); text-transform: uppercase; letter-spacing: .15em;
+    margin-bottom: .4rem;
+  }
+  .price-amount {
+    margin-top: 1rem;
+    font-family: var(--font-sans);
+    font-size: 2rem; font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    line-height: 1.1;
+  }
+  .price-amount .unit { font-size: .85rem; color: var(--text-dim); font-weight: 400; }
+  .price-tag {
+    margin-top: .35rem;
+    color: var(--text-muted);
+    font-size: .95rem;
+    line-height: 1.5;
+  }
+  .price-cta {
+    margin-top: 1.6rem;
+  }
+  .price-card .btn { width: 100%; }
+
+  /* =========================================================
+     FAQ
+     ========================================================= */
+  .faq-list { margin-top: 2.5rem; max-width: 760px; }
+  .faq-item {
+    border-bottom: 1px solid var(--border-faint);
+  }
+  .faq-item:first-child { border-top: 1px solid var(--border-faint); }
+  .faq-q {
+    width: 100%;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 1.5rem;
+    padding: 1.4rem 0;
+    background: transparent; border: 0;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: clamp(1rem, .8vw + .7rem, 1.15rem);
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: color var(--t-fast);
+  }
+  .faq-q:hover { color: var(--gold-300); }
+  .faq-q .plus {
+    flex-shrink: 0; width: 22px; height: 22px; position: relative;
+    color: var(--gold-500);
+  }
+  .faq-q .plus::before, .faq-q .plus::after {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    background: currentColor; transform: translate(-50%,-50%);
+    transition: transform var(--t-base);
+  }
+  .faq-q .plus::before { width: 14px; height: 1.5px; }
+  .faq-q .plus::after { width: 1.5px; height: 14px; }
+  .faq-item[open] .faq-q .plus::after { transform: translate(-50%,-50%) rotate(90deg); }
+  .faq-a {
+    padding: 0 0 1.6rem 0;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.75;
+    max-width: 65ch;
+  }
+
+  /* =========================================================
+     CTA FINAL
+     ========================================================= */
+  .cta-final {
+    text-align: center;
+    padding-block: clamp(5rem, 11vw, 8rem);
+  }
+  .cta-final h2 {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    color: var(--text-primary);
+    letter-spacing: -0.015em;
+  }
+  .cta-final .sub {
+    margin: 1.4rem auto 0;
+    max-width: 50ch;
+    color: var(--text-muted);
+  }
+  .cta-final .btn { margin-top: 2rem; }
+
+  /* =========================================================
+     FOOTER
+     ========================================================= */
+  footer {
+    border-top: 1px solid var(--border-faint);
+    background: var(--bg-deeper);
+    padding-block: clamp(3rem, 6vw, 5rem) 2rem;
+    position: relative;
+    z-index: 2;
+  }
+  .footer-grid {
+    display: grid; gap: 2.5rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 760px) {
+    .footer-grid { grid-template-columns: 1.4fr 1fr 1fr 1fr; }
+  }
+  .footer-brand-bloc .brand { margin-bottom: 1rem; }
+  .footer-brand-bloc p { font-size: .9rem; max-width: 38ch; color: var(--text-muted); }
+  .footer-col h4 {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: var(--gold-500);
+    font-weight: 500;
+    margin-bottom: 1rem;
+  }
+  .footer-col ul { list-style: none; padding: 0; margin: 0; display: grid; gap: .6rem; }
+  .footer-col a { color: var(--text-muted); font-size: .9rem; }
+  .footer-col a:hover { color: var(--text-primary); }
+
+  .footer-warning {
+    margin-top: 3rem;
+    padding: 1.6rem;
+    border: 1px solid var(--border-faint);
+    border-radius: var(--radius-md);
+    background: rgba(239, 68, 68, 0.04);
+    color: var(--text-muted);
+    font-size: .85rem;
+    line-height: 1.7;
+  }
+  .footer-warning strong { color: var(--text-primary); font-weight: 600; }
+  .footer-warning a { color: var(--gold-300); text-decoration: underline; text-decoration-color: rgba(245,215,122,.4); text-underline-offset: 3px; }
+
+  .footer-base {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-faint);
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;
+    font-family: var(--font-mono); font-size: .75rem;
+    color: var(--text-dim);
+    letter-spacing: .05em;
+  }
+
+  /* =========================================================
+     SCROLL REVEAL — contemplatif
+     ========================================================= */
+  .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity var(--t-slow), transform var(--t-slow);
+    transition-delay: var(--delay, 0ms);
+  }
+  .reveal.in {
+    opacity: 1; transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+    .reveal { opacity: 1; transform: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- =================== NAV =================== -->
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a href="#" class="brand" aria-label="AJ Pronos — accueil">
+      <span class="brand-aj">AJ</span>
+      <span class="brand-pronos">Pronos</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Navigation principale">
+      <a href="#histoire">Histoire</a>
+      <a href="#methode">Méthode</a>
+      <a href="#pronos">Pronos</a>
+      <a href="#tarifs">Tarifs</a>
+    </nav>
+
+    <a href="#tarifs" class="btn btn-ghost btn-sm nav-cta">Rejoindre</a>
+
+    <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mmenu">
+      <span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mmenu" aria-hidden="true">
+    <div class="wrap">
+      <nav>
+        <a href="#histoire">Histoire</a>
+        <a href="#methode">Méthode</a>
+        <a href="#pronos">Pronos</a>
+        <a href="#tarifs">Tarifs</a>
+        <a class="btn btn-ghost btn-sm" href="#tarifs">Rejoindre</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- =================== HERO =================== -->
+<section class="hero">
+  <div class="wrap hero-inner">
+    <span class="eyebrow reveal">L'histoire d'AJ Pronos</span>
+
+    <h1 class="reveal" style="--delay:120ms">
+      <span class="line">Deux passionnés de foot.</span>
+      <span class="line">Une <span class="word-italic">obsession</span> : parier intelligent.</span>
+    </h1>
+
+    <p class="hero-sub reveal" style="--delay:240ms">
+      On en avait marre de perdre au feeling. Alors on a construit l'outil qu'on aurait
+      voulu avoir. Une IA qui analyse tout, un expert qui décide, et un message
+      WhatsApp qui change tout.
+    </p>
+
+    <div class="hero-cta reveal" style="--delay:360ms">
+      <a href="#histoire" class="btn btn-primary">Découvrir notre histoire <span class="arr">→</span></a>
+      <a href="#pronos" class="btn btn-ghost">Voir nos pronos gratuits</a>
+    </div>
+  </div>
+</section>
+
+<!-- =================== BANDEAU STATS =================== -->
+<section class="stats-band" aria-label="Chiffres clés">
+  <div class="wrap">
+    <div class="stats-grid">
+      <div class="stat reveal">
+        <div class="stat-value">+18,4%</div>
+        <div class="stat-label">de ROI sur 30 jours</div>
+      </div>
+      <div class="stat reveal" style="--delay:100ms">
+        <div class="stat-value">1 240</div>
+        <div class="stat-label">paris analysés</div>
+      </div>
+      <div class="stat reveal" style="--delay:200ms">
+        <div class="stat-value">340</div>
+        <div class="stat-label">membres qui nous font confiance</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== QUI ON EST =================== -->
+<section id="histoire" class="section">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Chapitre 01 — Qui on est</span>
+      <h2>Alex &amp; J., deux gars qui ont arrêté de parier au feeling.</h2>
+    </div>
+
+    <p class="qui-intro reveal" style="--delay:100ms">
+      On est Alex et J. On parie depuis 10 ans. On a perdu beaucoup,
+      on a appris à perdre moins, et un jour on s'est dit :
+      <span class="serif-it" style="color:var(--text-primary)"> et si on systématisait ce qu'on fait ?</span>
+    </p>
+
+    <div class="portraits">
+      <article class="portrait-card reveal" style="--delay:200ms">
+        <div class="portrait-avatar" aria-hidden="true">A</div>
+        <div class="portrait-role">Le dev</div>
+        <h3 class="portrait-name">Alex</h3>
+        <p class="portrait-bio">
+          Codeur le jour, parieur la nuit. J'ai construit l'outil
+          qui agrège les données qu'on regardait à la main.
+        </p>
+      </article>
+
+      <article class="portrait-card reveal" style="--delay:320ms">
+        <div class="portrait-avatar" aria-hidden="true">J</div>
+        <div class="portrait-role">Le pronostiqueur</div>
+        <h3 class="portrait-name">J.</h3>
+        <p class="portrait-bio">
+          10 ans d'analyses, des cahiers entiers de notes.
+          C'est moi qui valide chaque pari avant qu'il parte.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =================== NOTRE MÉTHODE =================== -->
+<section id="methode" class="section section-alt">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Chapitre 02 — Notre méthode</span>
+      <h2>Voilà comment on fait, étape par étape.</h2>
+    </div>
+
+    <p class="method-intro reveal" style="--delay:100ms">
+      Trois étapes, dans cet ordre. Pas de magie, pas de recette miracle —
+      juste une manière de faire qu'on applique tous les jours depuis longtemps.
+    </p>
+
+    <article class="step reveal" style="--delay:160ms">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <h3><span class="dropcap">D</span>'abord, on lit tout.</h3>
+        <p>
+          Compos d'équipe, blessés, forme, head-to-head, cotes en temps réel.
+          Notre IA traite ça en 5 secondes, là où nous mettions une heure.
+          Pas pour décider — pour qu'on ait toutes les pièces du puzzle
+          avant de poser quoi que ce soit sur la table.
+        </p>
+      </div>
+    </article>
+
+    <article class="step reveal" style="--delay:240ms">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <h3><span class="dropcap">E</span>nsuite, on tranche.</h3>
+        <p>
+          L'IA propose, J. décide. On ne publie que les paris en lesquels
+          on croit vraiment. Pas de "remplissage", pas de pari du jour
+          forcé. Certains matins, on ne sort rien — c'est aussi ça la rigueur.
+        </p>
+      </div>
+    </article>
+
+    <article class="step reveal" style="--delay:320ms">
+      <div class="step-num">03</div>
+      <div class="step-body">
+        <h3><span class="dropcap">E</span>nfin, on partage.</h3>
+        <p>
+          Sur WhatsApp, directement. Avec le raisonnement, la mise conseillée,
+          et la cote minimale acceptable. Pas d'app à télécharger,
+          pas de notification agressive — juste un message comme entre potes.
+        </p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- =================== PULL QUOTE =================== -->
+<section class="pullquote" aria-label="Citation">
+  <div class="pullquote-inner reveal">
+    <q>
+      Le meilleur pronostic, c'est celui qu'on aurait fait soi-même
+      si on avait eu 100 heures pour analyser. Notre travail, c'est de te le rendre en 30 secondes.
+    </q>
+    <div class="pullquote-author">J., pronostiqueur AJ Pronos</div>
+  </div>
+</section>
+
+<!-- =================== CE QU'ON NE TE PROMETTRA JAMAIS =================== -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Chapitre 03 — Anti-bullshit</span>
+      <h2>Ce qu'on ne te promettra jamais.</h2>
+    </div>
+
+    <p class="prose reveal" style="--delay:100ms">
+      On ne te dira jamais que tu vas gagner à coup sûr.
+      Aucun pronostiqueur honnête ne le fait. Le pari sportif reste un risque.
+      Voilà ce qu'on te promet à la place :
+    </p>
+
+    <ul class="promesses-list reveal" style="--delay:180ms">
+      <li>
+        <span class="check" aria-hidden="true">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6.5 5 9.5 10 3"/></svg>
+        </span>
+        <span>Une méthode qu'on applique vraiment, pas du marketing.</span>
+      </li>
+      <li>
+        <span class="check" aria-hidden="true">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6.5 5 9.5 10 3"/></svg>
+        </span>
+        <span>Notre ROI réel, pertes affichées en rouge.</span>
+      </li>
+      <li>
+        <span class="check" aria-hidden="true">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6.5 5 9.5 10 3"/></svg>
+        </span>
+        <span>Zéro engagement, tu pars quand tu veux.</span>
+      </li>
+      <li>
+        <span class="check" aria-hidden="true">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6.5 5 9.5 10 3"/></svg>
+        </span>
+        <span>Aucun lien d'affiliation caché vers des sites de paris.</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- =================== ROI =================== -->
+<section id="pronos" class="section section-alt">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Chapitre 04 — Transparence</span>
+      <h2>On affiche tout, gains et pertes.</h2>
+      <p class="prose">
+        Les 30 derniers paris analysés et publiés, dans l'ordre.
+        Les wins en vert, les pertes en rouge — sans filtre, sans tri.
+        C'est la seule manière honnête de te dire qui on est.
+      </p>
+    </div>
+
+    <div class="roi-table-wrap reveal" style="--delay:120ms">
+      <div class="roi-table-head" role="row">
+        <div>Date</div>
+        <div class="col-sport">Sport</div>
+        <div>Pari</div>
+        <div>Cote</div>
+        <div>Rés.</div>
+      </div>
+
+      <!-- 12 rows mockées -->
+      <div class="roi-row win"><div>12/05</div><div class="sport">Foot</div><div class="pari">Real Madrid +1.5 buts</div><div class="cote">1.72</div><div class="res">+0.72u</div></div>
+      <div class="roi-row win"><div>11/05</div><div class="sport">Foot</div><div class="pari">Inter / Lazio — Over 2.5</div><div class="cote">1.85</div><div class="res">+0.85u</div></div>
+      <div class="roi-row loss"><div>11/05</div><div class="sport">Tennis</div><div class="pari">Sinner vainqueur set 1</div><div class="cote">1.65</div><div class="res">−1.00u</div></div>
+      <div class="roi-row win"><div>10/05</div><div class="sport">Foot</div><div class="pari">PSG &amp; BTTS</div><div class="cote">2.10</div><div class="res">+1.10u</div></div>
+      <div class="roi-row win"><div>10/05</div><div class="sport">NBA</div><div class="pari">Boston −5.5</div><div class="cote">1.90</div><div class="res">+0.90u</div></div>
+      <div class="roi-row loss"><div>09/05</div><div class="sport">Foot</div><div class="pari">Marseille vainqueur</div><div class="cote">2.30</div><div class="res">−1.00u</div></div>
+      <div class="roi-row win"><div>09/05</div><div class="sport">Foot</div><div class="pari">Liverpool −1 handicap</div><div class="cote">2.05</div><div class="res">+1.05u</div></div>
+      <div class="roi-row win"><div>08/05</div><div class="sport">Foot</div><div class="pari">Arsenal &amp; +2.5 buts</div><div class="cote">1.95</div><div class="res">+0.95u</div></div>
+      <div class="roi-row loss"><div>08/05</div><div class="sport">Tennis</div><div class="pari">Alcaraz 3-0 sets</div><div class="cote">2.40</div><div class="res">−1.00u</div></div>
+      <div class="roi-row win"><div>07/05</div><div class="sport">Foot</div><div class="pari">Bayern Munich vainqueur</div><div class="cote">1.55</div><div class="res">+0.55u</div></div>
+      <div class="roi-row win"><div>07/05</div><div class="sport">NBA</div><div class="pari">Lakers / Denver — Over 215.5</div><div class="cote">1.92</div><div class="res">+0.92u</div></div>
+      <div class="roi-row loss"><div>06/05</div><div class="sport">Foot</div><div class="pari">Nantes BTTS</div><div class="cote">1.80</div><div class="res">−1.00u</div></div>
+
+      <div class="roi-summary">
+        <div class="label">ROI cumulé · 30 jours</div>
+        <div class="value">+18,4%</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== PRICING =================== -->
+<section id="tarifs" class="section">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Chapitre 05 — Choisis ton pack</span>
+      <h2>Quatre formules, et toi tu choisis.</h2>
+      <p class="pricing-sub">
+        Tous nos packs sont sans engagement. Tu pars quand tu veux.
+      </p>
+    </div>
+
+    <div class="pricing-grid">
+      <article class="price-card reveal" style="--delay:80ms">
+        <div class="price-name">
+          <span class="label-mono">Découverte</span>
+          Pour tester
+        </div>
+        <div class="price-amount">Gratuit</div>
+        <p class="price-tag">1 prono par jour, l'accès à l'historique public et la newsletter du dimanche.</p>
+        <div class="price-cta"><a href="#" class="btn btn-ghost">Commencer</a></div>
+      </article>
+
+      <article class="price-card reveal" style="--delay:160ms">
+        <div class="price-name">
+          <span class="label-mono">Starter</span>
+          Pour parier régulièrement
+        </div>
+        <div class="price-amount">9,90€<span class="unit"> /mois</span></div>
+        <p class="price-tag">3 à 5 pronos par jour, foot &amp; tennis, WhatsApp privé.</p>
+        <div class="price-cta"><a href="#" class="btn btn-ghost">Choisir Starter</a></div>
+      </article>
+
+      <article class="price-card reveal" style="--delay:240ms">
+        <div class="price-name">
+          <span class="label-mono">Pro</span>
+          Pour le multi-sports
+        </div>
+        <div class="price-amount">24,90€<span class="unit"> /mois</span></div>
+        <p class="price-tag">5+ pronos par jour, tous sports, analyse value bets en direct.</p>
+        <div class="price-cta"><a href="#" class="btn btn-primary">Choisir Pro</a></div>
+      </article>
+
+      <article class="price-card reveal" style="--delay:320ms">
+        <div class="price-name">
+          <span class="label-mono">VIP — 50 places</span>
+          Pour les gros événements
+        </div>
+        <div class="price-amount">59€<span class="unit"> /mois</span></div>
+        <p class="price-tag">Tout ce qui vaut le coup, accès direct à J. en DM, briefing avant les gros matchs.</p>
+        <div class="price-cta"><a href="#" class="btn btn-ghost">Choisir VIP</a></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =================== FAQ =================== -->
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Chapitre 06 — Questions sincères</span>
+      <h2>Les questions qu'on nous pose vraiment.</h2>
+    </div>
+
+    <div class="faq-list reveal" style="--delay:80ms">
+      <details class="faq-item" open>
+        <summary class="faq-q">
+          <span>Suis-je sûr de gagner ?</span>
+          <span class="plus" aria-hidden="true"></span>
+        </summary>
+        <p class="faq-a">
+          Non, et personne ne devrait te le dire. Le pari c'est du risque,
+          et même nos meilleurs mois ont des pertes. On t'aide à parier mieux,
+          pas à gagner à tous les coups.
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">
+          <span>C'est légal ?</span>
+          <span class="plus" aria-hidden="true"></span>
+        </summary>
+        <p class="faq-a">
+          Oui, on fait du conseil, pas des paris.
+          L'ANJ régule les opérateurs (Betclic, Winamax), pas les conseillers comme nous.
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">
+          <span>Comment je reçois mes pronos ?</span>
+          <span class="plus" aria-hidden="true"></span>
+        </summary>
+        <p class="faq-a">
+          Sur WhatsApp (un message texte simple) ou dans ton espace membre du site.
+          Aucune app à installer, aucun bot bruyant.
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">
+          <span>Et si je veux arrêter ?</span>
+          <span class="plus" aria-hidden="true"></span>
+        </summary>
+        <p class="faq-a">
+          Tu pars quand tu veux, en 1 clic. Pas de questions, pas d'engagement.
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">
+          <span>Pourquoi l'IA si J. décide ?</span>
+          <span class="plus" aria-hidden="true"></span>
+        </summary>
+        <p class="faq-a">
+          Parce que J. est doué mais pas surhumain.
+          L'IA traite 100x plus de données que lui, et il choisit dans ce que l'IA lui propose.
+        </p>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q">
+          <span>Combien de pronos j'aurai ?</span>
+          <span class="plus" aria-hidden="true"></span>
+        </summary>
+        <p class="faq-a">
+          Ça dépend du pack : 1 par jour en Découverte, 3-5 en Starter,
+          5+ en Pro, et tout ce qui vaut le coup en VIP.
+        </p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- =================== CTA FINAL =================== -->
+<section class="cta-final">
+  <div class="wrap">
+    <h2 class="reveal">On t'attend.</h2>
+    <p class="sub reveal" style="--delay:120ms">
+      Pas d'inscription compliquée, pas de carte bancaire demandée.
+      Tu rentres, tu regardes, tu décides.
+    </p>
+    <a href="#" class="btn btn-primary reveal" style="--delay:240ms">
+      Commencer gratuitement <span class="arr">→</span>
+    </a>
+  </div>
+</section>
+
+<!-- =================== FOOTER =================== -->
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand-bloc">
+        <a href="#" class="brand">
+          <span class="brand-aj">AJ</span>
+          <span class="brand-pronos">Pronos</span>
+        </a>
+        <p>
+          Deux passionnés qui te livrent une lecture honnête des matchs.
+          Une IA qui prépare, un humain qui tranche, un message WhatsApp qui suffit.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Site</h4>
+        <ul>
+          <li><a href="#histoire">Histoire</a></li>
+          <li><a href="#methode">Méthode</a></li>
+          <li><a href="#pronos">Pronos</a></li>
+          <li><a href="#tarifs">Tarifs</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Légal</h4>
+        <ul>
+          <li><a href="#">Mentions légales</a></li>
+          <li><a href="#">CGV</a></li>
+          <li><a href="#">CGU</a></li>
+          <li><a href="#">Politique de confidentialité</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="#">WhatsApp Business</a></li>
+          <li><a href="mailto:hello@ajpronos.fr">hello@ajpronos.fr</a></li>
+          <li><a href="#">Nous écrire</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-warning" role="note">
+      <strong>Jeu responsable.</strong>
+      Les paris sportifs comportent des risques d'addiction et de pertes financières. Réservé aux +18 ans.
+      Si vous avez un problème : Joueurs Info Service, 09 74 75 13 13 —
+      <a href="https://www.joueurs-info-service.fr" target="_blank" rel="noopener">joueurs-info-service.fr</a>
+    </div>
+
+    <div class="footer-base">
+      <span>© 2026 AJ Pronos</span>
+      <span>Made with care · Paris, FR</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ============ Mobile menu ============
+  (function () {
+    var btn = document.getElementById('burger');
+    var menu = document.getElementById('mmenu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', function () {
+      var open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+    });
+    menu.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        menu.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        menu.setAttribute('aria-hidden', 'true');
+      });
+    });
+  })();
+
+  // ============ Nav scrolled state ============
+  (function () {
+    var nav = document.getElementById('nav');
+    if (!nav) return;
+    var onScroll = function () {
+      if (window.scrollY > 8) nav.classList.add('scrolled');
+      else nav.classList.remove('scrolled');
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+
+  // ============ Scroll reveal (contemplative, stagger 100ms via inline --delay) ============
+  (function () {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var els = document.querySelectorAll('.reveal');
+    if (reduce || !('IntersectionObserver' in window)) {
+      els.forEach(function (el) { el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+
+  // ============ FAQ — close others when one opens (cleaner UX) ============
+  (function () {
+    var items = document.querySelectorAll('.faq-item');
+    items.forEach(function (it) {
+      it.addEventListener('toggle', function () {
+        if (it.open) {
+          items.forEach(function (other) {
+            if (other !== it) other.open = false;
+          });
+        }
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>
