@@ -41,9 +41,9 @@ export default function CgvPage() {
       </p>
       <ul>
         <li><strong>Découverte</strong> — Gratuit. 1 pronostic foot par jour, accès sans inscription.</li>
-        <li><strong>Starter</strong> — 9,90 € / mois ou 95,00 € / an. Tous les pronostics foot (3 à 5 par jour), accès app et espace membre, alertes push WhatsApp, historique complet.</li>
-        <li><strong>Pro</strong> — 24,90 € / mois ou 239,00 € / an. Multi-sports (foot, tennis, basket), value bets, analyse détaillée de chaque pari, stats personnalisées.</li>
-        <li><strong>VIP</strong> — 59,00 € / mois ou 566,00 € / an. Canal WhatsApp Business privé (50 places maximum), gros événements (Ligue des Champions, finales), ROI tracking personnalisé, ligne directe avec l&apos;analyste.</li>
+        <li><strong>Starter</strong> — 9,90 € / mois ou 95,00 € / an. Tous les pronostics de la veille (J-1) et un prono du jour J, accès app et espace membre, notifications push in-app, historique complet.</li>
+        <li><strong>Pro</strong> — 24,90 € / mois ou 239,00 € / an. Pronostics foot et tennis en temps réel (jour J), recommandations personnalisées (assistance IA validée par notre analyste), analyse détaillée de chaque pari, stats et ROI personnels.</li>
+        <li><strong>VIP</strong> — 59,00 € / mois ou 566,00 € / an. Salon privé in-app avec l&apos;analyste (50 places maximum), réunion hebdomadaire Microsoft Teams (stratégie, budget, suivi personnalisé), pronostics sur les gros événements (Champions League, finales), ROI tracking personnalisé.</li>
       </ul>
 
       <h2>4. Souscription et paiement</h2>

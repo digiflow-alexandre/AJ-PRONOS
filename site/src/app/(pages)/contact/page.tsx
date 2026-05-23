@@ -36,10 +36,11 @@ export default function ContactPage() {
         </section>
 
         <section className="contact-card">
-          <h3>WhatsApp Business VIP</h3>
+          <h3>Salon VIP in-app</h3>
           <p>
-            Pour les abonnés <strong>VIP</strong>, ligne directe avec l&apos;analyste
-            sur le canal WhatsApp Business privé (50 places maximum).
+            Pour les abonnés <strong>VIP</strong>, salon privé dans
+            l&apos;application avec l&apos;analyste (50 places maximum) +
+            réunion hebdomadaire sur Microsoft Teams.
           </p>
           <p className="contact-hint">
             L&apos;accès vous est communiqué après souscription via la{" "}

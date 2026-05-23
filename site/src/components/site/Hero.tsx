@@ -17,7 +17,7 @@ export function Hero() {
           </Reveal>
           <Reveal as="p" className="lead" delay={160}>
             On analyse compositions, blessures, forme et cotes — pari par pari.
-            Chaque prono est validé à la main avant de partir sur ton WhatsApp.
+            Chaque prono est validé à la main avant d&apos;arriver dans ton app.
           </Reveal>
           <Reveal as="div" className="hero-ctas" delay={240}>
             <a href="#methode" className="btn btn-primary">

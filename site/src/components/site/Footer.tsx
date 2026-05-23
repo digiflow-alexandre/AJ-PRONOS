@@ -15,7 +15,7 @@ export function Footer() {
           </a>
           <p className="footer-tagline">
             Conseil en paris sportifs. Expertise humaine, methode rigoureuse,
-            ROI public. Communication sur WhatsApp Business.
+            ROI public. Communication via l&apos;application.
           </p>
         </div>
 

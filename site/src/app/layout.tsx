@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AJ Pronos — Conseil en paris sportifs",
   description:
-    "Conseil en paris sportifs. On analyse compositions, blessures, forme et cotes pour chaque pari. ROI public, sans engagement, sur WhatsApp.",
+    "Conseil en paris sportifs foot & tennis. On analyse compositions, blessures, forme et cotes pour chaque pari. ROI public, sans engagement, notifications dans l'app.",
 };
 
 export const viewport: Viewport = {

@@ -90,7 +90,7 @@ const row2: Card[] = [
   { kind: "image", src: "/sports/nfl.png", alt: "Football US" },
   { kind: "info", icon: TargetIcon, label: "Value bets", sub: "Détectés" },
   { kind: "image", src: "/sports/baseball.png", alt: "Baseball" },
-  { kind: "info", icon: PhoneIcon, label: "WhatsApp", sub: "Envoi direct" },
+  { kind: "info", icon: PhoneIcon, label: "App", sub: "Notif directe" },
 ];
 
 /* Convertit "Nvw" en clamp(min px, Nvw, max px) — sur mobile le min px tient

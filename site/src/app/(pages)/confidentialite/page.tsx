@@ -33,7 +33,7 @@ export default function ConfidentialitePage() {
       <h2>2. Données collectées</h2>
       <p>Selon les interactions avec le service, AJ Pronos collecte :</p>
       <ul>
-        <li><strong>Données d&apos;identification</strong> : prénom, nom, adresse email, numéro de téléphone (pour le canal WhatsApp Business des abonnés VIP).</li>
+        <li><strong>Données d&apos;identification</strong> : prénom, nom, adresse email. Pour les abonnés VIP : compte Microsoft Teams pour les réunions hebdomadaires.</li>
         <li><strong>Données de connexion</strong> : adresse IP, type de navigateur, pages consultées, horodatage (logs techniques).</li>
         <li><strong>Données de paiement</strong> : les informations bancaires sont traitées directement par Stripe et ne transitent pas sur nos serveurs ; nous conservons uniquement un identifiant client Stripe et l&apos;historique des transactions (montant, date, statut).</li>
         <li><strong>Données de service</strong> : historique des pronostics envoyés, dates de connexion, statut d&apos;abonnement.</li>
@@ -43,7 +43,7 @@ export default function ConfidentialitePage() {
       <p>Vos données sont utilisées pour les finalités suivantes :</p>
       <ul>
         <li>Création et gestion de votre compte utilisateur.</li>
-        <li>Fourniture du service de pronostics (envoi des pronos, alertes WhatsApp, accès au canal VIP).</li>
+        <li>Fourniture du service de pronostics (envoi des pronos, notifications push in-app, accès au salon VIP).</li>
         <li>Gestion de la facturation et du paiement des abonnements.</li>
         <li>Réponse à vos demandes via le formulaire de contact ou email.</li>
         <li>Envoi d&apos;informations relatives au service (uniquement si vous l&apos;avez accepté).</li>
@@ -63,7 +63,7 @@ export default function ConfidentialitePage() {
       <p>Vos données sont accessibles aux :</p>
       <ul>
         <li>Personnel autorisé d&apos;AJ Pronos (administrateur, analyste).</li>
-        <li>Sous-traitants techniques : <strong>Supabase</strong> (hébergement de la base de données, en UE), <strong>Stripe</strong> (paiement), <strong>WhatsApp Business / Meta</strong> (messagerie pour les abonnés VIP).</li>
+        <li>Sous-traitants techniques : <strong>Supabase</strong> (hébergement de la base de données, en UE), <strong>Stripe</strong> (paiement), <strong>Microsoft Teams</strong> (réunions hebdomadaires des abonnés VIP), <strong>Resend</strong> (envoi d&apos;emails transactionnels).</li>
       </ul>
       <p>
         Aucune donnée n&apos;est revendue, louée ou cédée à des tiers à des fins
