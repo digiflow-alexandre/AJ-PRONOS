@@ -29,7 +29,7 @@ Bien que ce projet ne soit pas un client DIGIFLOW classique, **tu appliques le p
 | **Réservation/Be-Book** | Souvent pertinent | Non applicable |
 | **Embeds Elfsight** | Souvent pertinent | Non applicable (ou marginal) |
 
-## Structure du projet (monorepo, Option A)
+## Structure du projet (monorepo)
 
 ```
 ~/Documents/AJ-Pronos/
@@ -39,16 +39,19 @@ Bien que ce projet ne soit pas un client DIGIFLOW classique, **tu appliques le p
 ├── brand/                ← logos, hero variants, assets visuels
 ├── variant-output/       ← mockups HTML A/B/C (validés)
 ├── docs/                 ← documentation projet
-├── site/                 ← VITRINE Next.js 16 (en cours)
+├── site/                 ← VITRINE publique Next.js 16
 │   └── src/...
-└── app/                  ← FUTUR — Web app SaaS (paiement, dashboards, comptes)
-    └── (à créer plus tard, séparé de site/)
+└── mobile/               ← APP UNIQUE Expo / React Native
+    └── src/...           (membres + admin gated by role, iOS + Android + web)
 ```
 
-**Important** :
+**Important — décision architecturale (2026-05-23)** :
 - `site/` = vitrine publique (landing, pricing, blog, légal)
-- `app/` = web app authentifiée (sera créée plus tard, Next.js séparé)
-- Les deux sites partagent : palette, typo, logo, brand assets (à symlinker ou dupliquer)
+- `mobile/` = **app unique** qui tourne sur iOS, Android ET web (Expo support les 3). Contient :
+  - Espace membre (visible pour tous les abonnés)
+  - **Onglet Admin gated** par `user.app_metadata.role` (visible uniquement pour `admin` = Alex, `validator` = Julien). Permet la validation des pronos + publication. Utilisé en mobile pour validation rapide, en web (Mac, Chrome) pour rédaction longue.
+- **Backend = Supabase Edge Functions** (Stripe webhook + cron agents IA). Pas de serveur Node séparé.
+- Pas de Next.js admin séparé — supprimé le 2026-05-23 au profit d'une app unique multi-plateforme.
 
 ## Stack technique
 
@@ -63,13 +66,24 @@ Bien que ce projet ne soit pas un client DIGIFLOW classique, **tu appliques le p
 - lenis (smooth scroll si pertinent)
 - @supabase/supabase-js (newsletter, contact, alertes inscription)
 
-**Future app (`app/`)** :
-- Next.js 16 + React 19 + TypeScript
-- Supabase (auth, DB, storage)
-- Stripe (paiement Découverte/Starter/Pro/VIP + à la carte)
-- shadcn/ui
+**Mobile (`mobile/`)** — déjà bootstrappé :
+- Expo SDK 56 + Expo Router + React Native 0.85 + React 19
+- Supabase (auth + LargeSecureStore pour la session chiffrée)
+- **RevenueCat** (à brancher en Phase 2) — abstraction Apple IAP + Google Play Billing + Stripe web. ⚠️ Sur iOS, Stripe in-app est interdit pour les abos digitaux.
+- Styling : `StyleSheet` + tokens (pas de NativeWind en v1)
+- Cible web supportée (`npx expo start --web`) — pour usage admin sur Mac/clavier.
 
-**Déploiement** : serveurs internes DIGIFLOW via déployeur custom — **PAS Vercel** (ignore la mention "Vercel" dans le brief, c'était une notion initiale, on est sur DIGIFLOW interne).
+**Backend (Supabase Edge Functions)** — à monter :
+- Webhook Stripe (paiements web)
+- Webhook RevenueCat (paiements iOS + Android)
+- Cron quotidien : collecte data API-Football
+- Cron quotidien : analyse Claude API → propositions de paris
+- Cron quotidien : tracking résultats matchs
+
+**Déploiement** :
+- Vitrine → serveurs internes DIGIFLOW (PAS Vercel)
+- Mobile (iOS + Android) → **EAS Build** (Expo) → App Store + Google Play
+- Mobile (web admin) → build statique Expo Web → sous-domaine `admin.ajpronos.fr`
 
 ---
 
