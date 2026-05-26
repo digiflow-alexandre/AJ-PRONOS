@@ -18,10 +18,19 @@ export default function AppTabsLayout() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="explore">
+      <NativeTabs.Trigger name="pronos">
         <NativeTabs.Trigger.Label>Pronos</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/explore.png')}
+          renderingMode="template"
+        />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="subscribe">
+        <NativeTabs.Trigger.Label>Abonnement</NativeTabs.Trigger.Label>
+        {/* TODO : remplacer par un icône dédié (crown/star) — réutilise home.png pour l'instant. */}
+        <NativeTabs.Trigger.Icon
+          src={require('@/assets/images/tabIcons/home.png')}
           renderingMode="template"
         />
       </NativeTabs.Trigger>

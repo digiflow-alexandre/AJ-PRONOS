@@ -46,8 +46,8 @@ export function Pricing() {
           <Reveal as="span" className="eyebrow">Tarifs</Reveal>
           <Reveal as="h2" delay={80}>Choisis ta carte.</Reveal>
           <Reveal as="p" className="lead" delay={160}>
-            4 packs, sans engagement, résiliable en un clic. Le pack Découverte
-            est gratuit, pour tester sans rien donner.
+            3 packs, sans engagement, résiliable en un clic. 7 jours offerts
+            au premier inscription, le temps de te faire ton avis.
           </Reveal>
         </div>
 

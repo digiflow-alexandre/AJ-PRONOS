@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -12,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandedButton, BrandedField } from '@/components/branded-button';
+import { LOGIN_HEADER_LOGO } from '@/components/splash-overlay';
 import { Spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth-context';
 import { useThemeColors } from '@/lib/use-theme-colors';
@@ -46,49 +48,62 @@ export default function SignInScreen() {
         style={{ flex: 1 }}>
         <ScrollView
           contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled">
-          <View style={styles.header}>
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          {/* Logo header — positionné pour matcher la fin de l'animation splash */}
+          <View
+            style={[
+              styles.logoHeader,
+              { paddingTop: LOGIN_HEADER_LOGO.topPadding },
+            ]}>
+            <Image
+              source={require('@/assets/images/aj-pronos-logo.png')}
+              style={{
+                width: LOGIN_HEADER_LOGO.width,
+                height: LOGIN_HEADER_LOGO.height,
+              }}
+              contentFit="contain"
+            />
+          </View>
+
+          <View style={styles.formBlock}>
             <Text style={[styles.eyebrow, { color: c.gold }]}>
-              — CONNEXION
+              — ESPACE MEMBRE
             </Text>
-            <Text style={[styles.title, { color: c.text }]}>Re-bonjour.</Text>
-            <Text style={[styles.subtitle, { color: c.textMuted }]}>
-              Accédez à vos pronostics, votre historique et le salon VIP.
-            </Text>
+
+            <View style={styles.fields}>
+              <BrandedField
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoComplete="email"
+                textContentType="emailAddress"
+                placeholder="alex@ajpronos.fr"
+              />
+              <BrandedField
+                label="Mot de passe"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoComplete="current-password"
+                textContentType="password"
+              />
+            </View>
+
+            {error ? (
+              <Text style={[styles.error, { color: c.danger }]}>{error}</Text>
+            ) : null}
+
+            <BrandedButton
+              label="Se connecter"
+              loadingLabel="Connexion…"
+              loading={loading}
+              onPress={onSubmit}
+            />
           </View>
 
-          <View style={{ gap: Spacing.three }}>
-            <BrandedField
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoComplete="email"
-              textContentType="emailAddress"
-              placeholder="alex@ajpronos.fr"
-            />
-            <BrandedField
-              label="Mot de passe"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoComplete="current-password"
-              textContentType="password"
-            />
-          </View>
-
-          {error ? (
-            <Text style={[styles.error, { color: c.danger }]}>{error}</Text>
-          ) : null}
-
-          <BrandedButton
-            label="Se connecter"
-            loadingLabel="Connexion…"
-            loading={loading}
-            onPress={onSubmit}
-          />
-
-          <View style={styles.footer}>
+          <View style={styles.bottom}>
             <Text style={[styles.footerText, { color: c.textMuted }]}>
               Pas encore de compte ?{' '}
               <Link
@@ -97,16 +112,16 @@ export default function SignInScreen() {
                 Créer un compte
               </Link>
             </Text>
-          </View>
 
-          <Text style={[styles.legal, { color: c.textDim }]}>
-            +18 — les paris sportifs comportent des risques.{' '}
-            <Text
-              onPress={() => Linking.openURL('https://www.joueurs-info-service.fr')}
-              style={{ textDecorationLine: 'underline' }}>
-              joueurs-info-service.fr
+            <Text style={[styles.legal, { color: c.textDim }]}>
+              +18 — les paris sportifs comportent des risques.{' '}
+              <Text
+                onPress={() => Linking.openURL('https://www.joueurs-info-service.fr')}
+                style={{ textDecorationLine: 'underline' }}>
+                joueurs-info-service.fr
+              </Text>
             </Text>
-          </Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -117,29 +132,35 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   container: {
     flexGrow: 1,
-    padding: Spacing.four,
-    gap: Spacing.four,
-    justifyContent: 'center',
+    paddingHorizontal: Spacing.four,
+    paddingBottom: Spacing.five,
   },
-  header: { gap: Spacing.two },
+  logoHeader: {
+    alignItems: 'center',
+  },
+  formBlock: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: Spacing.five,
+    paddingVertical: Spacing.five,
+  },
   eyebrow: {
     fontSize: 11,
     letterSpacing: 2,
     fontWeight: '600',
+    textAlign: 'center',
   },
-  title: {
-    fontSize: 32,
-    fontWeight: '600',
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
+  fields: {
+    gap: Spacing.four,
   },
   error: {
     fontSize: 14,
+    textAlign: 'center',
   },
-  footer: { alignItems: 'center' },
+  bottom: {
+    gap: Spacing.four,
+    alignItems: 'center',
+  },
   footerText: { fontSize: 14 },
   footerLink: {
     fontWeight: '600',
@@ -149,6 +170,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 18,
-    marginTop: Spacing.two,
+    paddingHorizontal: Spacing.three,
   },
 });

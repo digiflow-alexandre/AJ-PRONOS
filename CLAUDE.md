@@ -125,15 +125,16 @@ Ces règles sont **non négociables**. Toute violation = bloquant immédiat.
 
 ## Pricing validé (rappel rapide)
 
-| Plan | Prix | Inclus |
-|---|---|---|
-| **Découverte** | Gratuit | 1 prono/jour foot |
-| **Starter** | 9,90€/mois | Tous pronos foot + app + alertes |
-| **Pro** | 24,90€/mois | Multi-sports + value bets + analyse détaillée |
-| **VIP** | 59€/mois | Canal **WhatsApp Business** privé (50 places max) |
-| À la carte | 4,90€ / 9,90€ | Ticket "gros match" / pack weekend |
+**Plus de pack Découverte gratuit** (supprimé 2026-05-25). À la place : **essai gratuit 7 jours sur Starter** au premier login (Apple-IAP-compatible). Pas de paiement actif tant qu'Alex n'a pas son SIRET — les boutons mènent à une "Liste d'attente".
 
-**Canal VIP = WhatsApp Business uniquement.** PAS Telegram (refusé explicitement par Alex).
+| Plan | Mensuel | Annuel | Inclus |
+|---|---|---|---|
+| **Starter** | 9,90€/mois | 95€/an | Tous pronos foot + app + alertes |
+| **Pro** | **19,90€/mois** | **191€/an** | Multi-sports + value bets + analyse détaillée |
+| **VIP** | **49,90€/mois** | **479€/an** | Salon privé in-app + Teams hebdo (50 places max) |
+| À la carte | 4,90€ / 9,90€ | — | Ticket "gros match" / pack weekend |
+
+**Canal VIP** = salon privé in-app (Supabase Realtime) + Teams hebdomadaire. WhatsApp Business possible aussi pour les notifs critiques. PAS Telegram (refusé explicitement par Alex).
 
 ---
 

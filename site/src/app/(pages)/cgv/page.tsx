@@ -40,10 +40,10 @@ export default function CgvPage() {
         résiliables à tout moment :
       </p>
       <ul>
-        <li><strong>Découverte</strong> — Gratuit. 1 pronostic foot par jour, accès sans inscription.</li>
+        <li><strong>Essai gratuit</strong> — 7 jours offerts sur l&apos;abonnement Starter lors de la première inscription, sans engagement.</li>
         <li><strong>Starter</strong> — 9,90 € / mois ou 95,00 € / an. Tous les pronostics de la veille (J-1) et un prono du jour J, accès app et espace membre, notifications push in-app, historique complet.</li>
-        <li><strong>Pro</strong> — 24,90 € / mois ou 239,00 € / an. Pronostics foot et tennis en temps réel (jour J), recommandations personnalisées (assistance IA validée par notre analyste), analyse détaillée de chaque pari, stats et ROI personnels.</li>
-        <li><strong>VIP</strong> — 59,00 € / mois ou 566,00 € / an. Salon privé in-app avec l&apos;analyste (50 places maximum), réunion hebdomadaire Microsoft Teams (stratégie, budget, suivi personnalisé), pronostics sur les gros événements (Champions League, finales), ROI tracking personnalisé.</li>
+        <li><strong>Pro</strong> — 19,90 € / mois ou 191,00 € / an. Pronostics foot et tennis en temps réel (jour J), recommandations personnalisées (assistance IA validée par notre analyste), analyse détaillée de chaque pari, stats et ROI personnels.</li>
+        <li><strong>VIP</strong> — 49,90 € / mois ou 479,00 € / an. Salon privé in-app avec l&apos;analyste (50 places maximum), réunion hebdomadaire Microsoft Teams (stratégie, budget, suivi personnalisé), pronostics sur les gros événements (Champions League, finales), ROI tracking personnalisé.</li>
       </ul>
 
       <h2>4. Souscription et paiement</h2>

@@ -5,7 +5,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import * as aesjs from 'aes-js';
 import * as SecureStore from 'expo-secure-store';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
+
+// Quand Expo Router évalue les routes côté serveur (génération des types, prerender web),
+// il n'y a ni `window` ni `expo-secure-store` natif → un storage qui no-op évite le crash.
+// Sur native + web réel (navigateur), on garde le storage chiffré.
+const isServer = Platform.OS === 'web' && typeof window === 'undefined';
+
+class NoopStorage {
+  async getItem() {
+    return null;
+  }
+  async setItem() {}
+  async removeItem() {}
+}
 
 /**
  * Session storage chiffré pour Supabase :
@@ -62,9 +75,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: new LargeSecureStore(),
-    autoRefreshToken: true,
-    persistSession: true,
+    storage: isServer ? new NoopStorage() : new LargeSecureStore(),
+    autoRefreshToken: !isServer,
+    persistSession: !isServer,
     detectSessionInUrl: false,
   },
 });
@@ -73,10 +86,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
  * Recommandation Supabase pour mobile : démarrer/arrêter l'auto-refresh
  * du token selon que l'app est au premier plan ou non.
  */
-AppState.addEventListener('change', (state) => {
-  if (state === 'active') {
-    supabase.auth.startAutoRefresh();
-  } else {
-    supabase.auth.stopAutoRefresh();
-  }
-});
+if (!isServer) {
+  AppState.addEventListener('change', (state) => {
+    if (state === 'active') {
+      supabase.auth.startAutoRefresh();
+    } else {
+      supabase.auth.stopAutoRefresh();
+    }
+  });
+}

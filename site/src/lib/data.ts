@@ -292,8 +292,8 @@ export const pricingPlans: PricingPlan[] = [
     abbr: "PRO",
     icon: "💎",
     cardImage: "/decorations/pricing/pro-frame.png",
-    monthly: "24,90 €",
-    yearly: "239,00 €",
+    monthly: "19,90 €",
+    yearly: "191,00 €",
     hintMonthly: "Sans engagement",
     hintYearly: "Facture annuellement",
     features: [
@@ -321,8 +321,8 @@ export const pricingPlans: PricingPlan[] = [
     abbr: "VIP",
     icon: "👑",
     cardImage: "/decorations/pricing/vip-frame.png",
-    monthly: "59,00 €",
-    yearly: "566,00 €",
+    monthly: "49,90 €",
+    yearly: "479,00 €",
     hintMonthly: "50 places max",
     hintYearly: "50 places max — annuel",
     features: [

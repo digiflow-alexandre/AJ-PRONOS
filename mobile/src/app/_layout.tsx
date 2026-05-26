@@ -4,19 +4,14 @@ import {
   Stack,
   ThemeProvider,
 } from 'expo-router';
+import { useState } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { SplashOverlay } from '@/components/splash-overlay';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 
 function RootStack() {
-  const { session, isLoading } = useAuth();
-  // Pendant le chargement initial de la session, on ne rend aucune
-  // Stack.Protected — sinon Expo Router redirigerait sur /sign-in pendant
-  // une milliseconde avant que la session soit remontée. Le splash overlay
-  // masque ce moment.
-  if (isLoading) return null;
-
+  const { session } = useAuth();
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!!session}>
@@ -29,13 +24,34 @@ function RootStack() {
   );
 }
 
+function App() {
+  const { session, isLoading } = useAuth();
+  const [splashDone, setSplashDone] = useState(false);
+
+  return (
+    <>
+      {/* Le Stack rend dès le départ (même pendant isLoading) — l'écran
+          initial sera masqué par le SplashOverlay au-dessus. Quand l'auth
+          finit de charger ET que le splash a fini sa transition, l'app
+          devient interactive. */}
+      <RootStack />
+      {!splashDone ? (
+        <SplashOverlay
+          ready={!isLoading}
+          hasSession={!!session}
+          onComplete={() => setSplashDone(true)}
+        />
+      ) : null}
+    </>
+  );
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthProvider>
-        <AnimatedSplashOverlay />
-        <RootStack />
+        <App />
       </AuthProvider>
     </ThemeProvider>
   );
