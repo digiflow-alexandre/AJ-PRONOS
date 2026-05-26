@@ -2,7 +2,13 @@ import { Image } from 'expo-image';
 import { SymbolView } from 'expo-symbols';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import {
+  getCompetitionColor,
+  getCompetitionFlag,
+  getSportSymbol,
+  SPORT_COLOR,
+} from '@/lib/competition-meta';
 import { formatHour } from '@/lib/format-date';
 import { useThemeColors } from '@/lib/use-theme-colors';
 import type { Prono } from '@/types/prono';
@@ -15,6 +21,28 @@ const TIER_LABEL: Record<Prono['minTier'], string> = {
   vip: 'VIP',
 };
 
+// Teintes pastel pour les cards résolues — compatibles DA crème.
+const RESULT_STYLE = {
+  win: {
+    bg: '#ECFDF5',
+    border: '#10B981',
+    badgeBg: '#10B981',
+    label: 'GAGNÉ',
+  },
+  loss: {
+    bg: '#FEF2F2',
+    border: '#EF4444',
+    badgeBg: '#EF4444',
+    label: 'PERDU',
+  },
+  void: {
+    bg: '#F5F5F4',
+    border: '#A8A29E',
+    badgeBg: '#A8A29E',
+    label: 'ANNULÉ',
+  },
+} as const;
+
 type Props = {
   prono: Prono;
   /** L'utilisateur a-t-il accès à ce prono selon son tier ? */
@@ -24,75 +52,123 @@ type Props = {
 
 export function PronoCard({ prono, hasAccess, onPress }: Props) {
   const c = useThemeColors();
+  const isResolved = prono.result !== 'pending';
+  const resultStyle =
+    isResolved && prono.result !== 'pending' ? RESULT_STYLE[prono.result] : null;
+
+  const sportSymbol = getSportSymbol(prono.sport);
+  const flagUrl = getCompetitionFlag(prono.competition);
+  const competitionColor = getCompetitionColor(prono.competition);
 
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.card,
-        {
-          backgroundColor: c.bgElevated,
-          borderColor: c.borderFaint,
-          opacity: pressed ? 0.96 : 1,
-        },
+    <View
+      style={[
+        styles.outerFrame,
+        { backgroundColor: competitionColor, shadowColor: '#0A0A0A' },
       ]}>
-      {/* HEADER : équipes + heure + competition */}
-      <View style={styles.header}>
-        <View style={styles.teamsRow}>
-          <View style={styles.team}>
-            {prono.teamHomeLogo ? (
-              <Image
-                source={{ uri: prono.teamHomeLogo }}
-                style={styles.logo}
-                contentFit="contain"
-              />
-            ) : null}
-            <Text style={[styles.teamName, { color: c.text }]} numberOfLines={1}>
-              {prono.teamHome}
-            </Text>
-          </View>
-
-          <Text style={[styles.vs, { color: c.textDim }]}>vs</Text>
-
-          <View style={styles.team}>
-            {prono.teamAwayLogo ? (
-              <Image
-                source={{ uri: prono.teamAwayLogo }}
-                style={styles.logo}
-                contentFit="contain"
-              />
-            ) : null}
-            <Text style={[styles.teamName, { color: c.text }]} numberOfLines={1}>
-              {prono.teamAway}
-            </Text>
-          </View>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.card,
+          {
+            backgroundColor: resultStyle ? resultStyle.bg : c.bgElevated,
+            borderColor: resultStyle ? resultStyle.border : 'transparent',
+            borderWidth: resultStyle ? 1.5 : 0,
+            opacity: pressed ? 0.97 : 1,
+          },
+        ]}>
+      {/* Badge résultat en haut à droite (si résolu) */}
+      {resultStyle ? (
+        <View
+          style={[styles.resultBadge, { backgroundColor: resultStyle.badgeBg }]}>
+          <Text style={styles.resultBadgeText}>{resultStyle.label}</Text>
         </View>
+      ) : null}
 
-        <View style={styles.contextRow}>
-          <Text style={[styles.context, { color: c.textMuted }]} numberOfLines={1}>
+      {/* ====== TOP STRIP : sport + drapeau + compétition + heure ====== */}
+      <View style={styles.topStrip}>
+        <View style={styles.topLeft}>
+          <View
+            style={[
+              styles.iconCircle,
+              {
+                // Foot : fond crème (le noir/blanc du ballon se voit).
+                // Tennis : fond noir pour faire ressortir le jaune fluo.
+                backgroundColor: prono.sport === 'foot' ? c.bgWarm : '#0A0A0A',
+              },
+            ]}>
+            <SymbolView
+              name={sportSymbol as never}
+              size={14}
+              {...(prono.sport === 'foot'
+                ? { type: 'multicolor' as const }
+                : { tintColor: SPORT_COLOR.tennis })}
+              weight="bold"
+            />
+          </View>
+          {flagUrl ? (
+            <View
+              style={[
+                styles.flagCircle,
+                { borderColor: c.borderSoft, backgroundColor: c.bgElevated },
+              ]}>
+              <Image
+                source={{ uri: flagUrl }}
+                style={styles.flagImg}
+                contentFit="cover"
+              />
+            </View>
+          ) : null}
+          <Text
+            style={[styles.competition, { color: c.textMuted }]}
+            numberOfLines={1}>
             {prono.competition}
           </Text>
-          <View style={styles.contextDot} />
-          <Text style={[styles.hour, { color: c.text }]}>
-            {formatHour(prono.matchStartAt)}
-          </Text>
         </View>
+        <Text style={[styles.hour, { color: c.text }]}>
+          {isResolved && prono.finalScore
+            ? prono.finalScore
+            : formatHour(prono.matchStartAt)}
+        </Text>
+      </View>
+
+      {/* ====== TEAMS ====== */}
+      <View style={styles.teamsRow}>
+        <Team
+          name={prono.teamHome}
+          logo={prono.teamHomeLogo}
+          align="left"
+        />
+        <View style={[styles.vsPill, { backgroundColor: c.bgDeeper }]}>
+          <Text style={[styles.vsText, { color: c.textMuted }]}>VS</Text>
+        </View>
+        <Team
+          name={prono.teamAway}
+          logo={prono.teamAwayLogo}
+          align="right"
+        />
       </View>
 
       {/* DIVIDER */}
       <View style={[styles.divider, { backgroundColor: c.borderFaint }]} />
 
-      {/* BODY : prono + cote + confiance OU verrouillage */}
+      {/* ====== BODY : prono + cote + confiance OU verrouillage ====== */}
       {hasAccess ? (
         <View style={styles.body}>
           <Text style={[styles.eyebrow, { color: c.gold }]}>NOTRE PRONO</Text>
 
           <View style={styles.predictionRow}>
-            <Text style={[styles.prediction, { color: c.text }]} numberOfLines={2}>
+            <Text
+              style={[styles.prediction, { color: c.text }]}
+              numberOfLines={2}>
               {prono.prediction}
             </Text>
-            <View style={styles.oddBlock}>
-              <Text style={[styles.oddLabel, { color: c.textDim }]}>Cote</Text>
+            <View
+              style={[
+                styles.oddBlock,
+                { backgroundColor: c.bgDeeper, borderColor: c.borderFaint },
+              ]}>
+              <Text style={[styles.oddLabel, { color: c.textDim }]}>COTE</Text>
               <Text style={[styles.oddValue, { color: c.text }]}>
                 {prono.odd.toFixed(2)}
               </Text>
@@ -105,11 +181,16 @@ export function PronoCard({ prono, hasAccess, onPress }: Props) {
         <LockedBody minTier={prono.minTier} onPress={onPress} />
       )}
 
-      {/* FOOTER : CTA */}
+      {/* DIVIDER + FOOTER */}
       <View style={[styles.divider, { backgroundColor: c.borderFaint }]} />
       <View style={styles.footer}>
-        <Text style={[styles.cta, { color: hasAccess ? c.text : c.textMuted }]}>
-          {hasAccess ? 'Voir l’analyse' : 'Débloquer ce prono'}
+        <Text
+          style={[styles.cta, { color: hasAccess ? c.text : c.textMuted }]}>
+          {!hasAccess
+            ? 'Débloquer ce prono'
+            : isResolved
+              ? 'Voir le détail'
+              : 'Voir l’analyse'}
         </Text>
         <SymbolView
           name="arrow.right"
@@ -118,7 +199,45 @@ export function PronoCard({ prono, hasAccess, onPress }: Props) {
           weight="semibold"
         />
       </View>
-    </Pressable>
+      </Pressable>
+    </View>
+  );
+}
+
+function Team({
+  name,
+  logo,
+  align,
+}: {
+  name: string;
+  logo?: string;
+  align: 'left' | 'right';
+}) {
+  const c = useThemeColors();
+  return (
+    <View
+      style={[
+        styles.team,
+        align === 'right' && { flexDirection: 'row-reverse' },
+      ]}>
+      <View style={[styles.logoWrap, { backgroundColor: c.bgElevated }]}>
+        {logo ? (
+          <Image
+            source={{ uri: logo }}
+            style={styles.logoImg}
+            contentFit="contain"
+          />
+        ) : null}
+      </View>
+      <Text
+        style={[
+          styles.teamName,
+          { color: c.text, textAlign: align },
+        ]}
+        numberOfLines={1}>
+        {name}
+      </Text>
+    </View>
   );
 }
 
@@ -133,7 +252,6 @@ function LockedBody({
 
   return (
     <View style={styles.lockedBody}>
-      {/* Background floutée — texte fantôme + overlay */}
       <View style={styles.lockedGhost}>
         <Text style={[styles.eyebrow, { color: c.gold, opacity: 0.3 }]}>
           NOTRE PRONO
@@ -147,9 +265,14 @@ function LockedBody({
             ]}>
             ████████████
           </Text>
-          <View style={styles.oddBlock}>
-            <Text style={[styles.oddLabel, { color: c.textDim }]}>Cote</Text>
-            <Text style={[styles.oddValue, styles.lockedText, { color: c.text }]}>
+          <View
+            style={[
+              styles.oddBlock,
+              { backgroundColor: c.bgDeeper, borderColor: c.borderFaint },
+            ]}>
+            <Text style={[styles.oddLabel, { color: c.textDim }]}>COTE</Text>
+            <Text
+              style={[styles.oddValue, styles.lockedText, { color: c.text }]}>
               ●,●●
             </Text>
           </View>
@@ -171,15 +294,11 @@ function LockedBody({
         </View>
       </View>
 
-      {/* Overlay verrouillage */}
       <Pressable
         onPress={onPress}
         style={[
           styles.lockOverlay,
-          {
-            backgroundColor: c.bgWarm,
-            borderColor: c.goldDecorative,
-          },
+          { backgroundColor: c.bgWarm, borderColor: c.goldDecorative },
         ]}>
         <SymbolView
           name="lock.fill"
@@ -196,65 +315,128 @@ function LockedBody({
 }
 
 const styles = StyleSheet.create({
+  // Outer frame coloré = filet identité compétition (3px)
+  outerFrame: {
+    borderRadius: 18,
+    padding: 3,
+    // Shadow iOS subtile portée par le frame
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
   card: {
-    borderRadius: Radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 15, // = outerRadius (18) - padding (3) pour fit nickel
     padding: Spacing.three,
+    gap: Spacing.three,
+    position: 'relative',
+  },
+  resultBadge: {
+    position: 'absolute',
+    top: -8,
+    right: Spacing.three,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 999,
+    zIndex: 10,
+  },
+  resultBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+  },
+  // — Top strip —
+  topStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: Spacing.two,
   },
-  header: {
-    gap: Spacing.two,
+  topLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
   },
+  iconCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flagCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    overflow: 'hidden',
+    borderWidth: 0.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flagImg: {
+    width: 22,
+    height: 22,
+  },
+  competition: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    flexShrink: 1,
+    textTransform: 'uppercase',
+  },
+  hour: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: -0.1,
+  },
+  // — Teams —
   teamsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
+    paddingVertical: Spacing.one,
   },
   team: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.two,
+    gap: 8,
   },
-  logo: {
-    width: 26,
-    height: 26,
+  logoWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
+  },
+  logoImg: {
+    width: 28,
+    height: 28,
   },
   teamName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
     letterSpacing: -0.2,
     flexShrink: 1,
+    flex: 1,
   },
-  vs: {
-    fontSize: 11,
-    fontWeight: '600',
+  vsPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
   },
-  contextRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  context: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-    flexShrink: 1,
-  },
-  contextDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: '#737373',
-    opacity: 0.5,
-  },
-  hour: {
-    fontSize: 11,
-    fontWeight: '700',
+  vsText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
   },
+  // — Body —
   body: {
     paddingVertical: 6,
     gap: Spacing.two,
@@ -277,19 +459,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   oddBlock: {
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    minWidth: 72,
   },
   oddLabel: {
-    fontSize: 10,
-    letterSpacing: 0.5,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    fontSize: 9,
+    letterSpacing: 0.8,
+    fontWeight: '700',
   },
   oddValue: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     letterSpacing: -0.5,
+    marginTop: 1,
   },
+  // — Footer —
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -301,7 +489,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.1,
   },
-  // — État verrouillé —
+  // — Verrouillé —
   lockedBody: {
     paddingVertical: 6,
     gap: Spacing.two,

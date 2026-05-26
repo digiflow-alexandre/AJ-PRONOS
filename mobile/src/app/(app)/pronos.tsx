@@ -1,6 +1,6 @@
 import { SymbolView } from 'expo-symbols';
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -12,6 +12,7 @@ import {
 import { BrandHeader } from '@/components/brand-header';
 import { PronoCard } from '@/components/prono-card';
 import { BottomTabInset, Spacing } from '@/constants/theme';
+import { getMaxHistoryDays } from '@/lib/competition-meta';
 import { PRONOS_FIXTURES } from '@/lib/fixtures';
 import { formatLongDate } from '@/lib/format-date';
 import { useProfile } from '@/lib/use-profile';
@@ -37,23 +38,42 @@ type DateBucket = {
   count: number;
 };
 
+// Approximation : largeur moyenne d'un chip date (+ gap). Sert au scroll
+// initial pour centrer "Aujourd'hui" quand il y a des dates passées à gauche.
+const CHIP_WIDTH_PX = 96;
+
 export default function PronosScreen() {
   const c = useThemeColors();
   const router = useRouter();
   const { profile, isTrialActive } = useProfile();
   const [sport, setSport] = useState<SportFilter>('all');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const dateScrollRef = useRef<ScrollView>(null);
+  const didInitialScrollRef = useRef(false);
 
-  // Filtrer les pronos par sport, puis grouper par date
+  // Gating historique par tier : Starter 7j, Pro 30j, VIP/trial illimité.
+  const maxHistoryDays = getMaxHistoryDays(profile?.tier ?? null, isTrialActive);
+
+  // Filtrer les pronos par sport, puis grouper par date.
+  // Cap des dates passées selon le pack.
   const { dateBuckets, pronosByDate } = useMemo(() => {
     const filtered = PRONOS_FIXTURES.filter(
       (p) => sport === 'all' || p.sport === sport,
     );
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const oldestAllowed =
+      maxHistoryDays === Infinity
+        ? -Infinity
+        : today.getTime() - maxHistoryDays * 86_400_000;
+
     const byDate = new Map<string, Prono[]>();
     filtered.forEach((p) => {
       const d = new Date(p.matchStartAt);
       d.setHours(0, 0, 0, 0);
+      // Exclure les pronos plus vieux que ce que le pack permet
+      if (d.getTime() < oldestAllowed) return;
       const key = d.toISOString();
       if (!byDate.has(key)) byDate.set(key, []);
       byDate.get(key)!.push(p);
@@ -67,9 +87,6 @@ export default function PronosScreen() {
           new Date(b.matchStartAt).getTime(),
       ),
     );
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     const buckets: DateBucket[] = Array.from(byDate.keys())
       .sort()
@@ -85,7 +102,7 @@ export default function PronosScreen() {
       });
 
     return { dateBuckets: buckets, pronosByDate: byDate };
-  }, [sport]);
+  }, [sport, maxHistoryDays]);
 
   // Sélection automatique : aujourd'hui par défaut, sinon le 1er bucket dispo.
   // Pattern "valeur dérivée d'une prop/state" → setState légitime ici.
@@ -100,6 +117,25 @@ export default function PronosScreen() {
       setSelectedDate((today ?? dateBuckets[0]).iso);
     }
   }, [dateBuckets, selectedDate]);
+
+  // Scroll initial du sélecteur date sur "Aujourd'hui" (pour que les jours
+  // passés à sa gauche soient pas le premier élément visible).
+  useEffect(() => {
+    if (didInitialScrollRef.current || dateBuckets.length === 0) return;
+    const idx = dateBuckets.findIndex((b) => b.isToday);
+    if (idx > 0 && dateScrollRef.current) {
+      // Petit délai pour laisser le layout se faire avant scroll.
+      const t = setTimeout(() => {
+        dateScrollRef.current?.scrollTo({
+          x: idx * CHIP_WIDTH_PX - 40,
+          animated: false,
+        });
+      }, 50);
+      didInitialScrollRef.current = true;
+      return () => clearTimeout(t);
+    }
+    if (idx <= 0) didInitialScrollRef.current = true;
+  }, [dateBuckets]);
 
   function hasAccess(prono: Prono): boolean {
     if (!profile?.tier) return false;
@@ -157,12 +193,13 @@ export default function PronosScreen() {
         })}
       </View>
 
-      {/* Sélecteur de date horizontal — `flexGrow: 0` indispensable, sinon
-          la ScrollView prend tout l'espace vertical libre par défaut sur RN. */}
+      {/* Sélecteur de date horizontal. Wrappé dans une View, sinon la
+          ScrollView prend tout l'espace vertical par défaut sur RN. */}
       {dateBuckets.length > 0 ? (
         <View
           style={[styles.dateBar, { borderBottomColor: c.borderFaint }]}>
           <ScrollView
+            ref={dateScrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.dateBarContent}>
@@ -237,12 +274,27 @@ function SportTab({
         active && { backgroundColor: c.text },
         { opacity: pressed ? 0.7 : 1 },
       ]}>
-      <SymbolView
-        name={symbol as never}
-        size={18}
-        tintColor={active ? c.ctaText : c.textMuted}
-        weight="semibold"
-      />
+      {/* Pour tennis : on encapsule l'icône dans un mini cercle noir
+          pour que le jaune fluo ressorte sur le fond crème. */}
+      {symbol === 'tennisball' ? (
+        <View style={styles.tennisBg}>
+          <SymbolView
+            name={symbol as never}
+            size={14}
+            tintColor="#D4FF00"
+            weight="bold"
+          />
+        </View>
+      ) : (
+        <SymbolView
+          name={symbol as never}
+          size={18}
+          {...(symbol === 'soccerball'
+            ? { type: 'multicolor' as const }
+            : { tintColor: active ? c.ctaText : c.textMuted })}
+          weight="bold"
+        />
+      )}
       <Text
         style={[
           styles.sportCount,
@@ -344,6 +396,14 @@ const styles = StyleSheet.create({
   sportCount: {
     fontSize: 13,
     fontWeight: '700',
+  },
+  tennisBg: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#0A0A0A',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dateBar: {
     borderBottomWidth: StyleSheet.hairlineWidth,

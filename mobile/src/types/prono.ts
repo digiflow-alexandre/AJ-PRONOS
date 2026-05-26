@@ -2,6 +2,8 @@ import type { SubscriptionTier } from './profile';
 
 export type Sport = 'foot' | 'tennis';
 
+export type PronoResult = 'pending' | 'win' | 'loss' | 'void';
+
 export type Prono = {
   id: string;
   sport: Sport;
@@ -17,4 +19,7 @@ export type Prono = {
   reasoning: string;          // argumentaire long pour la fiche détaillée
   minTier: Exclude<SubscriptionTier, 'trial'>; // starter / pro / vip
   publishedAt: string;
+  result: PronoResult;        // 'pending' tant que le match n'est pas joué
+  finalScore?: string;        // ex: "PSG 3-1 Lyon" (rempli quand result != pending)
 };
+
