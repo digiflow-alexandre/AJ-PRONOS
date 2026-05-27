@@ -145,11 +145,11 @@ export default function PronosScreen() {
   }
 
   function openPrononDetail(prono: Prono) {
-    if (!hasAccess(prono)) {
-      router.push('/(app)/subscribe');
-      return;
-    }
-    // Fiche détaillée à venir (Phase MVP point 2 du SPEC.md)
+    // Forme objet obligatoire avec typedRoutes Expo.
+    router.push({
+      pathname: '/(app)/pronos/[id]',
+      params: { id: prono.id },
+    });
   }
 
   // Counts par sport (utilisés dans les tabs)

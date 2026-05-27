@@ -1,8 +1,19 @@
 import type { SubscriptionTier } from './profile';
+import type { ProNoStats } from './stats';
 
 export type Sport = 'foot' | 'tennis';
 
 export type PronoResult = 'pending' | 'win' | 'loss' | 'void';
+
+/** Résultat d'un match récent : W = win, D = draw, L = loss. */
+export type FormSlot = 'W' | 'D' | 'L';
+
+export type HeadToHead = {
+  homeWins: number;
+  draws: number;       // 0 pour le tennis (pas de nul)
+  awayWins: number;
+  period: string;      // ex: "10 dernières confrontations"
+};
 
 export type Prono = {
   id: string;
@@ -21,5 +32,19 @@ export type Prono = {
   publishedAt: string;
   result: PronoResult;        // 'pending' tant que le match n'est pas joué
   finalScore?: string;        // ex: "PSG 3-1 Lyon" (rempli quand result != pending)
+
+  // ===== Stats du match (optionnel, affichées en fiche détaillée) =====
+  /** 5 derniers résultats de l'équipe domicile (du plus récent au plus ancien). */
+  teamHomeForm?: FormSlot[];
+  teamAwayForm?: FormSlot[];
+  /** Confrontations directes récentes. */
+  headToHead?: HeadToHead;
+  /** Ligne de contexte courte (classement, points d'écart, etc.) */
+  contextNote?: string;
+  /** Absents importants. */
+  absences?: string[];
+  /** Données stats détaillées pour le Stats Center (sheet). Optionnel. */
+  stats?: ProNoStats;
 };
+
 
