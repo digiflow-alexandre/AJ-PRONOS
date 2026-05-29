@@ -13,15 +13,17 @@ import {
 
 import { BrandedButton } from '@/components/branded-button';
 import { BrandHeader } from '@/components/brand-header';
+import { ComboBetCard } from '@/components/combo-bet-card';
 import { PronoCard } from '@/components/prono-card';
 import { StatsBilanRow } from '@/components/stats-bilan-row';
 import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import { computeBilan, getGreeting } from '@/lib/bilan';
-import { PRONOS_FIXTURES } from '@/lib/fixtures';
+import { ALL_BETS } from '@/lib/fixtures';
 import { useAuth } from '@/lib/auth-context';
 import { useProfile } from '@/lib/use-profile';
 import { useThemeColors } from '@/lib/use-theme-colors';
-import type { Prono } from '@/types/prono';
+import { getBetStartDate } from '@/types/prono';
+import type { AnyBet, ComboBet, Prono } from '@/types/prono';
 
 // Clé AsyncStorage pour ne montrer la modal "essai terminé" qu'une seule fois
 // par expiration. On stocke la date d'expiration vue → si elle change (nouveau
@@ -80,34 +82,39 @@ export default function HomeScreen() {
   const shouldShowTrialBanner = !isLoading && profile && profile.tier === null;
   const shouldShowExpiredBanner = !isLoading && isTrialExpired;
 
-  // Bilan AJ Pronos sur 7 derniers jours
-  const bilan = useMemo(() => computeBilan(PRONOS_FIXTURES, 7), []);
+  // Bilan AJ Pronos sur 7 derniers jours — uniquement les paris simples
+  // (les combinés ont leur propre logique de comptage, sera intégré quand
+  // on aura plus de fixtures combinés récents).
+  const bilan = useMemo(
+    () => computeBilan(ALL_BETS.filter((b) => b.type === 'single') as Prono[], 7),
+    [],
+  );
 
   // Pronos du jour (limités aux 3 premiers, triés par heure)
-  const todayPronos = useMemo(() => {
+  const todayBets = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = today.getTime() + 86_400_000;
-    return PRONOS_FIXTURES.filter((p) => {
-      const t = new Date(p.matchStartAt).getTime();
+    return ALL_BETS.filter((b) => {
+      const t = new Date(getBetStartDate(b)).getTime();
       return t >= today.getTime() && t < tomorrow;
     })
       .sort(
         (a, b) =>
-          new Date(a.matchStartAt).getTime() -
-          new Date(b.matchStartAt).getTime(),
+          new Date(getBetStartDate(a)).getTime() -
+          new Date(getBetStartDate(b)).getTime(),
       )
       .slice(0, 3);
   }, []);
 
-  function hasAccess(prono: Prono): boolean {
-    return canAccess(prono.minTier);
+  function hasAccess(bet: AnyBet): boolean {
+    return canAccess(bet.minTier);
   }
 
-  function openPronoDetail(prono: Prono) {
+  function openBetDetail(bet: AnyBet) {
     router.push({
       pathname: '/(app)/pronos/[id]',
-      params: { id: prono.id },
+      params: { id: bet.id },
     });
   }
 
@@ -289,7 +296,7 @@ export default function HomeScreen() {
             </Pressable>
           </View>
 
-          {todayPronos.length === 0 ? (
+          {todayBets.length === 0 ? (
             <View
               style={[
                 styles.emptyToday,
@@ -302,14 +309,23 @@ export default function HomeScreen() {
             </View>
           ) : (
             <View style={{ gap: Spacing.three }}>
-              {todayPronos.map((p) => (
-                <PronoCard
-                  key={p.id}
-                  prono={p}
-                  hasAccess={hasAccess(p)}
-                  onPress={() => openPronoDetail(p)}
-                />
-              ))}
+              {todayBets.map((b) =>
+                b.type === 'single' ? (
+                  <PronoCard
+                    key={b.id}
+                    prono={b as Prono}
+                    hasAccess={hasAccess(b)}
+                    onPress={() => openBetDetail(b)}
+                  />
+                ) : (
+                  <ComboBetCard
+                    key={b.id}
+                    combo={b as ComboBet}
+                    hasAccess={hasAccess(b)}
+                    onPress={() => openBetDetail(b)}
+                  />
+                ),
+              )}
             </View>
           )}
         </View>

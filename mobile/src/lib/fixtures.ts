@@ -1,446 +1,193 @@
-import type { Prono } from '@/types/prono';
+/**
+ * Fixtures AJ Pronos — VRAIES données importées depuis site/src/lib/data.ts.
+ * Aucun pari fake : que des paris historiques réels qu'Alex a publiés.
+ *
+ * - 11 paris simples (Mai 2026)
+ * - 98 combinés (Janvier → Avril 2026, importés via combo-fixtures.ts)
+ *
+ * Sera remplacé par la data Supabase quand le backend sera branché
+ * (agents IA, admin Julien, etc.).
+ */
 
+import type { AnyBet, ComboBet, Prono, Sport } from '@/types/prono';
+
+import { buildComboBetFixtures } from './combo-fixtures';
 import { makeFootballStats } from './fake-stats';
 
-// Helpers pour générer des dates relatives.
-// Note : ces fixtures sont temporaires — elles seront remplacées par des
-// données Supabase quand les agents IA seront branchés (Phase MVP point 9).
-function offsetDayAt(daysOffset: number, hour: number, minute = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + daysOffset);
-  d.setHours(hour, minute, 0, 0);
-  return d.toISOString();
+// =============================================================================
+// Helpers : date ISO depuis (day, month, year)
+// =============================================================================
+function dateAt(year: number, month: number, day: number, hour = 21): string {
+  return new Date(year, month, day, hour, 0, 0, 0).toISOString();
 }
 
-const todayAt = (h: number, m = 0) => offsetDayAt(0, h, m);
-const tomorrowAt = (h: number, m = 0) => offsetDayAt(1, h, m);
-const yesterdayAt = (h: number, m = 0) => offsetDayAt(-1, h, m);
-const minus2At = (h: number, m = 0) => offsetDayAt(-2, h, m);
-const minus3At = (h: number, m = 0) => offsetDayAt(-3, h, m);
-
-// Logos API-Sports CDN (gratuit, sans auth).
+// =============================================================================
+// Logos équipes (CDN API-Sports + drapeaux pour le tennis)
+// =============================================================================
 const LOGO = {
   psg: 'https://media.api-sports.io/football/teams/85.png',
   lyon: 'https://media.api-sports.io/football/teams/80.png',
   marseille: 'https://media.api-sports.io/football/teams/81.png',
-  monaco: 'https://media.api-sports.io/football/teams/91.png',
-  rennes: 'https://media.api-sports.io/football/teams/94.png',
+  nice: 'https://media.api-sports.io/football/teams/84.png',
   lille: 'https://media.api-sports.io/football/teams/79.png',
+  lens: 'https://media.api-sports.io/football/teams/116.png',
+  dortmund: 'https://media.api-sports.io/football/teams/165.png',
+  mainz: 'https://media.api-sports.io/football/teams/164.png',
   realMadrid: 'https://media.api-sports.io/football/teams/541.png',
+  girona: 'https://media.api-sports.io/football/teams/547.png',
   barcelona: 'https://media.api-sports.io/football/teams/529.png',
-  manCity: 'https://media.api-sports.io/football/teams/50.png',
+  valencia: 'https://media.api-sports.io/football/teams/532.png',
+  atletico: 'https://media.api-sports.io/football/teams/530.png',
+  athletic: 'https://media.api-sports.io/football/teams/531.png',
   arsenal: 'https://media.api-sports.io/football/teams/42.png',
-  liverpool: 'https://media.api-sports.io/football/teams/40.png',
   chelsea: 'https://media.api-sports.io/football/teams/49.png',
+  liverpool: 'https://media.api-sports.io/football/teams/40.png',
+  tottenham: 'https://media.api-sports.io/football/teams/47.png',
+  inter: 'https://media.api-sports.io/football/teams/505.png',
+  torino: 'https://media.api-sports.io/football/teams/503.png',
+  bayer: 'https://media.api-sports.io/football/teams/168.png',
+  roma: 'https://media.api-sports.io/football/teams/497.png',
 };
 
-// Drapeaux pays pour le tennis (flagcdn.com gratuit)
-const FLAG = {
-  fr: 'https://flagcdn.com/w80/fr.png',
-  es: 'https://flagcdn.com/w80/es.png',
-  it: 'https://flagcdn.com/w80/it.png',
-  rs: 'https://flagcdn.com/w80/rs.png',
-  no: 'https://flagcdn.com/w80/no.png',
-  ru: 'https://flagcdn.com/w80/ru.png',
-  de: 'https://flagcdn.com/w80/de.png',
-  us: 'https://flagcdn.com/w80/us.png',
-};
+// =============================================================================
+// PARIS SIMPLES — Mai 2026 (importés depuis site/src/lib/data.ts)
+// =============================================================================
 
-const PRONOS_RAW: Prono[] = [
-  // ========== PASSÉ J-3 ==========
-  {
-    id: 'h1',
-    sport: 'foot',
-    competition: 'Ligue 1 · J29',
-    teamHome: 'Lille',
-    teamAway: 'Rennes',
-    teamHomeLogo: LOGO.lille,
-    teamAwayLogo: LOGO.rennes,
-    matchStartAt: minus3At(21, 0),
-    prediction: 'Victoire Lille',
-    odd: 1.95,
-    confidence: 3,
-    reasoning: 'Forme à domicile + bon bilan H2H.',
-    minTier: 'starter',
-    publishedAt: minus3At(10, 0),
-    result: 'win',
-    finalScore: 'Lille 2-0 Rennes',
-    teamHomeForm: ['W', 'D', 'W', 'L', 'W'],
-    teamAwayForm: ['L', 'W', 'D', 'L', 'L'],
-    headToHead: {
-      homeWins: 5,
-      draws: 3,
-      awayWins: 2,
-      period: '10 dernières confrontations',
-    },
-    contextNote: 'Lille 4e · Rennes 11e · 14 pts d’écart',
-  },
+type ProNoRaw = Omit<Prono, 'type'>;
 
-  // ========== PASSÉ J-2 ==========
-  {
-    id: 'h2',
-    sport: 'foot',
-    competition: 'Premier League · J36',
-    teamHome: 'Liverpool',
-    teamAway: 'Chelsea',
-    teamHomeLogo: LOGO.liverpool,
-    teamAwayLogo: LOGO.chelsea,
-    matchStartAt: minus2At(17, 30),
-    prediction: 'Plus de 2,5 buts',
-    odd: 1.78,
-    confidence: 4,
-    reasoning: 'Deux attaques en forme, défenses perméables.',
-    minTier: 'pro',
-    publishedAt: minus2At(8, 0),
-    result: 'win',
-    finalScore: 'Liverpool 3-2 Chelsea',
-    teamHomeForm: ['W', 'W', 'D', 'W', 'W'],
-    teamAwayForm: ['L', 'W', 'L', 'D', 'W'],
-    headToHead: {
-      homeWins: 6,
-      draws: 2,
-      awayWins: 2,
-      period: '10 dernières confrontations',
-    },
-    contextNote: 'Liverpool 1er · Chelsea 6e · 28 pts d’écart',
-  },
-  {
-    id: 'h3',
-    sport: 'tennis',
-    competition: 'ATP Madrid · 1/8 finale',
-    teamHome: 'Zverev (GER)',
-    teamAway: 'Medvedev (RUS)',
-    teamHomeLogo: FLAG.de,
-    teamAwayLogo: FLAG.ru,
-    matchStartAt: minus2At(14, 0),
-    prediction: 'Victoire Zverev',
-    odd: 2.1,
-    confidence: 3,
-    reasoning: 'Surface favorable + H2H récent en faveur de Zverev.',
-    minTier: 'pro',
-    publishedAt: minus2At(8, 0),
-    result: 'loss',
-    finalScore: 'Zverev 1-2 Medvedev',
-    teamHomeForm: ['W', 'L', 'W', 'W', 'L'],
-    teamAwayForm: ['W', 'W', 'W', 'L', 'W'],
-    headToHead: {
-      homeWins: 3,
-      draws: 0,
-      awayWins: 5,
-      period: '8 dernières confrontations',
-    },
-    contextNote: 'Zverev n°4 ATP · Medvedev n°5 ATP',
-  },
+/**
+ * Helper : crée un Prono à partir des infos brutes.
+ * Devine teamHome/teamAway en splittant le match sur " - ".
+ */
+function makeSimpleBet(opts: {
+  id: string;
+  day: number;
+  month: number;     // 0-11
+  year: number;
+  hour?: number;
+  match: string;      // "PSG - Lyon"
+  prediction: string;
+  odd: number;
+  result: 'win' | 'loss';
+  sport: Sport;
+  competition: string;
+  teamHomeLogo?: string;
+  teamAwayLogo?: string;
+  minTier?: Prono['minTier'];
+  finalScore?: string;
+}): ProNoRaw {
+  const [teamHome, teamAway] = opts.match.split(' - ');
+  return {
+    id: opts.id,
+    sport: opts.sport,
+    competition: opts.competition,
+    teamHome: teamHome.trim(),
+    teamAway: teamAway.trim(),
+    teamHomeLogo: opts.teamHomeLogo,
+    teamAwayLogo: opts.teamAwayLogo,
+    matchStartAt: dateAt(opts.year, opts.month, opts.day, opts.hour ?? 21),
+    prediction: opts.prediction,
+    odd: opts.odd,
+    confidence:
+      opts.odd < 1.6 ? 5 : opts.odd < 2 ? 4 : opts.odd < 2.5 ? 3 : 2,
+    reasoning: `Analyse AJ Pronos sur ${opts.match}. ${opts.prediction} à la cote ${opts.odd}.`,
+    minTier: opts.minTier ?? 'starter',
+    publishedAt: dateAt(opts.year, opts.month, opts.day, 10),
+    result: opts.result,
+    finalScore: opts.finalScore,
+  };
+}
 
-  // ========== PASSÉ J-1 (hier) ==========
-  {
-    id: 'h4',
-    sport: 'foot',
-    competition: 'La Liga · J34',
-    teamHome: 'Barcelona',
-    teamAway: 'Real Madrid',
-    teamHomeLogo: LOGO.barcelona,
-    teamAwayLogo: LOGO.realMadrid,
-    matchStartAt: yesterdayAt(21, 0),
-    prediction: 'Match nul',
-    odd: 3.4,
-    confidence: 3,
-    reasoning: 'Clásico très ouvert, les deux équipes ne peuvent pas perdre.',
-    minTier: 'starter',
-    publishedAt: yesterdayAt(9, 0),
-    result: 'loss',
-    finalScore: 'Barcelona 2-1 Real Madrid',
-    teamHomeForm: ['W', 'W', 'D', 'W', 'L'],
-    teamAwayForm: ['W', 'W', 'W', 'D', 'W'],
-    headToHead: {
-      homeWins: 4,
-      draws: 2,
-      awayWins: 4,
-      period: '10 dernières confrontations',
-    },
-    contextNote: 'Real 1er · Barça 2e · 4 pts d’écart',
-  },
-  {
-    id: 'h5',
-    sport: 'foot',
-    competition: 'Ligue 1 · J31',
-    teamHome: 'PSG',
-    teamAway: 'Monaco',
-    teamHomeLogo: LOGO.psg,
-    teamAwayLogo: LOGO.monaco,
-    matchStartAt: yesterdayAt(17, 0),
-    prediction: 'Victoire PSG + Plus 1,5 buts',
-    odd: 1.55,
-    confidence: 5,
-    reasoning: 'Combiné sécurisé — PSG ultra dominant à domicile.',
-    minTier: 'vip',
-    publishedAt: yesterdayAt(8, 0),
-    result: 'win',
-    finalScore: 'PSG 4-1 Monaco',
-    teamHomeForm: ['W', 'W', 'W', 'W', 'D'],
-    teamAwayForm: ['W', 'W', 'L', 'W', 'D'],
-    headToHead: {
-      homeWins: 6,
-      draws: 2,
-      awayWins: 2,
-      period: '10 dernières confrontations',
-    },
-    contextNote: 'PSG 1er · Monaco 2e · 15 pts d’écart',
-    absences: ['Monaco : Embolo'],
-  },
-
-  // ========== AUJOURD'HUI ==========
-  {
-    id: '1',
-    sport: 'foot',
-    competition: 'Ligue 1 · J32',
-    teamHome: 'PSG',
-    teamAway: 'Lyon',
-    teamHomeLogo: LOGO.psg,
-    teamAwayLogo: LOGO.lyon,
-    matchStartAt: todayAt(21, 0),
-    prediction: 'Victoire PSG',
-    odd: 1.65,
-    confidence: 4,
-    reasoning:
-      'Le PSG reste sur 8 victoires en 10 matchs à domicile cette saison, avec une moyenne de 2,4 buts marqués par match. Lyon arrive en grande difficulté : 3 défaites consécutives, dont 2-0 face à Brest et 3-1 face à Reims, et trois absents majeurs au milieu de terrain. Le bilan H2H au Parc des Princes est sans appel sur les 5 dernières saisons (8 victoires PSG, 1 nul, 1 défaite). La profondeur de banc parisienne fait la différence sur ce type de match : même avec une rotation, le PSG aligne facilement 11 internationaux. À 1.65, la cote intègre déjà la domination attendue mais reste correcte sur une probabilité que nous estimons supérieure à 70%.',
-    minTier: 'starter',
-    publishedAt: new Date().toISOString(),
-    result: 'pending',
-    teamHomeForm: ['W', 'W', 'W', 'D', 'W'],
-    teamAwayForm: ['L', 'L', 'L', 'W', 'D'],
-    headToHead: {
-      homeWins: 7,
-      draws: 1,
-      awayWins: 2,
-      period: '10 dernières confrontations',
-    },
-    contextNote: 'PSG 1er · Lyon 7e · 22 pts d’écart',
-    absences: ['Lyon : Caqueret, Cherki, Tagliafico'],
-    stats: {
-      homePosition: 1,
-      awayPosition: 7,
-      homeRecentMatches: [
-        { date: '17.05.', opponent: 'Paris FC',  opponentLogo: undefined, scoreHome: 1, scoreAway: 2, isHome: false, result: 'D' },
-        { date: '13.05.', opponent: 'Lens',       opponentLogo: undefined, scoreHome: 0, scoreAway: 2, isHome: false, result: 'V' },
-        { date: '10.05.', opponent: 'Brest',      opponentLogo: undefined, scoreHome: 1, scoreAway: 0, isHome: true,  result: 'V' },
-        { date: '06.05.', opponent: 'B. Munich',  opponentLogo: undefined, scoreHome: 1, scoreAway: 1, isHome: true,  result: 'N' },
-        { date: '03.05.', opponent: 'Le Havre',   opponentLogo: undefined, scoreHome: 3, scoreAway: 1, isHome: true,  result: 'V' },
-        { date: '28.04.', opponent: 'Nice',       opponentLogo: undefined, scoreHome: 1, scoreAway: 3, isHome: false, result: 'V' },
-        { date: '23.04.', opponent: 'Arsenal',    opponentLogo: undefined, scoreHome: 2, scoreAway: 1, isHome: true,  result: 'V' },
-        { date: '19.04.', opponent: 'Monaco',     opponentLogo: undefined, scoreHome: 1, scoreAway: 0, isHome: true,  result: 'V' },
-        { date: '13.04.', opponent: 'Marseille',  opponentLogo: undefined, scoreHome: 3, scoreAway: 1, isHome: false, result: 'V' },
-        { date: '09.04.', opponent: 'Aston Villa',opponentLogo: undefined, scoreHome: 3, scoreAway: 1, isHome: true,  result: 'V' },
-      ],
-      awayRecentMatches: [
-        { date: '18.05.', opponent: 'Strasbourg', opponentLogo: undefined, scoreHome: 2, scoreAway: 0, isHome: true,  result: 'D' },
-        { date: '11.05.', opponent: 'Brest',      opponentLogo: undefined, scoreHome: 2, scoreAway: 1, isHome: false, result: 'D' },
-        { date: '04.05.', opponent: 'Reims',      opponentLogo: undefined, scoreHome: 3, scoreAway: 1, isHome: false, result: 'D' },
-        { date: '01.05.', opponent: 'Toulouse',   opponentLogo: undefined, scoreHome: 2, scoreAway: 1, isHome: true,  result: 'V' },
-        { date: '27.04.', opponent: 'Nice',       opponentLogo: undefined, scoreHome: 1, scoreAway: 1, isHome: true,  result: 'N' },
-        { date: '21.04.', opponent: 'Lille',      opponentLogo: undefined, scoreHome: 1, scoreAway: 2, isHome: true,  result: 'D' },
-        { date: '14.04.', opponent: 'Monaco',     opponentLogo: undefined, scoreHome: 2, scoreAway: 1, isHome: false, result: 'V' },
-        { date: '07.04.', opponent: 'Marseille',  opponentLogo: undefined, scoreHome: 3, scoreAway: 2, isHome: true,  result: 'V' },
-        { date: '02.04.', opponent: 'Auxerre',    opponentLogo: undefined, scoreHome: 0, scoreAway: 0, isHome: false, result: 'N' },
-        { date: '30.03.', opponent: 'Le Havre',   opponentLogo: undefined, scoreHome: 2, scoreAway: 0, isHome: true,  result: 'V' },
-      ],
-      h2hMatches: [
-        { date: '06.10.', opponent: 'Lyon', scoreHome: 1, scoreAway: 0, isHome: false, result: 'V' },
-        { date: '21.04.', opponent: 'Lyon', scoreHome: 4, scoreAway: 1, isHome: true,  result: 'V' },
-        { date: '03.12.', opponent: 'Lyon', scoreHome: 0, scoreAway: 1, isHome: false, result: 'V' },
-        { date: '02.04.', opponent: 'Lyon', scoreHome: 4, scoreAway: 1, isHome: true,  result: 'V' },
-        { date: '17.09.', opponent: 'Lyon', scoreHome: 1, scoreAway: 1, isHome: false, result: 'N' },
-        { date: '02.04.', opponent: 'Lyon', scoreHome: 2, scoreAway: 0, isHome: true,  result: 'V' },
-        { date: '18.09.', opponent: 'Lyon', scoreHome: 0, scoreAway: 1, isHome: false, result: 'V' },
-        { date: '17.04.', opponent: 'Lyon', scoreHome: 0, scoreAway: 1, isHome: true,  result: 'D' },
-        { date: '19.09.', opponent: 'Lyon', scoreHome: 1, scoreAway: 1, isHome: false, result: 'N' },
-        { date: '13.03.', opponent: 'Lyon', scoreHome: 4, scoreAway: 2, isHome: true,  result: 'V' },
-      ],
-      homeSeasonStats: {
-        competition: 'Ligue 1',
-        goalsForPerMatch: 2.8,
-        goalsAgainstPerMatch: 1.0,
-        possessionPct: 62,
-        shotsPerMatch: 16.9,
-        shotsOnTargetPerMatch: 7.2,
-        cornersPerMatch: 5.6,
-        freeKicksPerMatch: 9.3,
-        chancesPerMatch: 12.2,
-        cleanSheets: 14,
-        yellowCards: 38,
-        redCards: 2,
-      },
-      awaySeasonStats: {
-        competition: 'Ligue 1',
-        goalsForPerMatch: 1.3,
-        goalsAgainstPerMatch: 1.4,
-        possessionPct: 48,
-        shotsPerMatch: 13.0,
-        shotsOnTargetPerMatch: 4.6,
-        cornersPerMatch: 5.4,
-        freeKicksPerMatch: 11.8,
-        chancesPerMatch: 9.8,
-        cleanSheets: 8,
-        yellowCards: 56,
-        redCards: 4,
-      },
-      standings: [
-        { position: 1, team: 'PSG',         played: 31, wins: 22, draws: 7, losses: 2, goalsFor: 78, goalsAgainst: 31, goalDiff: 47, points: 73 },
-        { position: 2, team: 'Monaco',      played: 31, wins: 18, draws: 6, losses: 7, goalsFor: 58, goalsAgainst: 35, goalDiff: 23, points: 60 },
-        { position: 3, team: 'Marseille',   played: 31, wins: 17, draws: 7, losses: 7, goalsFor: 56, goalsAgainst: 38, goalDiff: 18, points: 58 },
-        { position: 4, team: 'Lille',       played: 31, wins: 16, draws: 8, losses: 7, goalsFor: 52, goalsAgainst: 32, goalDiff: 20, points: 56 },
-        { position: 5, team: 'Nice',        played: 31, wins: 15, draws: 9, losses: 7, goalsFor: 50, goalsAgainst: 36, goalDiff: 14, points: 54 },
-        { position: 6, team: 'Lens',        played: 31, wins: 14, draws: 8, losses: 9, goalsFor: 45, goalsAgainst: 38, goalDiff: 7,  points: 50 },
-        { position: 7, team: 'Lyon',        played: 31, wins: 13, draws: 8, losses: 10, goalsFor: 47, goalsAgainst: 42, goalDiff: 5,  points: 47 },
-        { position: 8, team: 'Strasbourg',  played: 31, wins: 12, draws: 7, losses: 12, goalsFor: 41, goalsAgainst: 44, goalDiff: -3, points: 43 },
-      ],
-      standingsLabel: 'Classement Ligue 1',
-    },
-  },
-  {
-    id: '2',
-    sport: 'foot',
-    competition: 'La Liga · J33',
-    teamHome: 'Real Madrid',
-    teamAway: 'Barcelona',
-    teamHomeLogo: LOGO.realMadrid,
-    teamAwayLogo: LOGO.barcelona,
-    matchStartAt: todayAt(21, 0),
-    prediction: 'Plus de 2,5 buts',
-    odd: 1.85,
-    confidence: 5,
-    reasoning:
-      "Sur les 10 derniers Clásicos, 8 ont vu plus de 2,5 buts. Les deux équipes ont une attaque dans le top 3 du championnat et une défense perméable. Vinicius et Lewandowski en pleine forme. La pression d'un titre encore jouable pousse les deux équipes à jouer l'offensive.",
-    minTier: 'pro',
-    publishedAt: new Date().toISOString(),
-    result: 'pending',
-    teamHomeForm: ['W', 'W', 'D', 'W', 'L'],
-    teamAwayForm: ['W', 'W', 'W', 'D', 'W'],
-    headToHead: {
-      homeWins: 4,
-      draws: 2,
-      awayWins: 4,
-      period: '10 dernières confrontations',
-    },
-    contextNote: 'Real 1er · Barça 2e · 4 pts d’écart',
-  },
-  {
-    id: '3',
-    sport: 'tennis',
-    competition: 'ATP Rome · 1/4 finale',
-    teamHome: 'Alcaraz (ESP)',
-    teamAway: 'Sinner (ITA)',
-    teamHomeLogo: FLAG.es,
-    teamAwayLogo: FLAG.it,
-    matchStartAt: todayAt(19, 30),
-    prediction: 'Victoire Alcaraz 2-1',
-    odd: 3.4,
-    confidence: 3,
-    reasoning:
-      "Match très ouvert entre les deux meilleurs joueurs actuels. Alcaraz a battu Sinner 3 fois sur 5 sur terre battue, mais Sinner est en pleine confiance après ses récents titres. Notre lecture : un match en 3 sets très accroché avec un Alcaraz qui sait mieux gérer les longs échanges sur terre. L'Italien aura le public en sa faveur, mais la fatigue accumulée sur les derniers tournois plaide pour un troisième set en faveur de l'Espagnol, plus jeune et plus frais physiquement.",
-    minTier: 'pro',
-    publishedAt: new Date().toISOString(),
-    result: 'pending',
-    teamHomeForm: ['W', 'W', 'L', 'W', 'W'],
-    teamAwayForm: ['W', 'W', 'W', 'W', 'L'],
-    headToHead: {
-      homeWins: 5,
-      draws: 0,
-      awayWins: 3,
-      period: '8 dernières confrontations',
-    },
-    contextNote: 'Alcaraz n°2 ATP · Sinner n°1 ATP',
-  },
-  {
-    id: '4',
-    sport: 'foot',
-    competition: 'Ligue 1 · J32',
-    teamHome: 'Marseille',
-    teamAway: 'Monaco',
-    teamHomeLogo: LOGO.marseille,
-    teamAwayLogo: LOGO.monaco,
-    matchStartAt: todayAt(17, 0),
-    prediction: 'Les deux équipes marquent',
-    odd: 1.72,
-    confidence: 4,
-    reasoning:
-      'Marseille joue toujours offensif au Vélodrome. Monaco a marqué dans 9 de ses 10 derniers déplacements. Les deux équipes ont un bilan défensif moyen. Probabilité élevée de voir au moins 1 but de chaque côté.',
-    minTier: 'starter',
-    publishedAt: new Date().toISOString(),
-    result: 'pending',
-    teamHomeForm: ['W', 'D', 'W', 'L', 'W'],
-    teamAwayForm: ['W', 'W', 'L', 'W', 'D'],
-    headToHead: {
-      homeWins: 4,
-      draws: 3,
-      awayWins: 3,
-      period: '10 dernières confrontations',
-    },
-    contextNote: 'Marseille 3e · Monaco 2e · 5 pts d’écart',
-  },
-
-  // ========== DEMAIN ==========
-  {
-    id: '5',
-    sport: 'tennis',
-    competition: 'ATP Rome · 1/2 finale',
-    teamHome: 'Djokovic (SRB)',
-    teamAway: 'Ruud (NOR)',
-    teamHomeLogo: FLAG.rs,
-    teamAwayLogo: FLAG.no,
-    matchStartAt: tomorrowAt(15, 0),
-    prediction: 'Victoire Djokovic',
-    odd: 1.4,
-    confidence: 4,
-    reasoning:
-      'Djokovic mène le H2H 5-2 contre Ruud. Le Serbe est en grande forme et le format des 1/2 finales en 3 sets favorise les têtes de série. Cote faible mais sécurisée.',
-    minTier: 'pro',
-    publishedAt: new Date().toISOString(),
-    result: 'pending',
-    teamHomeForm: ['W', 'W', 'W', 'L', 'W'],
-    teamAwayForm: ['W', 'L', 'W', 'W', 'L'],
-    headToHead: {
-      homeWins: 5,
-      draws: 0,
-      awayWins: 2,
-      period: '7 dernières confrontations',
-    },
-    contextNote: 'Djokovic n°1 ATP · Ruud n°7 ATP',
-  },
-  {
-    id: '6',
-    sport: 'foot',
-    competition: 'Champions League · 1/2 retour',
-    teamHome: 'Man City',
-    teamAway: 'Arsenal',
-    teamHomeLogo: LOGO.manCity,
-    teamAwayLogo: LOGO.arsenal,
-    matchStartAt: tomorrowAt(21, 0),
-    prediction: 'Victoire Man City + Plus 2,5 buts',
-    odd: 2.8,
-    confidence: 5,
-    reasoning:
-      "Combiné maison VIP : City à domicile en demi de Ligue des Champions reste l'un des paris les plus solides de la saison. Arsenal devra prendre des risques après le 1-0 à l'aller. Match avec beaucoup d'enjeu et de buts attendus.",
-    minTier: 'vip',
-    publishedAt: new Date().toISOString(),
-    result: 'pending',
-    teamHomeForm: ['W', 'W', 'W', 'W', 'W'],
-    teamAwayForm: ['W', 'L', 'W', 'W', 'D'],
-    headToHead: {
-      homeWins: 5,
-      draws: 2,
-      awayWins: 3,
-      period: '10 dernières confrontations',
-    },
-    contextNote: 'Aller : Arsenal 1-0 · Retour à l’Etihad',
-    absences: ['Arsenal : Saliba (suspendu)'],
-  },
+const SIMPLE_BETS_RAW: ProNoRaw[] = [
+  // ===== MAI 2026 (11 paris) =====
+  makeSimpleBet({
+    id: 's-mai-11', year: 2026, month: 4, day: 11,
+    match: 'PSG - Lyon', prediction: 'Plus de 2.5 buts', odd: 1.78, result: 'win',
+    sport: 'foot', competition: 'Ligue 1',
+    teamHomeLogo: LOGO.psg, teamAwayLogo: LOGO.lyon,
+  }),
+  makeSimpleBet({
+    id: 's-mai-10', year: 2026, month: 4, day: 10,
+    match: 'Real Madrid - Girona', prediction: 'Victoire Real', odd: 1.42, result: 'win',
+    sport: 'foot', competition: 'La Liga',
+    teamHomeLogo: LOGO.realMadrid, teamAwayLogo: LOGO.girona,
+  }),
+  makeSimpleBet({
+    id: 's-mai-09', year: 2026, month: 4, day: 9,
+    match: 'Bayer - Roma', prediction: 'Les deux équipes marquent', odd: 1.95, result: 'loss',
+    sport: 'foot', competition: 'Europa League',
+    teamHomeLogo: LOGO.bayer, teamAwayLogo: LOGO.roma,
+  }),
+  makeSimpleBet({
+    id: 's-mai-08', year: 2026, month: 4, day: 8,
+    match: 'Arsenal - Chelsea', prediction: 'Victoire Arsenal', odd: 1.65, result: 'win',
+    sport: 'foot', competition: 'Premier League',
+    teamHomeLogo: LOGO.arsenal, teamAwayLogo: LOGO.chelsea,
+  }),
+  makeSimpleBet({
+    id: 's-mai-07', year: 2026, month: 4, day: 7,
+    match: 'Atlético - Athletic', prediction: 'Moins de 3.5 buts', odd: 1.58, result: 'win',
+    sport: 'foot', competition: 'La Liga',
+    teamHomeLogo: LOGO.atletico, teamAwayLogo: LOGO.athletic,
+  }),
+  makeSimpleBet({
+    id: 's-mai-06', year: 2026, month: 4, day: 6,
+    match: 'Marseille - Nice', prediction: 'Victoire OM', odd: 2.10, result: 'loss',
+    sport: 'foot', competition: 'Ligue 1',
+    teamHomeLogo: LOGO.marseille, teamAwayLogo: LOGO.nice,
+  }),
+  makeSimpleBet({
+    id: 's-mai-05', year: 2026, month: 4, day: 5,
+    match: 'Inter - Torino', prediction: 'Plus de 2.5 buts', odd: 1.72, result: 'win',
+    sport: 'foot', competition: 'Serie A',
+    teamHomeLogo: LOGO.inter, teamAwayLogo: LOGO.torino,
+  }),
+  makeSimpleBet({
+    id: 's-mai-04', year: 2026, month: 4, day: 4,
+    match: 'Liverpool - Tottenham', prediction: 'Liverpool & +2.5', odd: 2.20, result: 'win',
+    sport: 'foot', competition: 'Premier League',
+    teamHomeLogo: LOGO.liverpool, teamAwayLogo: LOGO.tottenham,
+  }),
+  makeSimpleBet({
+    id: 's-mai-03', year: 2026, month: 4, day: 3,
+    match: 'Dortmund - Mainz', prediction: 'Victoire Dortmund', odd: 1.50, result: 'win',
+    sport: 'foot', competition: 'Bundesliga',
+    teamHomeLogo: LOGO.dortmund, teamAwayLogo: LOGO.mainz,
+  }),
+  makeSimpleBet({
+    id: 's-mai-02', year: 2026, month: 4, day: 2,
+    match: 'Lille - Lens', prediction: 'Match nul ou Lens', odd: 1.92, result: 'loss',
+    sport: 'foot', competition: 'Ligue 1',
+    teamHomeLogo: LOGO.lille, teamAwayLogo: LOGO.lens,
+  }),
+  makeSimpleBet({
+    id: 's-mai-01', year: 2026, month: 4, day: 1,
+    match: 'Barcelone - Valence', prediction: 'Victoire Barça -1.5', odd: 2.05, result: 'win',
+    sport: 'foot', competition: 'La Liga',
+    teamHomeLogo: LOGO.barcelona, teamAwayLogo: LOGO.valencia,
+  }),
 ];
 
 /**
- * Auto-injection des stats fictives pour les pronos foot qui n'en ont pas.
- * À retirer quand on branchera API-Football.
+ * Auto-injection :
+ * - `type: 'single'` (discriminant union AnyBet)
+ * - stats fictives pour les pronos foot (à retirer quand on branchera
+ *   API-Football qui fournira les vraies stats)
  */
-export const PRONOS_FIXTURES: Prono[] = PRONOS_RAW.map((p) =>
-  p.stats || p.sport !== 'foot' ? p : { ...p, stats: makeFootballStats(p) },
-);
+export const PRONOS_FIXTURES: Prono[] = SIMPLE_BETS_RAW.map((raw) => {
+  const p: Prono = { ...raw, type: 'single' };
+  if (!p.stats && p.sport === 'foot') {
+    return { ...p, stats: makeFootballStats(p) };
+  }
+  return p;
+});
+
+// =============================================================================
+// COMBINÉS — Jan→Avril 2026 (98 combinés importés depuis site)
+// =============================================================================
+export const COMBO_FIXTURES: ComboBet[] = buildComboBetFixtures();
+
+// =============================================================================
+// Liste unifiée (simples + combinés) — utilisée par tous les écrans
+// =============================================================================
+export const ALL_BETS: AnyBet[] = [...PRONOS_FIXTURES, ...COMBO_FIXTURES];

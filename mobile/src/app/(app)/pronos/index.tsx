@@ -10,23 +10,45 @@ import {
 } from 'react-native';
 
 import { BrandHeader } from '@/components/brand-header';
+import { ComboBetCard } from '@/components/combo-bet-card';
+import {
+  MonthPickerSheet,
+  monthKeyFromDate,
+} from '@/components/month-picker-sheet';
 import { PronoCard } from '@/components/prono-card';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { getMaxHistoryDays } from '@/lib/competition-meta';
-import { PRONOS_FIXTURES } from '@/lib/fixtures';
+import { ALL_BETS } from '@/lib/fixtures';
 import { formatLongDate } from '@/lib/format-date';
 import { useProfile } from '@/lib/use-profile';
 import { useThemeColors } from '@/lib/use-theme-colors';
-import { TIER_LEVEL } from '@/types/profile';
-import type { Prono, Sport } from '@/types/prono';
+import { getBetStartDate } from '@/types/prono';
+import type { AnyBet, ComboBet, Prono, PronoResult, Sport } from '@/types/prono';
+
+const MONTHS_FR_SHORT = [
+  'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
+  'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
+];
 
 type SportFilter = 'all' | Sport;
+type StatusFilter = 'all' | 'pending' | 'live' | 'win' | 'loss';
 
 const SPORT_TABS: { value: SportFilter; symbol: string; aria: string }[] = [
   { value: 'all', symbol: 'square.grid.2x2', aria: 'Tous les sports' },
   { value: 'foot', symbol: 'soccerball', aria: 'Football' },
   { value: 'tennis', symbol: 'tennisball', aria: 'Tennis' },
 ];
+
+// Renvoie le sport "dominant" d'un pari (utile pour le filtre).
+// Pour un combo, on retient TOUS les sports présents (multi-match)
+function betHasSport(bet: AnyBet, sport: Sport): boolean {
+  if (bet.type === 'single') return bet.sport === sport;
+  return bet.selections.some((s) => s.sport === sport);
+}
+
+function betResult(bet: AnyBet): PronoResult {
+  return bet.result;
+}
 
 // Dates affichées dans le sélecteur — uniquement celles qui ont au moins
 // un prono publié (pour le sport actuellement sélectionné).
@@ -45,46 +67,75 @@ const CHIP_WIDTH_PX = 96;
 export default function PronosScreen() {
   const c = useThemeColors();
   const router = useRouter();
-  const { profile, isTrialActive } = useProfile();
+  const { profile, isTrialActive, canAccess } = useProfile();
   const [sport, setSport] = useState<SportFilter>('all');
+  const [status, setStatus] = useState<StatusFilter>('all');
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [monthPickerOpen, setMonthPickerOpen] = useState(false);
   const dateScrollRef = useRef<ScrollView>(null);
   const didInitialScrollRef = useRef(false);
 
   // Gating historique par tier : Starter 7j, Pro 30j, VIP/trial illimité.
   const maxHistoryDays = getMaxHistoryDays(profile?.tier ?? null, isTrialActive);
 
-  // Filtrer les pronos par sport, puis grouper par date.
-  // Cap des dates passées selon le pack.
-  const { dateBuckets, pronosByDate } = useMemo(() => {
-    const filtered = PRONOS_FIXTURES.filter(
-      (p) => sport === 'all' || p.sport === sport,
+  // Filtre par sport + cap historique par pack (utilisé pour les paris dispo).
+  const allowedBets = useMemo(() => {
+    const filtered = ALL_BETS.filter(
+      (b) => sport === 'all' || betHasSport(b, sport),
     );
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const oldestAllowed =
       maxHistoryDays === Infinity
         ? -Infinity
         : today.getTime() - maxHistoryDays * 86_400_000;
-
-    const byDate = new Map<string, Prono[]>();
-    filtered.forEach((p) => {
-      const d = new Date(p.matchStartAt);
+    return filtered.filter((b) => {
+      const d = new Date(getBetStartDate(b));
       d.setHours(0, 0, 0, 0);
-      // Exclure les pronos plus vieux que ce que le pack permet
-      if (d.getTime() < oldestAllowed) return;
+      return d.getTime() >= oldestAllowed;
+    });
+  }, [sport, maxHistoryDays]);
+
+  // Mois unique disponible le plus récent (utilisé par défaut)
+  const availableMonthKeys = useMemo(() => {
+    const set = new Set<string>();
+    allowedBets.forEach((b) => {
+      const d = new Date(getBetStartDate(b));
+      set.add(monthKeyFromDate(d));
+    });
+    return Array.from(set).sort((a, b) => b.localeCompare(a));
+  }, [allowedBets]);
+
+  // Bets du mois sélectionné, groupés par jour
+  const { dateBuckets, betsByDate } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Si pas de mois sélectionné, on prend le plus récent disponible
+    const targetMonth = selectedMonthKey ?? availableMonthKeys[0];
+    if (!targetMonth) {
+      return { dateBuckets: [] as DateBucket[], betsByDate: new Map<string, AnyBet[]>() };
+    }
+
+    const monthBets = allowedBets.filter(
+      (b) => monthKeyFromDate(new Date(getBetStartDate(b))) === targetMonth,
+    );
+
+    const byDate = new Map<string, AnyBet[]>();
+    monthBets.forEach((b) => {
+      const d = new Date(getBetStartDate(b));
+      d.setHours(0, 0, 0, 0);
       const key = d.toISOString();
       if (!byDate.has(key)) byDate.set(key, []);
-      byDate.get(key)!.push(p);
+      byDate.get(key)!.push(b);
     });
 
-    // Tri intra-jour par heure
     byDate.forEach((list) =>
       list.sort(
         (a, b) =>
-          new Date(a.matchStartAt).getTime() -
-          new Date(b.matchStartAt).getTime(),
+          new Date(getBetStartDate(a)).getTime() -
+          new Date(getBetStartDate(b)).getTime(),
       ),
     );
 
@@ -101,8 +152,16 @@ export default function PronosScreen() {
         };
       });
 
-    return { dateBuckets: buckets, pronosByDate: byDate };
-  }, [sport, maxHistoryDays]);
+    return { dateBuckets: buckets, betsByDate: byDate };
+  }, [allowedBets, selectedMonthKey, availableMonthKeys]);
+
+  // Mois courant pour le label du picker
+  const currentMonthLabel = useMemo(() => {
+    const key = selectedMonthKey ?? availableMonthKeys[0];
+    if (!key) return 'Mois';
+    const [year, month] = key.split('-').map(Number);
+    return `${MONTHS_FR_SHORT[month]} ${year}`;
+  }, [selectedMonthKey, availableMonthKeys]);
 
   // Sélection automatique : aujourd'hui par défaut, sinon le 1er bucket dispo.
   // Pattern "valeur dérivée d'une prop/state" → setState légitime ici.
@@ -137,31 +196,61 @@ export default function PronosScreen() {
     if (idx <= 0) didInitialScrollRef.current = true;
   }, [dateBuckets]);
 
-  function hasAccess(prono: Prono): boolean {
-    if (!profile?.tier) return false;
-    if (isTrialActive) return true;
-    if (profile.tier === 'trial') return false;
-    return TIER_LEVEL[profile.tier] >= TIER_LEVEL[prono.minTier];
+  function hasAccess(bet: AnyBet): boolean {
+    return canAccess(bet.minTier);
   }
 
-  function openPrononDetail(prono: Prono) {
-    // Forme objet obligatoire avec typedRoutes Expo.
+  function openBetDetail(bet: AnyBet) {
     router.push({
       pathname: '/(app)/pronos/[id]',
-      params: { id: prono.id },
+      params: { id: bet.id },
     });
   }
 
   // Counts par sport (utilisés dans les tabs)
   const countsBySport = useMemo(() => {
-    const all = PRONOS_FIXTURES.length;
-    const foot = PRONOS_FIXTURES.filter((p) => p.sport === 'foot').length;
-    const tennis = PRONOS_FIXTURES.filter((p) => p.sport === 'tennis').length;
+    const all = ALL_BETS.length;
+    const foot = ALL_BETS.filter((b) => betHasSport(b, 'foot')).length;
+    const tennis = ALL_BETS.filter((b) => betHasSport(b, 'tennis')).length;
     return { all, foot, tennis };
   }, []);
 
   const selectedBucket = dateBuckets.find((b) => b.iso === selectedDate);
-  const pronosOfDay = selectedDate ? (pronosByDate.get(selectedDate) ?? []) : [];
+  const allBetsOfDay = useMemo(
+    () => (selectedDate ? (betsByDate.get(selectedDate) ?? []) : []),
+    [selectedDate, betsByDate],
+  );
+
+  // Filtres status conditionnels : disponibles seulement quand le jour
+  // sélectionné contient des paris résolus (sinon "tous" implicite).
+  const showStatusFilters = useMemo(() => {
+    return allBetsOfDay.some(
+      (b) => b.result === 'win' || b.result === 'loss' || b.result === 'live',
+    );
+  }, [allBetsOfDay]);
+
+  // Application du filtre status
+  const betsOfDay = useMemo(() => {
+    if (status === 'all') return allBetsOfDay;
+    return allBetsOfDay.filter((b) => {
+      const r = betResult(b);
+      if (status === 'pending') return r === 'pending';
+      if (status === 'live') return r === 'live';
+      if (status === 'win') return r === 'win';
+      if (status === 'loss') return r === 'loss';
+      return true;
+    });
+  }, [status, allBetsOfDay]);
+
+  // Compteurs status pour les chips (calcul sur tous les paris du jour)
+  const statusCounts = useMemo(() => {
+    const acc = { pending: 0, live: 0, win: 0, loss: 0 };
+    allBetsOfDay.forEach((b) => {
+      const r = betResult(b);
+      if (r in acc) acc[r as keyof typeof acc]++;
+    });
+    return acc;
+  }, [allBetsOfDay]);
 
   return (
     <View style={[styles.screen, { backgroundColor: c.bg }]}>
@@ -193,25 +282,106 @@ export default function PronosScreen() {
         })}
       </View>
 
-      {/* Sélecteur de date horizontal. Wrappé dans une View, sinon la
-          ScrollView prend tout l'espace vertical par défaut sur RN. */}
-      {dateBuckets.length > 0 ? (
-        <View
-          style={[styles.dateBar, { borderBottomColor: c.borderFaint }]}>
-          <ScrollView
-            ref={dateScrollRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.dateBarContent}>
-            {dateBuckets.map((b) => (
-              <DateChip
-                key={b.iso}
-                bucket={b}
-                active={b.iso === selectedDate}
-                onPress={() => setSelectedDate(b.iso)}
+      {/* Picker de mois + sélecteur date horizontal */}
+      {availableMonthKeys.length > 0 ? (
+        <>
+          <View
+            style={[
+              styles.monthPickerBar,
+              { backgroundColor: c.bg, borderBottomColor: c.borderFaint },
+            ]}>
+            <Pressable
+              onPress={() => setMonthPickerOpen(true)}
+              style={({ pressed }) => [
+                styles.monthPickerBtn,
+                {
+                  backgroundColor: c.bgDeeper,
+                  borderColor: c.borderSoft,
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}>
+              <SymbolView
+                name="calendar"
+                size={14}
+                tintColor={c.gold}
+                weight="semibold"
               />
-            ))}
-          </ScrollView>
+              <Text style={[styles.monthPickerLabel, { color: c.text }]}>
+                {currentMonthLabel}
+              </Text>
+              <SymbolView
+                name="chevron.down"
+                size={11}
+                tintColor={c.textMuted}
+                weight="bold"
+              />
+            </Pressable>
+            <Text style={[styles.monthPickerTotal, { color: c.textDim }]}>
+              {dateBuckets.reduce((acc, b) => acc + b.count, 0)} paris
+            </Text>
+          </View>
+
+          {dateBuckets.length > 0 ? (
+            <View style={[styles.dateBar, { borderBottomColor: c.borderFaint }]}>
+              <ScrollView
+                ref={dateScrollRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.dateBarContent}>
+                {dateBuckets.map((b) => (
+                  <DateChip
+                    key={b.iso}
+                    bucket={b}
+                    active={b.iso === selectedDate}
+                    onPress={() => setSelectedDate(b.iso)}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
+        </>
+      ) : null}
+
+      {/* Filtres status (seulement si jour contient des paris résolus/live) */}
+      {showStatusFilters ? (
+        <View
+          style={[
+            styles.statusBar,
+            { backgroundColor: c.bg, borderBottomColor: c.borderFaint },
+          ]}>
+          <StatusChip
+            label="Tous"
+            count={allBetsOfDay.length}
+            active={status === 'all'}
+            onPress={() => setStatus('all')}
+          />
+          {statusCounts.live > 0 ? (
+            <StatusChip
+              label="Live"
+              count={statusCounts.live}
+              active={status === 'live'}
+              onPress={() => setStatus('live')}
+              color="#F59E0B"
+            />
+          ) : null}
+          {statusCounts.win > 0 ? (
+            <StatusChip
+              label="Gagnés"
+              count={statusCounts.win}
+              active={status === 'win'}
+              onPress={() => setStatus('win')}
+              color="#10B981"
+            />
+          ) : null}
+          {statusCounts.loss > 0 ? (
+            <StatusChip
+              label="Perdus"
+              count={statusCounts.loss}
+              active={status === 'loss'}
+              onPress={() => setStatus('loss')}
+              color="#EF4444"
+            />
+          ) : null}
         </View>
       ) : null}
 
@@ -226,28 +396,97 @@ export default function PronosScreen() {
                 : selectedBucket.long.toUpperCase()}
             </Text>
             <Text style={[styles.sectionCount, { color: c.textDim }]}>
-              {pronosOfDay.length}{' '}
-              {pronosOfDay.length > 1 ? 'pronos' : 'prono'}
+              {betsOfDay.length}{' '}
+              {betsOfDay.length > 1 ? 'pronos' : 'prono'}
             </Text>
           </View>
         ) : null}
 
-        {pronosOfDay.length === 0 ? (
+        {betsOfDay.length === 0 ? (
           <EmptyState />
         ) : (
           <View style={styles.cards}>
-            {pronosOfDay.map((p) => (
-              <PronoCard
-                key={p.id}
-                prono={p}
-                hasAccess={hasAccess(p)}
-                onPress={() => openPrononDetail(p)}
-              />
-            ))}
+            {betsOfDay.map((b) =>
+              b.type === 'single' ? (
+                <PronoCard
+                  key={b.id}
+                  prono={b as Prono}
+                  hasAccess={hasAccess(b)}
+                  onPress={() => openBetDetail(b)}
+                />
+              ) : (
+                <ComboBetCard
+                  key={b.id}
+                  combo={b as ComboBet}
+                  hasAccess={hasAccess(b)}
+                  onPress={() => openBetDetail(b)}
+                />
+              ),
+            )}
           </View>
         )}
       </ScrollView>
+
+      {/* Picker de mois (bottom sheet) */}
+      <MonthPickerSheet
+        visible={monthPickerOpen}
+        bets={allowedBets}
+        selectedMonthKey={selectedMonthKey ?? availableMonthKeys[0] ?? null}
+        onSelect={(key) => {
+          setSelectedMonthKey(key);
+          setSelectedDate(null); // reset, will pick first day of new month
+          didInitialScrollRef.current = false;
+        }}
+        onClose={() => setMonthPickerOpen(false)}
+      />
     </View>
+  );
+}
+
+function StatusChip({
+  label,
+  count,
+  active,
+  onPress,
+  color,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  onPress: () => void;
+  color?: string;
+}) {
+  const c = useThemeColors();
+  const accent = color ?? c.text;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.statusChip,
+        active && {
+          backgroundColor: accent,
+        },
+        !active && { borderColor: c.borderSoft },
+        { opacity: pressed ? 0.7 : 1 },
+      ]}>
+      <Text
+        style={[
+          styles.statusChipText,
+          { color: active ? '#FFFFFF' : c.textMuted },
+        ]}>
+        {label}
+      </Text>
+      <Text
+        style={[
+          styles.statusChipCount,
+          {
+            color: active ? '#FFFFFF' : accent,
+            opacity: active ? 0.9 : 1,
+          },
+        ]}>
+        {count}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -405,6 +644,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  monthPickerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.four,
+    paddingVertical: Spacing.two,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  monthPickerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  monthPickerLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: -0.1,
+    textTransform: 'capitalize',
+  },
+  monthPickerTotal: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
   dateBar: {
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
@@ -412,6 +678,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     gap: Spacing.three,
     paddingVertical: Spacing.two,
+  },
+  statusBar: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.four,
+    paddingVertical: Spacing.two,
+    gap: 6,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  statusChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  statusChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  statusChipCount: {
+    fontSize: 12,
+    fontWeight: '800',
   },
   dateChip: {
     flexDirection: 'row',

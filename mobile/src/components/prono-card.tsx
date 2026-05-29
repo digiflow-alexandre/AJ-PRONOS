@@ -22,6 +22,7 @@ const TIER_LABEL: Record<Prono['minTier'], string> = {
 };
 
 // Teintes pastel pour les cards résolues — compatibles DA crème.
+// pending et live ne sont pas mappés ici (la card reste en bg crème standard).
 const RESULT_STYLE = {
   win: {
     bg: '#ECFDF5',
@@ -43,6 +44,14 @@ const RESULT_STYLE = {
   },
 } as const;
 
+type ResolvedResult = keyof typeof RESULT_STYLE;
+function getResolvedStyle(result: Prono['result']) {
+  if (result === 'win' || result === 'loss' || result === 'void') {
+    return RESULT_STYLE[result as ResolvedResult];
+  }
+  return null;
+}
+
 type Props = {
   prono: Prono;
   /** L'utilisateur a-t-il accès à ce prono selon son tier ? */
@@ -52,9 +61,8 @@ type Props = {
 
 export function PronoCard({ prono, hasAccess, onPress }: Props) {
   const c = useThemeColors();
-  const isResolved = prono.result !== 'pending';
-  const resultStyle =
-    isResolved && prono.result !== 'pending' ? RESULT_STYLE[prono.result] : null;
+  const resultStyle = getResolvedStyle(prono.result);
+  const isResolved = resultStyle !== null;
 
   const sportSymbol = getSportSymbol(prono.sport);
   const flagUrl = getCompetitionFlag(prono.competition);

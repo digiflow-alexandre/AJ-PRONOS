@@ -1,0 +1,644 @@
+import { SymbolView } from 'expo-symbols';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { BrandedButton } from '@/components/branded-button';
+import { ConfidenceDots } from '@/components/confidence-dots';
+import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
+import { formatHour, formatLongDate } from '@/lib/format-date';
+import { useThemeColors } from '@/lib/use-theme-colors';
+import type {
+  ComboBet,
+  ComboBetSelection,
+  Prono,
+  PronoResult,
+} from '@/types/prono';
+
+import { StatsCenterSheet } from './stats-center-sheet';
+
+const COLOR_WIN = '#10B981';
+const COLOR_LOSS = '#EF4444';
+const COLOR_LIVE = '#F59E0B';
+const COLOR_VOID = '#A8A29E';
+
+const RESULT_TINT = {
+  win: { bg: '#ECFDF5', accent: COLOR_WIN, label: 'COMBINÉ GAGNÉ' },
+  loss: { bg: '#FEF2F2', accent: COLOR_LOSS, label: 'COMBINÉ PERDU' },
+  void: { bg: '#F5F5F4', accent: COLOR_VOID, label: 'COMBINÉ ANNULÉ' },
+} as const;
+
+export function ComboBetDetail({
+  combo,
+  onBack,
+}: {
+  combo: ComboBet;
+  onBack: () => void;
+}) {
+  const c = useThemeColors();
+  const insets = useSafeAreaInsets();
+  const [statsForSelection, setStatsForSelection] =
+    useState<ComboBetSelection | null>(null);
+
+  const resultTint =
+    combo.result === 'win' || combo.result === 'loss' || combo.result === 'void'
+      ? RESULT_TINT[combo.result]
+      : null;
+
+  return (
+    <View style={[styles.screen, { backgroundColor: c.bg }]}>
+      <BackHeader onBack={onBack} />
+
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: insets.bottom + BottomTabInset + Spacing.five },
+        ]}
+        showsVerticalScrollIndicator={false}>
+        {/* ============ HERO ============ */}
+        <View
+          style={[
+            styles.heroFrame,
+            { backgroundColor: c.goldDecorative, shadowColor: '#0A0A0A' },
+          ]}>
+          <View style={[styles.hero, { backgroundColor: c.bgElevated }]}>
+            {resultTint ? (
+              <View
+                style={[
+                  styles.resultBanner,
+                  { backgroundColor: resultTint.accent },
+                ]}>
+                <SymbolView
+                  name={combo.result === 'win' ? 'checkmark' : 'xmark'}
+                  size={12}
+                  tintColor="#FFFFFF"
+                  weight="bold"
+                />
+                <Text style={styles.resultBannerText}>{resultTint.label}</Text>
+              </View>
+            ) : null}
+
+            <View style={[styles.heroBody, resultTint && { paddingTop: 30 }]}>
+              <Text style={[styles.heroEyebrow, { color: c.gold }]}>
+                — COMBINÉ · {combo.selections.length} SÉLECTIONS
+              </Text>
+
+              <View style={styles.oddBlock}>
+                <Text style={[styles.oddLabel, { color: c.textDim }]}>
+                  COTE TOTALE
+                </Text>
+                <Text style={[styles.oddValue, { color: c.text }]}>
+                  {combo.combinationOdd.toFixed(2)}
+                </Text>
+              </View>
+
+              <View style={styles.confidenceRow}>
+                <Text style={[styles.confidenceLabel, { color: c.textMuted }]}>
+                  Indice de confiance
+                </Text>
+                <ConfidenceDots value={combo.confidence} showLabel={false} />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* ============ ANALYSE GLOBALE ============ */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: c.gold }]}>
+            NOTRE ANALYSE
+          </Text>
+          <Text style={[styles.reasoning, { color: c.text }]}>
+            {combo.reasoning}
+          </Text>
+        </View>
+
+        {/* ============ SÉLECTIONS ============ */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: c.gold }]}>
+            LES {combo.selections.length} SÉLECTIONS
+          </Text>
+          <View style={{ gap: Spacing.three }}>
+            {combo.selections.map((sel, i) => (
+              <SelectionCard
+                key={i}
+                selection={sel}
+                index={i + 1}
+                onOpenStats={() => setStatsForSelection(sel)}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* ============ CTA carnet personnel (Phase 2) ============ */}
+        <View style={styles.ctaBlock}>
+          <BrandedButton
+            label="Marquer comme joué"
+            variant="ghost"
+            onPress={() => {
+              /* Phase 2 : carnet personnel */
+            }}
+            disabled
+          />
+          <Text style={[styles.ctaHint, { color: c.textDim }]}>
+            Le carnet personnel arrive bientôt — tu pourras suivre ton
+            historique de paris et ton ROI réel.
+          </Text>
+        </View>
+      </ScrollView>
+
+      {/* Stats Center pour la sélection sélectionnée */}
+      <StatsCenterSheet
+        visible={statsForSelection !== null}
+        prono={statsForSelection ? selectionToProno(statsForSelection) : null}
+        onClose={() => setStatsForSelection(null)}
+      />
+    </View>
+  );
+}
+
+/**
+ * Adapte une ComboBetSelection au format Prono attendu par StatsCenterSheet.
+ * On crée un Prono synthétique pour réutiliser la sheet existante.
+ */
+function selectionToProno(sel: ComboBetSelection): Prono {
+  return {
+    type: 'single',
+    id: `combo-sel-${sel.matchStartAt}-${sel.teamHome}`,
+    sport: sel.sport,
+    competition: sel.competition,
+    teamHome: sel.teamHome,
+    teamAway: sel.teamAway,
+    teamHomeLogo: sel.teamHomeLogo,
+    teamAwayLogo: sel.teamAwayLogo,
+    matchStartAt: sel.matchStartAt,
+    prediction: sel.prediction,
+    odd: sel.odd,
+    confidence: 3,
+    reasoning: sel.miniReasoning,
+    minTier: 'starter',
+    publishedAt: sel.matchStartAt,
+    result: sel.result,
+    finalScore: sel.finalScore,
+    stats: sel.stats,
+  };
+}
+
+// =============================================================================
+// Sélection en card individuelle (dans la fiche détaillée)
+// =============================================================================
+function SelectionCard({
+  selection,
+  index,
+  onOpenStats,
+}: {
+  selection: ComboBetSelection;
+  index: number;
+  onOpenStats: () => void;
+}) {
+  const c = useThemeColors();
+  const resolved =
+    selection.result === 'win' ||
+    selection.result === 'loss' ||
+    selection.result === 'void';
+
+  return (
+    <View
+      style={[
+        styles.selCard,
+        {
+          backgroundColor: c.bgElevated,
+          borderColor:
+            selection.result === 'win'
+              ? COLOR_WIN
+              : selection.result === 'loss'
+                ? COLOR_LOSS
+                : c.borderFaint,
+          borderWidth: resolved ? 1.5 : StyleSheet.hairlineWidth,
+        },
+      ]}>
+      <View style={styles.selHeader}>
+        <View style={styles.selHeaderLeft}>
+          <Text style={[styles.selIndex, { color: c.textDim }]}>{index}</Text>
+          {selection.sport === 'tennis' ? (
+            <View style={styles.tennisBg}>
+              <SymbolView
+                name="tennisball"
+                size={12}
+                tintColor="#D4FF00"
+                weight="bold"
+              />
+            </View>
+          ) : (
+            <SymbolView
+              name="soccerball"
+              size={16}
+              type="multicolor"
+              weight="bold"
+            />
+          )}
+          <Text
+            style={[styles.selCompetition, { color: c.textMuted }]}
+            numberOfLines={1}>
+            {selection.competition}
+          </Text>
+        </View>
+        <SelectionStatusBadge result={selection.result} />
+      </View>
+
+      <View style={styles.selTeams}>
+        <Text style={[styles.selTeamName, { color: c.text }]} numberOfLines={1}>
+          {selection.teamHome}
+        </Text>
+        <View style={[styles.vsPill, { backgroundColor: c.bgDeeper }]}>
+          <Text style={[styles.vsText, { color: c.textMuted }]}>VS</Text>
+        </View>
+        <Text
+          style={[
+            styles.selTeamName,
+            { color: c.text, textAlign: 'right' },
+          ]}
+          numberOfLines={1}>
+          {selection.teamAway}
+        </Text>
+      </View>
+
+      <Text style={[styles.selTime, { color: c.textDim }]}>
+        {resolved && selection.finalScore
+          ? selection.finalScore
+          : `${formatLongDate(selection.matchStartAt)} · ${formatHour(selection.matchStartAt)}`}
+      </Text>
+
+      <View
+        style={[styles.selDivider, { backgroundColor: c.borderFaint }]}
+      />
+
+      <View style={styles.selPronoRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.selPronoLabel, { color: c.gold }]}>
+            NOTRE PRONO
+          </Text>
+          <Text style={[styles.selPredictionText, { color: c.text }]}>
+            {selection.prediction}
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.selOddBlock,
+            { backgroundColor: c.bgDeeper, borderColor: c.borderFaint },
+          ]}>
+          <Text style={[styles.selOddLabel, { color: c.textDim }]}>COTE</Text>
+          <Text style={[styles.selOddValue, { color: c.text }]}>
+            {selection.odd.toFixed(2)}
+          </Text>
+        </View>
+      </View>
+
+      <Text style={[styles.selMiniReasoning, { color: c.textMuted }]}>
+        {selection.miniReasoning}
+      </Text>
+
+      <Pressable
+        onPress={onOpenStats}
+        style={({ pressed }) => [
+          styles.statsBtn,
+          {
+            backgroundColor: c.bgDeeper,
+            borderColor: c.borderSoft,
+            opacity: pressed ? 0.6 : 1,
+          },
+        ]}>
+        <SymbolView
+          name="chart.bar"
+          size={14}
+          tintColor={c.gold}
+          weight="semibold"
+        />
+        <Text style={[styles.statsBtnText, { color: c.text }]}>
+          Voir les statistiques du match
+        </Text>
+        <SymbolView
+          name="arrow.up.right"
+          size={11}
+          tintColor={c.textMuted}
+          weight="semibold"
+        />
+      </Pressable>
+    </View>
+  );
+}
+
+function SelectionStatusBadge({ result }: { result: PronoResult }) {
+  if (result === 'win') {
+    return (
+      <View style={[styles.statusBadge, { backgroundColor: COLOR_WIN }]}>
+        <SymbolView name="checkmark" size={10} tintColor="#FFFFFF" weight="bold" />
+        <Text style={styles.statusBadgeText}>Gagné</Text>
+      </View>
+    );
+  }
+  if (result === 'loss') {
+    return (
+      <View style={[styles.statusBadge, { backgroundColor: COLOR_LOSS }]}>
+        <SymbolView name="xmark" size={10} tintColor="#FFFFFF" weight="bold" />
+        <Text style={styles.statusBadgeText}>Perdu</Text>
+      </View>
+    );
+  }
+  if (result === 'live') {
+    return (
+      <View style={[styles.statusBadge, { backgroundColor: COLOR_LIVE }]}>
+        <View style={styles.livePulseMini} />
+        <Text style={styles.statusBadgeText}>Live</Text>
+      </View>
+    );
+  }
+  return null;
+}
+
+// =============================================================================
+function BackHeader({ onBack }: { onBack: () => void }) {
+  const c = useThemeColors();
+  const insets = useSafeAreaInsets();
+  return (
+    <View
+      style={[
+        styles.backHeader,
+        {
+          backgroundColor: c.bg,
+          borderBottomColor: c.borderFaint,
+          paddingTop: insets.top + 6,
+        },
+      ]}>
+      <Pressable
+        onPress={onBack}
+        hitSlop={10}
+        style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}>
+        <View style={styles.backRow}>
+          <SymbolView
+            name="chevron.left"
+            size={20}
+            tintColor={c.text}
+            weight="semibold"
+          />
+          <Text style={[styles.backText, { color: c.text }]}>Pronos</Text>
+        </View>
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  backHeader: {
+    paddingHorizontal: Spacing.four,
+    paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  backRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    marginLeft: -4,
+  },
+  backText: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: -0.1,
+  },
+  scroll: {
+    paddingHorizontal: Spacing.four,
+    paddingTop: Spacing.four,
+    gap: Spacing.four,
+  },
+  // Hero
+  heroFrame: {
+    borderRadius: 18,
+    padding: 3,
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  hero: {
+    borderRadius: 15,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  resultBanner: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 6,
+  },
+  resultBannerText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+  },
+  heroBody: {
+    padding: Spacing.four,
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
+  heroEyebrow: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+  },
+  oddBlock: {
+    alignItems: 'center',
+    gap: 2,
+  },
+  oddLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+  },
+  oddValue: {
+    fontSize: 48,
+    fontWeight: '800',
+    letterSpacing: -1.5,
+  },
+  confidenceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  confidenceLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  // Sections
+  section: {
+    gap: Spacing.two,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.8,
+  },
+  reasoning: {
+    fontSize: 15,
+    lineHeight: 23,
+  },
+  // Selection card
+  selCard: {
+    padding: Spacing.three,
+    borderRadius: Radius.lg,
+    gap: Spacing.two,
+  },
+  selHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  selHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
+  },
+  selIndex: {
+    fontSize: 11,
+    fontWeight: '800',
+    width: 14,
+    textAlign: 'center',
+  },
+  tennisBg: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#0A0A0A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selCompetition: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    flexShrink: 1,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  statusBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  livePulseMini: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#FFFFFF',
+  },
+  selTeams: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 2,
+  },
+  selTeamName: {
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+    flex: 1,
+  },
+  vsPill: {
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  vsText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  selTime: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: -2,
+  },
+  selDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 4,
+  },
+  selPronoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  selPronoLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+  },
+  selPredictionText: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    marginTop: 2,
+  },
+  selOddBlock: {
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    minWidth: 64,
+  },
+  selOddLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+  },
+  selOddValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.4,
+  },
+  selMiniReasoning: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontStyle: 'italic',
+  },
+  statsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: 4,
+  },
+  statsBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    flex: 1,
+  },
+  ctaBlock: {
+    gap: Spacing.two,
+    marginTop: Spacing.two,
+  },
+  ctaHint: {
+    fontSize: 11,
+    textAlign: 'center',
+    lineHeight: 16,
+    paddingHorizontal: Spacing.three,
+  },
+});

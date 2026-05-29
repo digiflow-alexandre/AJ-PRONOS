@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandedButton } from '@/components/branded-button';
+import { ComboBetDetail } from '@/components/combo-bet-detail';
 import { ConfidenceDots } from '@/components/confidence-dots';
 import { FormPills } from '@/components/form-pills';
 import { StatsCenterSheet } from '@/components/stats-center-sheet';
@@ -22,11 +23,10 @@ import {
   getSportSymbol,
   SPORT_COLOR,
 } from '@/lib/competition-meta';
-import { PRONOS_FIXTURES } from '@/lib/fixtures';
+import { ALL_BETS } from '@/lib/fixtures';
 import { formatHour, formatLongDate } from '@/lib/format-date';
 import { useProfile } from '@/lib/use-profile';
 import { useThemeColors } from '@/lib/use-theme-colors';
-import { TIER_LEVEL } from '@/types/profile';
 import type { Prono } from '@/types/prono';
 
 const RESULT_TINT = {
@@ -40,12 +40,12 @@ export default function PronoDetailScreen() {
   const c = useThemeColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { profile, isLoading, isTrialActive } = useProfile();
+  const { isLoading, canAccess } = useProfile();
   const [statsOpen, setStatsOpen] = useState(false);
 
-  const prono = PRONOS_FIXTURES.find((p) => p.id === id);
+  const bet = ALL_BETS.find((b) => b.id === id);
 
-  if (!prono) {
+  if (!bet) {
     return (
       <View style={[styles.screen, { backgroundColor: c.bg }]}>
         <BackHeader onBack={() => router.back()} />
@@ -65,20 +65,40 @@ export default function PronoDetailScreen() {
     return <View style={[styles.screen, { backgroundColor: c.bg }]} />;
   }
 
-  // Gating accès
-  const hasAccess =
-    !!profile?.tier &&
-    (isTrialActive ||
-      (profile.tier !== 'trial' &&
-        TIER_LEVEL[profile.tier] >= TIER_LEVEL[prono.minTier]));
+  const hasAccess = canAccess(bet.minTier);
 
-  if (!hasAccess) {
-    return <LockedView prono={prono} onBack={() => router.back()} />;
+  // ===== ROUTING : combiné OU simple =====
+  if (bet.type === 'combo') {
+    if (!hasAccess) {
+      return (
+        <LockedView
+          minTier={bet.minTier}
+          onBack={() => router.back()}
+          label="Ce combiné et son analyse complète sont réservés aux abonnés"
+        />
+      );
+    }
+    return <ComboBetDetail combo={bet} onBack={() => router.back()} />;
   }
 
-  const isResolved = prono.result !== 'pending';
+  // bet.type === 'single' à partir d'ici
+  const prono = bet;
+
+  if (!hasAccess) {
+    return (
+      <LockedView
+        minTier={prono.minTier}
+        onBack={() => router.back()}
+        label="Ce pronostic et son analyse complète sont réservés aux abonnés"
+      />
+    );
+  }
+
   const resultTint =
-    isResolved && prono.result !== 'pending' ? RESULT_TINT[prono.result] : null;
+    prono.result === 'win' || prono.result === 'loss' || prono.result === 'void'
+      ? RESULT_TINT[prono.result]
+      : null;
+  const isResolved = resultTint !== null;
 
   const competitionColor = getCompetitionColor(prono.competition);
   const flagUrl = getCompetitionFlag(prono.competition);
@@ -372,15 +392,17 @@ function BackHeader({ onBack }: { onBack: () => void }) {
 }
 
 function LockedView({
-  prono,
+  minTier,
   onBack,
+  label,
 }: {
-  prono: Prono;
+  minTier: Prono['minTier'];
   onBack: () => void;
+  label: string;
 }) {
   const c = useThemeColors();
   const router = useRouter();
-  const tierLabel = prono.minTier.toUpperCase();
+  const tierLabel = minTier.toUpperCase();
 
   return (
     <View style={[styles.screen, { backgroundColor: c.bg }]}>
@@ -396,8 +418,7 @@ function LockedView({
           Pack {tierLabel} requis
         </Text>
         <Text style={[styles.lockedBody, { color: c.textMuted }]}>
-          Ce pronostic et son analyse complète sont réservés aux abonnés{' '}
-          {tierLabel}. Choisis le pack qui te correspond pour y accéder.
+          {label} {tierLabel}. Choisis le pack qui te correspond pour y accéder.
         </Text>
         <BrandedButton
           label="Voir les packs"

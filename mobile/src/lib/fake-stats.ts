@@ -6,6 +6,8 @@ import type {
   StandingRow,
 } from '@/types/stats';
 
+import { getTeamLogo } from './team-logos';
+
 /**
  * Génère des stats fictives DÉTERMINISTES à partir d'un prono foot.
  * (Tennis non supporté — placeholder reste affiché.)
@@ -76,6 +78,7 @@ function genRecentMatches(
     return {
       date: dd,
       opponent,
+      opponentLogo: getTeamLogo(opponent),
       scoreHome: isHome ? scoreSelf : scoreOpp,
       scoreAway: isHome ? scoreOpp : scoreSelf,
       isHome,
@@ -114,6 +117,7 @@ function genH2H(
     return {
       date: dd,
       opponent: homeTeam, // l'adversaire est toujours le même (le team away)
+      opponentLogo: getTeamLogo(homeTeam),
       scoreHome: isHome ? scoreSelf : scoreOpp,
       scoreAway: isHome ? scoreOpp : scoreSelf,
       isHome,
@@ -199,6 +203,7 @@ function buildStandings(
     return {
       position,
       team,
+      teamLogo: getTeamLogo(team),
       played: wins + draws + losses,
       wins,
       draws,

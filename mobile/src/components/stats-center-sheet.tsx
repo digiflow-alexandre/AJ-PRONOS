@@ -364,6 +364,13 @@ function FormePanel({
                   ? prono.teamAway
                   : prono.teamHome // POV équipe domicile pour H2H
             }
+            selfTeamLogo={
+              chip === 'home'
+                ? prono.teamHomeLogo
+                : chip === 'away'
+                  ? prono.teamAwayLogo
+                  : prono.teamHomeLogo
+            }
           />
         ))}
       </View>
@@ -472,44 +479,36 @@ function CountBigLabel({
 function MatchRow({
   match,
   selfTeam,
+  selfTeamLogo,
 }: {
   match: RecentMatch;
   selfTeam: string;
+  selfTeamLogo?: string;
 }) {
   const c = useThemeColors();
   const outcomeColor = OUTCOME_COLORS[match.result];
 
-  // Détermine qui est domicile / extérieur dans CE match
+  // Détermine qui est domicile / extérieur dans CE match + leurs logos
   const homeTeamName = match.isHome ? selfTeam : match.opponent;
   const awayTeamName = match.isHome ? match.opponent : selfTeam;
+  const homeLogo = match.isHome ? selfTeamLogo : match.opponentLogo;
+  const awayLogo = match.isHome ? match.opponentLogo : selfTeamLogo;
 
   return (
     <View style={[styles.matchRow, { borderBottomColor: c.borderFaint }]}>
       <Text style={[styles.matchDate, { color: c.textDim }]}>{match.date}</Text>
 
       <View style={styles.matchTeams}>
-        <Text
-          style={[
-            styles.matchTeamName,
-            {
-              color: c.text,
-              fontWeight: homeTeamName === selfTeam ? '800' : '600',
-            },
-          ]}
-          numberOfLines={1}>
-          {homeTeamName}
-        </Text>
-        <Text
-          style={[
-            styles.matchTeamName,
-            {
-              color: c.text,
-              fontWeight: awayTeamName === selfTeam ? '800' : '600',
-            },
-          ]}
-          numberOfLines={1}>
-          {awayTeamName}
-        </Text>
+        <TeamLine
+          name={homeTeamName}
+          logo={homeLogo}
+          highlighted={homeTeamName === selfTeam}
+        />
+        <TeamLine
+          name={awayTeamName}
+          logo={awayLogo}
+          highlighted={awayTeamName === selfTeam}
+        />
       </View>
 
       <View style={styles.matchScore}>
@@ -526,6 +525,42 @@ function MatchRow({
           {match.result}
         </Text>
       </View>
+    </View>
+  );
+}
+
+function TeamLine({
+  name,
+  logo,
+  highlighted,
+}: {
+  name: string;
+  logo?: string;
+  highlighted: boolean;
+}) {
+  const c = useThemeColors();
+  return (
+    <View style={styles.teamLine}>
+      {logo ? (
+        <Image
+          source={{ uri: logo }}
+          style={styles.teamLogoMini}
+          contentFit="contain"
+        />
+      ) : (
+        <View style={styles.teamLogoMiniPlaceholder} />
+      )}
+      <Text
+        style={[
+          styles.matchTeamName,
+          {
+            color: c.text,
+            fontWeight: highlighted ? '800' : '600',
+          },
+        ]}
+        numberOfLines={1}>
+        {name}
+      </Text>
     </View>
   );
 }
@@ -765,18 +800,29 @@ function ClassementPanel({
                 ]}>
                 {row.position}
               </Text>
-              <Text
-                style={[
-                  styles.standingsCell,
-                  styles.colTeam,
-                  {
-                    color: c.text,
-                    fontWeight: highlight ? '800' : '500',
-                  },
-                ]}
-                numberOfLines={1}>
-                {row.team}
-              </Text>
+              <View style={[styles.colTeam, styles.standingsTeamCell]}>
+                {row.teamLogo ? (
+                  <Image
+                    source={{ uri: row.teamLogo }}
+                    style={styles.standingsTeamLogo}
+                    contentFit="contain"
+                  />
+                ) : (
+                  <View style={styles.standingsTeamLogoPlaceholder} />
+                )}
+                <Text
+                  style={[
+                    styles.standingsCell,
+                    {
+                      color: c.text,
+                      fontWeight: highlight ? '800' : '500',
+                      flexShrink: 1,
+                    },
+                  ]}
+                  numberOfLines={1}>
+                  {row.team}
+                </Text>
+              </View>
               <Text
                 style={[
                   styles.standingsCell,
@@ -1036,8 +1082,24 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
   },
+  teamLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  teamLogoMini: {
+    width: 16,
+    height: 16,
+  },
+  teamLogoMiniPlaceholder: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: 'rgba(10,10,10,0.06)',
+  },
   matchTeamName: {
     fontSize: 13,
+    flexShrink: 1,
   },
   matchScore: {
     alignItems: 'center',
@@ -1169,6 +1231,22 @@ const styles = StyleSheet.create({
   },
   standingsCell: {
     fontSize: 13,
+  },
+  standingsTeamCell: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 8,
+  },
+  standingsTeamLogo: {
+    width: 18,
+    height: 18,
+  },
+  standingsTeamLogoPlaceholder: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(10,10,10,0.06)',
   },
   colPos: {
     width: 24,
