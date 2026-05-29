@@ -103,7 +103,7 @@ function SubscribeHeader({
       </View>
 
       <View style={styles.benefitsRow}>
-        <BenefitTile icon="clock" label="7 jours" sublabel="offerts" />
+        <BenefitTile icon="clock" label="7 jours" sublabel="sur Starter" />
         <BenefitTile icon="checkmark.seal" label="Sans" sublabel="engagement" />
         <BenefitTile icon="hand.tap" label="Résiliable" sublabel="en 1 clic" />
       </View>

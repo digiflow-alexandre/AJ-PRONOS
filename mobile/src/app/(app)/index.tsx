@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useEffect, useMemo, useState } from 'react';
@@ -20,19 +21,31 @@ import { PRONOS_FIXTURES } from '@/lib/fixtures';
 import { useAuth } from '@/lib/auth-context';
 import { useProfile } from '@/lib/use-profile';
 import { useThemeColors } from '@/lib/use-theme-colors';
-import { TIER_LEVEL } from '@/types/profile';
 import type { Prono } from '@/types/prono';
+
+// Clé AsyncStorage pour ne montrer la modal "essai terminé" qu'une seule fois
+// par expiration. On stocke la date d'expiration vue → si elle change (nouveau
+// trial démarré + ré-expiré), on remontre la modal.
+const TRIAL_EXPIRED_SEEN_KEY = '@aj/trial-expired-seen-at';
 
 export default function HomeScreen() {
   const c = useThemeColors();
   const { session } = useAuth();
-  const { profile, isTrialActive, trialDaysLeft, startTrial, isLoading } =
-    useProfile();
+  const {
+    profile,
+    isTrialActive,
+    isTrialExpired,
+    trialDaysLeft,
+    canAccess,
+    startTrial,
+    isLoading,
+  } = useProfile();
   const router = useRouter();
 
   const [trialModalOpen, setTrialModalOpen] = useState(false);
   const [starting, setStarting] = useState(false);
   const [trialError, setTrialError] = useState<string | null>(null);
+  const [expiredModalOpen, setExpiredModalOpen] = useState(false);
 
   // Greeting recalculé chaque minute (passage matin → midi → soir).
   // Pattern "tick périodique" → setState légitime dans l'effet.
@@ -44,7 +57,28 @@ export default function HomeScreen() {
     return () => clearInterval(id);
   }, []);
 
+  // Affiche la modal "essai terminé" 1x quand l'utilisateur arrive sur
+  // l'Accueil après que son trial vient d'expirer. On stocke la date
+  // d'expiration vue dans AsyncStorage → si elle change, on ré-affiche.
+  useEffect(() => {
+    if (!isTrialExpired || !profile?.trial_ends_at) return;
+    const key = profile.trial_ends_at;
+    let cancelled = false;
+    (async () => {
+      const seen = await AsyncStorage.getItem(TRIAL_EXPIRED_SEEN_KEY);
+      if (cancelled) return;
+      if (seen !== key) {
+        setExpiredModalOpen(true);
+        await AsyncStorage.setItem(TRIAL_EXPIRED_SEEN_KEY, key);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isTrialExpired, profile?.trial_ends_at]);
+
   const shouldShowTrialBanner = !isLoading && profile && profile.tier === null;
+  const shouldShowExpiredBanner = !isLoading && isTrialExpired;
 
   // Bilan AJ Pronos sur 7 derniers jours
   const bilan = useMemo(() => computeBilan(PRONOS_FIXTURES, 7), []);
@@ -67,10 +101,7 @@ export default function HomeScreen() {
   }, []);
 
   function hasAccess(prono: Prono): boolean {
-    if (!profile?.tier) return false;
-    if (isTrialActive) return true;
-    if (profile.tier === 'trial') return false;
-    return TIER_LEVEL[profile.tier] >= TIER_LEVEL[prono.minTier];
+    return canAccess(prono.minTier);
   }
 
   function openPronoDetail(prono: Prono) {
@@ -120,6 +151,20 @@ export default function HomeScreen() {
                 Essai · J-{trialDaysLeft}
               </Text>
             </View>
+          ) : isTrialExpired ? (
+            <View
+              style={[
+                styles.trialChip,
+                {
+                  backgroundColor: 'rgba(239, 68, 68, 0.10)',
+                  borderColor: '#EF4444',
+                },
+              ]}>
+              <View style={[styles.trialChipDot, { backgroundColor: '#EF4444' }]} />
+              <Text style={[styles.trialChipText, { color: c.text }]}>
+                Essai terminé
+              </Text>
+            </View>
           ) : null}
         </View>
 
@@ -135,14 +180,42 @@ export default function HomeScreen() {
               — 7 JOURS OFFERTS
             </Text>
             <Text style={[styles.bannerTitle, { color: c.text }]}>
-              Démarre ton essai gratuit.
+              Découvre le pack Starter.
             </Text>
             <Text style={[styles.bannerBody, { color: c.textMuted }]}>
-              Accès à tous les pronos pendant 7 jours. Sans engagement, aucune
-              carte demandée.
+              Accès aux pronos du pack Starter pendant 7 jours. Sans
+              engagement, aucune carte demandée.
             </Text>
             <Text style={[styles.bannerCta, { color: c.gold }]}>
               Démarrer →
+            </Text>
+          </Pressable>
+        ) : null}
+
+        {/* Bannière trial terminé (persistante tant que pas abonné) */}
+        {shouldShowExpiredBanner ? (
+          <Pressable
+            onPress={() => router.push('/(app)/subscribe')}
+            style={[
+              styles.trialBanner,
+              {
+                backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                borderColor: '#EF4444',
+              },
+            ]}>
+            <Text
+              style={[styles.bannerEyebrow, { color: '#EF4444' }]}>
+              — ESSAI TERMINÉ
+            </Text>
+            <Text style={[styles.bannerTitle, { color: c.text }]}>
+              Choisis ton pack pour continuer.
+            </Text>
+            <Text style={[styles.bannerBody, { color: c.textMuted }]}>
+              Tes 7 jours d’essai Starter sont terminés. L’accès aux pronos
+              est désormais réservé aux abonnés.
+            </Text>
+            <Text style={[styles.bannerCta, { color: '#EF4444' }]}>
+              Voir les packs →
             </Text>
           </Pressable>
         ) : null}
@@ -262,15 +335,17 @@ export default function HomeScreen() {
             ]}
             onPress={(e) => e.stopPropagation()}>
             <Text style={[styles.modalEyebrow, { color: c.gold }]}>
-              — ESSAI GRATUIT
+              — ESSAI STARTER
             </Text>
             <Text style={[styles.modalTitle, { color: c.text }]}>
               7 jours, sans CB.
             </Text>
             <Text style={[styles.modalBody, { color: c.textMuted }]}>
-              On te donne accès à tous les pronos pendant 7 jours. À la fin de
-              l’essai, tu choisis ton pack ou tu reviens en lecture limitée —
-              aucune surprise, aucun débit automatique.
+              Accès gratuit au pack{' '}
+              <Text style={{ color: c.text, fontWeight: '700' }}>Starter</Text>{' '}
+              pendant 7 jours. À la fin de l’essai, tu choisis ton pack ou tu
+              perds l’accès — aucune surprise, aucun débit automatique. Les
+              packs Pro et VIP restent disponibles à l’abonnement direct.
             </Text>
 
             {trialError ? (
@@ -293,6 +368,50 @@ export default function HomeScreen() {
                   setTrialModalOpen(false);
                   router.push('/(app)/subscribe');
                 }}
+              />
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Modal essai terminé (auto-show 1x après expiration) */}
+      <Modal
+        visible={expiredModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setExpiredModalOpen(false)}>
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setExpiredModalOpen(false)}>
+          <Pressable
+            style={[
+              styles.modalCard,
+              { backgroundColor: c.bgElevated, borderColor: c.borderSoft },
+            ]}
+            onPress={(e) => e.stopPropagation()}>
+            <Text style={[styles.modalEyebrow, { color: '#EF4444' }]}>
+              — ESSAI TERMINÉ
+            </Text>
+            <Text style={[styles.modalTitle, { color: c.text }]}>
+              7 jours, c’est passé vite.
+            </Text>
+            <Text style={[styles.modalBody, { color: c.textMuted }]}>
+              Ton essai du pack Starter est terminé. Choisis un pack pour
+              continuer à recevoir nos pronos, ou ferme cette fenêtre pour
+              décider plus tard.
+            </Text>
+            <View style={{ gap: Spacing.two }}>
+              <BrandedButton
+                label="Voir les packs"
+                onPress={() => {
+                  setExpiredModalOpen(false);
+                  router.push('/(app)/subscribe');
+                }}
+              />
+              <BrandedButton
+                label="Plus tard"
+                variant="ghost"
+                onPress={() => setExpiredModalOpen(false)}
               />
             </View>
           </Pressable>

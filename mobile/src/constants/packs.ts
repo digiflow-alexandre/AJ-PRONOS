@@ -29,6 +29,7 @@ export const PACKS: Pack[] = [
       'Notifications push in-app',
       'Historique complet',
     ],
+    badge: '7 jours offerts',
   },
   {
     tier: 'pro',

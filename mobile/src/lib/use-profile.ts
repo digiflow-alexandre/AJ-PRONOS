@@ -12,9 +12,13 @@ type UseProfileResult = {
   error: string | null;
   /** Le trial est-il en cours (tier=trial ET trial_ends_at > now) ? */
   isTrialActive: boolean;
+  /** Le trial a-t-il expiré (tier=trial ET trial_ends_at < now) ? */
+  isTrialExpired: boolean;
   /** Jours restants sur l'essai gratuit (0 si expiré ou pas en trial). */
   trialDaysLeft: number;
-  /** L'utilisateur peut-il accéder à un contenu d'un niveau donné ? */
+  /** L'utilisateur peut-il accéder à un contenu d'un niveau donné ?
+   *  Trial actif = équivalent Starter uniquement (PAS d'accès Pro/VIP).
+   *  Trial expiré = aucun accès. */
   canAccess: (requiredTier: SubscriptionTier) => boolean;
   /** Démarre l'essai gratuit 7 jours (tier=trial, dates posées). */
   startTrial: () => Promise<{ error: string | null }>;
@@ -25,15 +29,16 @@ type UseProfileResult = {
 const TRIAL_DAYS = 7;
 const TICK_INTERVAL_MS = 60_000; // recalcul du J-X chaque minute
 
-type TrialState = { isActive: boolean; daysLeft: number };
+type TrialState = { isActive: boolean; isExpired: boolean; daysLeft: number };
 
 function computeTrialState(profile: Profile | null, nowMs: number): TrialState {
   if (!profile || profile.tier !== 'trial' || !profile.trial_ends_at) {
-    return { isActive: false, daysLeft: 0 };
+    return { isActive: false, isExpired: false, daysLeft: 0 };
   }
   const ms = new Date(profile.trial_ends_at).getTime() - nowMs;
   return {
     isActive: ms > 0,
+    isExpired: ms <= 0,
     daysLeft: Math.max(0, Math.ceil(ms / 86_400_000)),
   };
 }
@@ -47,6 +52,7 @@ export function useProfile(): UseProfileResult {
   const [error, setError] = useState<string | null>(null);
   const [trial, setTrial] = useState<TrialState>({
     isActive: false,
+    isExpired: false,
     daysLeft: 0,
   });
 
@@ -125,10 +131,13 @@ export function useProfile(): UseProfileResult {
   const canAccess = useCallback(
     (requiredTier: SubscriptionTier) => {
       if (!profile?.tier) return false;
-      if (trial.isActive) return true;
+      // Trial expiré = aucun accès, même si tier en DB est encore 'trial'
+      if (trial.isExpired) return false;
+      // Trial actif = équivalent Starter (TIER_LEVEL.trial = TIER_LEVEL.starter = 1)
+      // donc l'utilisateur ne peut accéder qu'aux pronos starter, pas Pro/VIP.
       return TIER_LEVEL[profile.tier] >= TIER_LEVEL[requiredTier];
     },
-    [profile, trial.isActive],
+    [profile, trial.isExpired],
   );
 
   const startTrial = useCallback(async () => {
@@ -160,6 +169,7 @@ export function useProfile(): UseProfileResult {
     isLoading,
     error,
     isTrialActive: trial.isActive,
+    isTrialExpired: trial.isExpired,
     trialDaysLeft: trial.daysLeft,
     canAccess,
     startTrial,
