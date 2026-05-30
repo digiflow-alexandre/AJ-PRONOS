@@ -14,6 +14,13 @@ export type Pack = {
   cap?: string; // ex: "50 places max"
 };
 
+/**
+ * Packs validés visio Julien 2026-05-30.
+ * Toutes les fonctionnalités de base (analyse, ROI, carnet perso) sont
+ * accessibles à TOUS les packs. La différenciation se joue sur :
+ *  - le nombre de pronos quotidiens (1 vs 3)
+ *  - l'accès au salon VIP
+ */
 export const PACKS: Pack[] = [
   {
     tier: 'starter',
@@ -24,10 +31,10 @@ export const PACKS: Pack[] = [
     yearlyAmount: 95,
     baseline: 'L’essentiel pour démarrer.',
     features: [
-      'Tous les pronos foot (J-1 + 1 prono J)',
-      'Accès app & espace membre',
-      'Notifications push in-app',
-      'Historique complet',
+      '1 prono / jour (foot ou tennis)',
+      'Analyse complète de chaque pari',
+      'Carnet personnel + ROI',
+      'Notifications push',
     ],
     badge: '7 jours offerts',
   },
@@ -38,12 +45,12 @@ export const PACKS: Pack[] = [
     yearly: '191 €',
     monthlyAmount: 19.9,
     yearlyAmount: 191,
-    baseline: 'Pour parier avec méthode.',
+    baseline: 'Plus de pronos, plus d’opportunités.',
     features: [
-      'Pronos foot + tennis temps réel (J)',
-      'Recommandations personnalisées',
-      'Analyse détaillée de chaque pari',
-      'Stats & ROI personnels',
+      '2 pronos / jour de notre analyste',
+      '1 pari IA validé par Julien en plus',
+      'Analyse complète + carnet + ROI',
+      'Notifications push',
     ],
     featured: true,
     badge: 'Le plus populaire',
@@ -57,10 +64,10 @@ export const PACKS: Pack[] = [
     yearlyAmount: 479,
     baseline: 'L’accès direct à l’analyste.',
     features: [
-      'Salon privé in-app avec l’analyste',
-      'Réunion Microsoft Teams\nhebdomadaire',
-      'Pronos sur les gros événements (Champions League, finales)',
-      'ROI tracking personnalisé',
+      'Tout le pack Pro inclus',
+      'Salon privé avec Julien & les VIP',
+      'Coaching privé sur demande',
+      'Pronos sur les gros événements',
     ],
     cap: '50 places max',
   },

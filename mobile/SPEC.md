@@ -3,8 +3,8 @@
 > **Document de référence** pour le développement de l'app mobile AJ Pronos.
 > Toute session de dev future doit s'y référer. À mettre à jour quand on change d'avis.
 >
-> **Dernière mise à jour** : 2026-05-26
-> **Version** : 0.1 (initiale)
+> **Dernière mise à jour** : 2026-05-30
+> **Version** : 0.2 (post-visio Julien — refonte packs, salon VIP, IA en V2)
 
 ---
 
@@ -126,28 +126,30 @@ AJ Pronos est un **cabinet de conseil en paris sportifs** sous forme d'app mobil
 - **Webhook Stripe** (post-SIRET) : sync abonnement web
 - **Webhook RevenueCat** : sync abonnement iOS + Android
 
-#### Out of MVP (rappels)
+#### Out of MVP V1 (rappels)
 
-- ❌ Pas de carnet personnel (Phase 2)
 - ❌ Pas de tracking paris externes (Phase 3 — risque juridique)
-- ❌ Pas de combinés suggérés (Phase 2)
 - ❌ Pas de stats avancées par sport/compétition (Phase 2)
-- ❌ Pas de communauté (Phase 3)
+- ❌ Pas de chat IA assistant VIP (MVP V2)
+- ❌ Pas de demande IA on-demand sur match précis (MVP V2)
+- ❌ Pas de communauté ouverte (Phase 3 — sauf salon VIP qui est MVP V1)
+
+**Le carnet personnel est désormais MVP V1** (validé visio Julien — accessible à tous les packs y compris Starter).
 
 ---
 
-### PHASE 2 — Post-lancement (2-3 mois après MVP)
+### PHASE 2 (MVP V2) — Post-lancement (1-2 mois après MVP V1)
 
 **Objectif** : enrichir l'expérience abonné, augmenter la rétention, donner plus d'arguments pour upgrade.
 
-- **Carnet personnel** — marquer un prono "je l'ai joué" + saisie mise réelle + ses propres stats (gains/pertes/ROI réel) — **uniquement sur les pronos AJ Pronos** pour l'instant
-- **Combinés suggérés** par l'analyste
+- **Chat IA assistant VIP** — assistant Claude explicite (réponses questions générales, escalade vers Julien sur complexité)
+- **Demande IA on-demand** — abonné Pro/VIP demande analyse IA sur match non couvert (avec garde-fous ANJ — cf. section 4bis)
 - **Stats avancées** : performance par sport, par compétition, par période, courbes ROI
 - **Filtres avancés** sur la liste pronos (sport, risque, type de pari, cote)
 - **Notifs personnalisées par préférences** (sport spécifique, seuil de cote, etc.)
 - **Onboarding amélioré** avec teaser interactif des pronos floutés
 - **Dashboard admin avancé** : nb abonnés par tier, conversion, churn, top VIP, alertes comportement à risque
-- **Outil de modération** : message direct à un user, suspension temporaire
+- **Outil de modération salon VIP** : suspendre user, supprimer messages
 - **Support in-app** : chat ou ticket vers email
 
 ---
@@ -160,6 +162,82 @@ AJ Pronos est un **cabinet de conseil en paris sportifs** sous forme d'app mobil
 - **Système de fidélité** : badges, niveaux, anniversaire d'abonnement
 - **Promotions / codes promo** sur les abos
 - **Extension multi-langues** (anglais ?)
+
+---
+
+## 4 bis. Décisions visio Julien (2026-05-30) — CONTENU PACKS & SALON VIP
+
+### Contenu des packs (refonte)
+
+**Important** : Toutes les fonctionnalités de base (analyse, ROI, carnet personnel) sont **accessibles à tous les packs**. La différenciation se joue sur le **nombre de pronos quotidiens** + l'**accès au salon VIP**.
+
+| Pack | Pronos humains/jour (Julien) | Pronos IA/jour (Julien-validés) | Analyse | Carnet perso | ROI | Salon |
+|---|---|---|---|---|---|---|
+| **Starter** 9,90€ | **1** (foot OU tennis) | 0 | ✓ complète | ✓ | ✓ | — |
+| **Pro** 19,90€ | **2** | **1** (combiné OU simple, généré par IA, validé par Julien) | ✓ complète | ✓ | ✓ | — |
+| **VIP** 49,90€ | **2** | **1** | ✓ complète | ✓ | ✓ | ✓ |
+
+**Cadence de publication** :
+- **Foot** : publié **1h avant le coup d'envoi**
+- **Tennis** : publié la veille OU le jour J (matin/soir selon heure du match)
+- → **Push notifications obligatoires** au MVP V1
+
+**Couverture sportive** :
+- Foot : 5 grands championnats européens (Ligue 1, La Liga, Premier League, Bundesliga, Serie A) + UEFA (Champions League, Europa League)
+- Été : compétitions UEFA officielles (Mondial, Euro, Ligue des Nations, Copa America)
+- Tennis : tous les tournois ATP officiels
+
+### Volumétrie / cadence
+
+- **2-3 pronos par jour** publiés en moyenne (mix combinés + simples)
+- **Mix combinés/simples** au feeling Julien selon opportunités du jour
+
+### Workflow validation IA → Julien (mode admin)
+
+- L'agent IA propose chaque matin des **propositions par sélection** (pas par lot combiné complet)
+- Julien construit ses combinés lui-même en piquant les sélections IA qu'il valide
+- **Temps moyen estimé : 10 min/prono = 30 min/jour**
+- Backup Alex si Julien indisponible (rôle `admin` qui peut aussi valider)
+
+### Salon VIP (architecture)
+
+- **Salon de groupe** : tous les VIP + admins (Alex, Julien) parlent ensemble
+- Objectif : partager pronos, donner avis/suggestions, échanger entre passionnés
+- **PAS de DM entre VIP** (risque modération LCEN + escroquerie inter-utilisateurs)
+- **VIP peut demander un coaching privé à Julien** : bouton dans le salon → ouvre fil privé Julien ↔ VIP uniquement
+- **Modération obligatoire** : Alex et Julien ont le pouvoir admin (supprimer message, kick, bannir)
+- Tech : Supabase Realtime (channel par salon VIP, table `vip_messages`)
+
+### Présentation du "pari IA" côté utilisateur
+
+- Sur l'app : on affiche **"Pari IA proposé à Julien et validé par lui"** (transparence assumée)
+- Cohérent avec la règle inviolable "outil IA jamais public" → ici on dit IA mais on dit aussi "validé par Julien" donc la promesse expertise humaine reste intacte
+- Le pari IA reste un pari complet avec analyse Julien, indice de confiance, etc.
+
+### Chat IA assistant VIP — **REPORTÉ MVP V2**
+
+- Pas implémenté au MVP V1 (chantier 2-3 semaines de dev backend dédié)
+- Sera ajouté dans la version V2 (1-2 mois après lancement)
+- Specs à venir : assistant Claude API explicitement annoncé "Assistant IA", garde-fous (jamais de pronostic, escalade vers Julien sur questions complexes)
+
+### Feature "Demande IA on-demand" — **REPORTÉ MVP V2**
+
+Concept : abonné Pro/VIP peut demander à l'IA une analyse de pari sur un match spécifique non couvert par Julien.
+
+**Garde-fous obligatoires (à respecter quand on l'implémente)** :
+1. **Disclaimer FORT** avant chaque réponse IA : *"Cette suggestion est générée par IA, non validée par notre analyste, et ne constitue pas une garantie de gain"*
+2. **Limite quotidienne** : max 3 demandes IA/jour par utilisateur (coût Claude + abus)
+3. **Liste matchs autorisés** : uniquement 5 grandes ligues + UEFA + ATP
+4. **Pas de mise recommandée** dans la réponse IA
+5. **Logs systématiques** de chaque demande (cas litige ANJ)
+
+**Tech** :
+- Backend récupère data API-Football (forme, H2H, blessures, classement) + cotes via OddsAPI
+- Prompt système "méthode Julien" co-écrit avec lui
+- Cache 30 min sur les réponses (éviter 2 users qui demandent même match)
+- Setup OddsAPI (~60€/mois en plus d'API-Football)
+
+**Coût Claude estimé** : ~50 USD/mois à 250 abonnés actifs. Acceptable.
 
 ---
 
@@ -204,12 +282,13 @@ Au premier lancement après inscription :
 
 ## 6. Règles métier inviolables (rappel CLAUDE.md projet)
 
-1. **L'outil IA est JAMAIS public.** L'utilisateur ne voit que "validé par notre analyste".
+1. **L'outil IA backend (Claude) est JAMAIS public.** L'utilisateur ne voit que "validé par notre analyste". **Exception assumée** (validée visio Julien 2026-05-30) : on peut afficher *"Pari IA proposé à Julien et validé par lui"* sur le 3ème prono quotidien des packs Pro et VIP. Cohérent parce que tout passe par Julien.
 2. **+18 + lien `joueurs-info-service.fr`** visible sur toutes les pages.
 3. **Aucune promesse de gain.** Vocabulaire : "pronostic", "recommandation", JAMAIS "gain garanti".
 4. **Sources data autorisées uniquement** : API-Football + APIs publiques. PAS de scraping bookmakers.
 5. **Stripe activé UNIQUEMENT après SIRET Alex.** Avant : redirection liste d'attente.
 6. **Sur iOS** : Apple IAP obligatoire pour abos digitaux. Stripe interdit in-app.
+7. **PAS de DM entre abonnés** (risque modération LCEN + arnaques). Salon VIP = groupe uniquement, coaching privé Julien ↔ VIP autorisé.
 
 ---
 
@@ -224,31 +303,47 @@ Au premier lancement après inscription :
 
 ---
 
-## 8. État d'avancement actuel (au 2026-05-26)
+## 8. État d'avancement actuel (au 2026-05-30)
 
-### ✅ Fait
+### ✅ Fait (MVP V1)
 
-- Login + Signup avec auth Supabase
+- Login + Signup avec auth Supabase (LargeSecureStore)
 - Gating routes via `Stack.Protected` Expo Router
 - Splash animé avec slide du logo vers le header login
 - BrandHeader réutilisable (logo + bell + account) sur tous les écrans (app)
 - Sheets Compte + Notifications (placeholders)
 - Onglet bas avec 3 tabs (Accueil + Pronos + Abonnement)
-- Écran Accueil basique avec bannière essai gratuit
+- Écran Accueil : bilan 7j + 2-3 pronos du jour + bannière trial + bannière trial expired + modal trial expired
 - Écran Abonnement avec 3 cards (frames PNG style FUT) + toggle mensuel/annuel + modal liste d'attente
+- Trial expired + restriction essai 7j au pack Starter
 - Schéma Supabase `profiles` + RLS + trigger signup + backfill
-- Hook `useProfile()` avec Realtime + démarrage essai
+- Hook `useProfile()` avec Realtime + démarrage essai + isTrialExpired + canAccess gating
 - Constantes packs (Starter 9,90 / Pro 19,90 / VIP 49,90 + annuel -20%)
+- Support combinés : types ComboBet + Selection, ComboBetCard, ComboBetDetail, 98 historiques + selections mockées par PRNG seedé
+- Stats Center foot (Forme / Saison / Classement) avec logos
+- Stats Center tennis (Profil comparatif / Forme groupée par tournoi avec sub-chips surface / Tableau placeholder)
+- Picker de mois pour naviguer dans l'historique
+- Filtres status (Tous / Live / Gagnés / Perdus) conditionnels sur l'onglet Pronos
+- Filet coloré par compétition sur cards prono simple, doré sur cards combinés
 
-### 🚧 À faire (MVP, par ordre logique)
+### 🚧 À faire (MVP V1, par ordre logique)
 
-1. **Onboarding complet** (7 écrans détaillés ci-dessus)
-2. **Page Pronos** + fiche détaillée
-3. **Page Stats** AJ Pronos
-4. **Page Historique** + résultats
-5. **Écran Trial expired**
-6. **Sheet Préférences notifs**
-7. **Sheet Mentions légales + jeu responsable**
+1. **Carnet personnel** (marquer un prono comme joué + stats perso + ROI réel) — désormais V1
+2. **Onboarding complet** (7 écrans : welcome → +18 → sports → risque → notifs → essai)
+3. **Page Stats AJ Pronos** (ROI global, performance par mois)
+4. **Sheet Préférences notifs**
+5. **Sheet Mentions légales + jeu responsable**
+6. **Salon VIP** (chat groupe Supabase Realtime + bouton "Coaching Julien")
+7. **Push notifications** Expo Notifications (foot 1h avant, tennis veille/jour J)
+8. **Admin app** (file propositions IA par sélection + builder combiné + queue publication)
+9. **Backend Supabase Edge Functions** (agents IA cron + API-Football + tracking résultats)
+10. **RevenueCat** (après SIRET Alex)
+11. **EAS Build** + submission App Store
+
+### 🚧 À faire (MVP V2, post-lancement)
+
+- Chat IA assistant VIP (Claude API + escalade Julien)
+- Demande IA on-demand (avec garde-fous ANJ stricts)
 8. **Admin** : files Propositions + Queue + édition prono
 9. **Agents IA Supabase Edge Functions** (collecte, analyse, tracking)
 10. **Notifs push** (Expo Notifications + Supabase trigger)

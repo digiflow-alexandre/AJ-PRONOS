@@ -274,6 +274,11 @@ export interface PricingPlan {
   badge?: string;
 }
 
+// Packs validés visio Julien 2026-05-30.
+// Toutes les fonctionnalités de base (analyse, ROI, carnet perso) sont
+// accessibles à TOUS les packs. La différenciation se joue sur :
+//  - le nombre de pronos quotidiens (1 vs 3)
+//  - l'accès au salon VIP
 export const pricingPlans: PricingPlan[] = [
   {
     name: "Starter",
@@ -283,19 +288,19 @@ export const pricingPlans: PricingPlan[] = [
     cardImage: "/decorations/pricing/starter-frame.png",
     monthly: "9,90 €",
     yearly: "95,00 €",
-    hintMonthly: "Sans engagement",
+    hintMonthly: "7 jours offerts",
     hintYearly: "Facture annuellement",
     features: [
-      { text: "Pronos veille (J-1)\n+ 1 prono jour J", strong: true, icon: "Goal" },
-      { text: "Acces app & espace membre", icon: "Smartphone" },
-      { text: "Notifications push in-app", icon: "Bell" },
-      { text: "Historique complet", icon: "History" },
+      { text: "1 prono / jour\n(foot ou tennis)", strong: true, icon: "Goal" },
+      { text: "Analyse complete\nde chaque pari", icon: "FileSearch" },
+      { text: "Carnet personnel\n& ROI suivi", icon: "BarChart3" },
+      { text: "Notifications push", icon: "Bell" },
     ],
     stats: [
-      { abbr: "PRO", value: "5" },
+      { abbr: "PRO", value: "1" },
       { abbr: "SPO", value: "2" },
-      { abbr: "APP", value: "✓" },
-      { abbr: "HIS", value: "✓" },
+      { abbr: "ANA", value: "✓" },
+      { abbr: "ROI", value: "✓" },
       { abbr: "IA", value: "—" },
       { abbr: "VIP", value: "—" },
     ],
@@ -313,16 +318,16 @@ export const pricingPlans: PricingPlan[] = [
     hintMonthly: "Sans engagement",
     hintYearly: "Facture annuellement",
     features: [
-      { text: "Pronos foot & tennis\nen temps reel (J)", strong: true, icon: "Trophy" },
-      { text: "Recommandations\npersonnalisees (IA)", icon: "TrendingUp" },
-      { text: "Analyse detaillee\nde chaque pari", icon: "FileSearch" },
-      { text: "Stats & ROI personnels", icon: "BarChart3" },
+      { text: "2 pronos / jour\nde notre analyste", strong: true, icon: "Trophy" },
+      { text: "+1 pari IA valide\npar Julien", icon: "TrendingUp" },
+      { text: "Analyse complete\n+ carnet + ROI", icon: "FileSearch" },
+      { text: "Notifications push", icon: "Bell" },
     ],
     stats: [
-      { abbr: "PRO", value: "5+" },
+      { abbr: "PRO", value: "3" },
       { abbr: "SPO", value: "2" },
-      { abbr: "APP", value: "✓" },
       { abbr: "ANA", value: "✓" },
+      { abbr: "ROI", value: "✓" },
       { abbr: "IA", value: "✓" },
       { abbr: "VIP", value: "—" },
     ],
@@ -342,16 +347,16 @@ export const pricingPlans: PricingPlan[] = [
     hintMonthly: "50 places max",
     hintYearly: "50 places max — annuel",
     features: [
-      { text: "Salon prive in-app\navec l'analyste", strong: true, icon: "MessageCircle" },
-      { text: "Reunion hebdo Teams\n(strategie & budget)", icon: "Headphones" },
-      { text: "Gros evenements\n(Champions League, finales)", icon: "Trophy" },
-      { text: "ROI tracking personnalise", icon: "TrendingUp" },
+      { text: "Tout le pack Pro\ninclus", strong: true, icon: "Trophy" },
+      { text: "Salon prive avec\nJulien & les VIP", icon: "MessageCircle" },
+      { text: "Coaching prive\nsur demande", icon: "Headphones" },
+      { text: "Pronos gros\nevenements", icon: "Trophy" },
     ],
     stats: [
-      { abbr: "PRO", value: "8+" },
+      { abbr: "PRO", value: "3" },
       { abbr: "SPO", value: "2" },
-      { abbr: "APP", value: "★" },
       { abbr: "ANA", value: "★" },
+      { abbr: "ROI", value: "★" },
       { abbr: "IA", value: "★" },
       { abbr: "VIP", value: "★" },
     ],
@@ -394,7 +399,7 @@ export const faqItems: FaqItem[] = [
   },
   {
     question: "Combien de pronos par jour ?",
-    answer: "Entre 1 (Decouverte) et 5+ multi-sports (Pro/VIP) selon ton pack.",
+    answer: "1 prono/jour en Starter, 3 pronos/jour en Pro et VIP (2 de notre analyste + 1 pari IA validé par Julien).",
   },
 ];
 
