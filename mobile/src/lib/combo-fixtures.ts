@@ -9,6 +9,8 @@
 
 import type { ComboBet, ComboBetSelection, PronoResult, Sport } from '@/types/prono';
 
+import { makeFootballStats } from './fake-stats';
+import { makeTennisStats } from './fake-tennis-stats';
 import { getCompetitorLogo } from './team-logos';
 
 // Type abrégé pour la source : ce qu'on récupère du site/data.ts
@@ -256,7 +258,11 @@ function generateSelections(
     const matchStart = new Date(matchDate);
     matchStart.setHours(16 + Math.floor(rand() * 6), 0, 0, 0);
 
-    return {
+    // ID stable pour la sélection (utilisé par makeFootballStats / makeTennisStats
+    // comme seed PRNG, garantit des stats déterministes entre rebuilds).
+    const selectionId = `${template.teamHome}-${template.teamAway}-${i}`;
+
+    const baseSelection: ComboBetSelection = {
       sport,
       competition: template.competition,
       teamHome: template.teamHome,
@@ -275,6 +281,28 @@ function generateSelections(
             ? `${template.teamHome} 0-2 ${template.teamAway}`
             : undefined,
     };
+
+    // Injection des stats Stats Center (selon le sport)
+    if (sport === 'foot') {
+      baseSelection.stats = makeFootballStats({
+        ...baseSelection,
+        type: 'single',
+        id: selectionId,
+        confidence: 3,
+        reasoning: '',
+        minTier: 'starter',
+        publishedAt: baseSelection.matchStartAt,
+      });
+    } else {
+      baseSelection.tennisStats = makeTennisStats({
+        id: selectionId,
+        teamHome: template.teamHome,
+        teamAway: template.teamAway,
+        competition: template.competition,
+      });
+    }
+
+    return baseSelection;
   });
 }
 

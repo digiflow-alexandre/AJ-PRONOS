@@ -180,6 +180,7 @@ function selectionToProno(sel: ComboBetSelection): Prono {
     result: sel.result,
     finalScore: sel.finalScore,
     stats: sel.stats,
+    tennisStats: sel.tennisStats,
   };
 }
 

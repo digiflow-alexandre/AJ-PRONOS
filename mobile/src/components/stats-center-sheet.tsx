@@ -16,6 +16,8 @@ import { useThemeColors } from '@/lib/use-theme-colors';
 import type { Prono } from '@/types/prono';
 import type { MatchOutcome, RecentMatch, StandingRow } from '@/types/stats';
 
+import { TennisStatsBody } from './tennis-stats-center';
+
 const OUTCOME_COLORS: Record<MatchOutcome, string> = {
   V: '#10B981',
   N: '#9CA3AF',
@@ -45,6 +47,7 @@ export function StatsCenterSheet({
 
   if (!prono) return null;
   const stats = prono.stats;
+  const isTennis = prono.sport === 'tennis';
 
   return (
     <Modal
@@ -53,7 +56,7 @@ export function StatsCenterSheet({
       animationType="slide"
       onRequestClose={onClose}>
       <View style={[styles.backdrop, { backgroundColor: c.bg }]}>
-        {/* Header */}
+        {/* Header (commun foot + tennis) */}
         <View
           style={[
             styles.headerWrap,
@@ -88,52 +91,58 @@ export function StatsCenterSheet({
             </Pressable>
           </View>
 
-          {/* Teams summary */}
+          {/* Teams summary (commun) */}
           <TeamsSummary prono={prono} />
 
-          {/* Tabs */}
-          <View style={styles.tabsRow}>
-            <TabBtn
-              label="Forme"
-              active={tab === 'forme'}
-              onPress={() => setTab('forme')}
-            />
-            <TabBtn
-              label="Saison"
-              active={tab === 'saison'}
-              onPress={() => setTab('saison')}
-            />
-            <TabBtn
-              label="Classement"
-              active={tab === 'classement'}
-              onPress={() => setTab('classement')}
-            />
-          </View>
+          {/* Tabs : tennis vs foot — tennis a ses propres onglets dans TennisStatsBody */}
+          {!isTennis ? (
+            <View style={styles.tabsRow}>
+              <TabBtn
+                label="Forme"
+                active={tab === 'forme'}
+                onPress={() => setTab('forme')}
+              />
+              <TabBtn
+                label="Saison"
+                active={tab === 'saison'}
+                onPress={() => setTab('saison')}
+              />
+              <TabBtn
+                label="Classement"
+                active={tab === 'classement'}
+                onPress={() => setTab('classement')}
+              />
+            </View>
+          ) : null}
         </View>
 
-        {/* Body */}
-        <ScrollView
-          style={{ flex: 1, backgroundColor: c.bg }}
-          contentContainerStyle={{
-            padding: Spacing.four,
-            paddingBottom: insets.bottom + Spacing.five,
-          }}
-          showsVerticalScrollIndicator={false}>
-          {!stats ? (
-            <NoStatsState />
-          ) : tab === 'forme' ? (
-            <FormePanel
-              prono={prono}
-              stats={stats}
-              chip={chip}
-              setChip={setChip}
-            />
-          ) : tab === 'saison' ? (
-            <SaisonPanel prono={prono} stats={stats} />
-          ) : (
-            <ClassementPanel prono={prono} stats={stats} />
-          )}
-        </ScrollView>
+        {/* Body : tennis = TennisStatsBody, foot = panels existants */}
+        {isTennis ? (
+          <TennisStatsBody prono={prono} />
+        ) : (
+          <ScrollView
+            style={{ flex: 1, backgroundColor: c.bg }}
+            contentContainerStyle={{
+              padding: Spacing.four,
+              paddingBottom: insets.bottom + Spacing.five,
+            }}
+            showsVerticalScrollIndicator={false}>
+            {!stats ? (
+              <NoStatsState />
+            ) : tab === 'forme' ? (
+              <FormePanel
+                prono={prono}
+                stats={stats}
+                chip={chip}
+                setChip={setChip}
+              />
+            ) : tab === 'saison' ? (
+              <SaisonPanel prono={prono} stats={stats} />
+            ) : (
+              <ClassementPanel prono={prono} stats={stats} />
+            )}
+          </ScrollView>
+        )}
       </View>
     </Modal>
   );

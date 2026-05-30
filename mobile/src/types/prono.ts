@@ -1,5 +1,6 @@
 import type { SubscriptionTier } from './profile';
 import type { ProNoStats } from './stats';
+import type { TennisStats } from './tennis-stats';
 
 export type Sport = 'foot' | 'tennis';
 
@@ -52,6 +53,7 @@ export type Prono = {
   contextNote?: string;
   absences?: string[];
   stats?: ProNoStats;
+  tennisStats?: TennisStats;
 };
 
 /**
@@ -73,8 +75,10 @@ export type ComboBetSelection = {
   miniReasoning: string;
   result: PronoResult;
   finalScore?: string;
-  /** Stats du match (pour Stats Center accessible par sélection). */
+  /** Stats du match foot (pour Stats Center accessible par sélection). */
   stats?: ProNoStats;
+  /** Stats du match tennis (pour Stats Center tennis). */
+  tennisStats?: TennisStats;
 };
 
 /**

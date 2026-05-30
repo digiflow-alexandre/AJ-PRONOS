@@ -38,12 +38,17 @@ function pickOutcome(rand: () => number, bias: number): MatchOutcome {
   return 'D';
 }
 
-function pickOpponents(rand: () => number, ownTeam: string): string {
-  const pool = [
-    'Lille', 'Lyon', 'Marseille', 'Monaco', 'Lens', 'Nice', 'Brest',
-    'Reims', 'Strasbourg', 'Toulouse', 'Nantes', 'Auxerre', 'Le Havre',
-    'Rennes', 'Montpellier', 'Saint-Étienne', 'Angers',
-  ].filter((t) => t !== ownTeam);
+/**
+ * Pioche un adversaire dans le pool de la bonne compétition.
+ * Bundesliga → équipes allemandes, La Liga → espagnoles, etc.
+ * Sans ça, on aurait Dortmund qui joue contre Reims (vu dans le bug 30 mai).
+ */
+function pickOpponents(
+  rand: () => number,
+  ownTeam: string,
+  competitionPool: string[],
+): string {
+  const pool = competitionPool.filter((t) => t !== ownTeam);
   return pool[Math.floor(rand() * pool.length)];
 }
 
@@ -51,6 +56,7 @@ function genRecentMatches(
   rand: () => number,
   team: string,
   bias: number,
+  competitionPool: string[],
   count = 10,
 ): RecentMatch[] {
   const today = new Date();
@@ -74,7 +80,7 @@ function genRecentMatches(
         : result === 'N'
           ? scoreSelf
           : Math.floor(rand() * scoreSelf);
-    const opponent = pickOpponents(rand, team);
+    const opponent = pickOpponents(rand, team, competitionPool);
     return {
       date: dd,
       opponent,
@@ -160,6 +166,21 @@ const COMPETITION_POOLS: Record<string, string[]> = {
     'Bournemouth', 'Crystal Palace', 'Nottingham', 'Wolves',
     'Everton', 'Leicester', 'Ipswich', 'Southampton',
   ],
+  Bundesliga: [
+    'Bayern', 'Dortmund', 'Bayer', 'Leipzig', 'Stuttgart', 'Eintracht',
+    'Hoffenheim', 'Wolfsburg', 'Mainz', 'Augsburg', 'Werder', 'Mönchengladbach',
+    'Heidenheim', 'Union Berlin', 'St Pauli', 'Bochum', 'Holstein Kiel', 'Freiburg',
+  ],
+  'Serie A': [
+    'Inter', 'Milan', 'Juventus', 'Napoli', 'Atalanta', 'Roma',
+    'Lazio', 'Fiorentina', 'Bologna', 'Torino', 'Udinese', 'Genoa',
+    'Como', 'Empoli', 'Verona', 'Cagliari', 'Lecce', 'Parma',
+    'Monza', 'Venezia',
+  ],
+  'Europa League': [
+    'Roma', 'Lazio', 'Lyon', 'Manchester United', 'Tottenham', 'Porto',
+    'Ajax', 'Galatasaray', 'Eintracht', 'Bayer', 'Anderlecht', 'PAOK',
+  ],
   'Champions League': [
     'Man City', 'Bayern', 'Real Madrid', 'Arsenal', 'PSG', 'Inter',
     'Atletico', 'Barcelona', 'Borussia', 'Atalanta', 'Bayer', 'Milan',
@@ -221,6 +242,12 @@ export function makeFootballStats(prono: Prono): ProNoStats {
   const homeBias = (rand() - 0.5) * 0.15;
   const awayBias = (rand() - 0.5) * 0.15;
   const compName = competitionFromString(prono.competition);
+  // Pool d'adversaires = équipes du même championnat (Bundesliga,
+  // La Liga, Premier League, etc.). Pour Champions League ou Europa,
+  // on accepte un mix réaliste de clubs européens.
+  const competitionPool = (
+    COMPETITION_POOLS[compName] ?? COMPETITION_POOLS['Ligue 1']
+  );
 
   const homePosition = Math.max(1, Math.floor(rand() * 12) + 1);
   let awayPosition = Math.max(1, Math.floor(rand() * 12) + 1);
@@ -229,8 +256,8 @@ export function makeFootballStats(prono: Prono): ProNoStats {
   return {
     homePosition,
     awayPosition,
-    homeRecentMatches: genRecentMatches(rand, prono.teamHome, homeBias),
-    awayRecentMatches: genRecentMatches(rand, prono.teamAway, awayBias),
+    homeRecentMatches: genRecentMatches(rand, prono.teamHome, homeBias, competitionPool),
+    awayRecentMatches: genRecentMatches(rand, prono.teamAway, awayBias, competitionPool),
     h2hMatches: genH2H(rand, prono.teamAway, homeBias),
     homeSeasonStats: {
       competition: compName,
