@@ -24,7 +24,7 @@ const stepDetails: Array<{
     ],
   },
   {
-    pitch: "L'analyste tranche à la main, pari par pari. Lecture tactique, dynamique d'équipe, intuition forgée par 10 ans d'analyses.",
+    pitch: "L'analyste tranche à la main, pari par pari. Lecture tactique, dynamique d'équipe, intuition forgée par 20 ans d'analyses.",
     bullets: [
       "Lecture tactique : styles, zones exploitables",
       "Dynamique d'équipe : moral, déclarations, vestiaire",

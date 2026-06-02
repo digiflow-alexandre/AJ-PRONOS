@@ -29,8 +29,8 @@ export default function CgvPage() {
 
       <h2>2. Éditeur</h2>
       <p>
-        Le service est édité par Alex Guerreiro, auto-entrepreneur, SIRET{" "}
-        <em>[À compléter]</em>, dont les coordonnées complètes figurent dans
+        Le service est édité par Julien Ruffin, auto-entrepreneur, SIRET
+        105 467 542 00012, dont les coordonnées complètes figurent dans
         les <Link href="/mentions-legales">mentions légales</Link>.
       </p>
 

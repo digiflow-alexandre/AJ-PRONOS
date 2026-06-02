@@ -62,7 +62,7 @@ export const methodSteps: MethodStep[] = [
     alt: "Étape 02 — Filtre humain : on tranche à la main, pari par pari (analyse manuelle, sélectivité ≤ 1 sur 3, anti-filler)",
     eyebrow: "Filtre humain",
     title: "On tranche à la main, pari par pari",
-    body: "Chaque pari potentiel est analysé manuellement. Contexte tactique, dynamique d'équipe, intuition forgée par 10 ans d'analyses. On ne publie que ce en quoi on croit vraiment.",
+    body: "Chaque pari potentiel est analysé manuellement. Contexte tactique, dynamique d'équipe, intuition forgée par 20 ans d'analyses. On ne publie que ce en quoi on croit vraiment.",
     tags: ["Filtre humain", "≤ 1 sur 3", "Anti-filler"],
   },
   {
@@ -114,22 +114,40 @@ export const monthlySummary: Record<BetMonth, MonthSummary> = {
   fevrier:  { roi: 133.8, gains: "+788,40 €", losses: "-74,19 €", avgOdd: "3.00", total: 18, wins: 14, losses_count: 4 },
   mars:     { roi: 134.1, gains: "+1 247,57 €", losses: "-112,00 €", avgOdd: "2.96", total: 24, wins: 19, losses_count: 5 },
   avril:    { roi: 79.6, gains: "+1 329,89 €", losses: "-170,87 €", avgOdd: "2.34", total: 26, wins: 20, losses_count: 6 },
-  mai:      { roi: 18.4, gains: "+412,80 €", losses: "-188,40 €", avgOdd: "1.87", total: 42, wins: 28, losses_count: 14 },
+  mai:      { roi: 72.2, gains: "+1 101,06 €", losses: "-111,26 €", avgOdd: "2.06", total: 29, wins: 24, losses_count: 5 },
 };
 
 export const bets: Bet[] = [
-  // ===== MAI =====
-  { day: "11", month: "mai", match: "PSG - Lyon",            prediction: "Plus de 2.5 buts",     odd: "1.78", result: "win",  sport: "foot" },
-  { day: "10", month: "mai", match: "Real Madrid - Girona",   prediction: "Victoire Real",        odd: "1.42", result: "win",  sport: "foot" },
-  { day: "09", month: "mai", match: "Bayer - Roma",           prediction: "Les deux équipes marquent", odd: "1.95", result: "loss", sport: "foot" },
-  { day: "08", month: "mai", match: "Arsenal - Chelsea",      prediction: "Victoire Arsenal",     odd: "1.65", result: "win",  sport: "foot" },
-  { day: "07", month: "mai", match: "Atlético - Athletic",    prediction: "Moins de 3.5 buts",    odd: "1.58", result: "win",  sport: "foot" },
-  { day: "06", month: "mai", match: "Marseille - Nice",       prediction: "Victoire OM",          odd: "2.10", result: "loss", sport: "foot" },
-  { day: "05", month: "mai", match: "Inter - Torino",         prediction: "Plus de 2.5 buts",     odd: "1.72", result: "win",  sport: "foot" },
-  { day: "04", month: "mai", match: "Liverpool - Tottenham",  prediction: "Liverpool & +2.5",     odd: "2.20", result: "win",  sport: "foot" },
-  { day: "03", month: "mai", match: "Dortmund - Mainz",       prediction: "Victoire Dortmund",    odd: "1.50", result: "win",  sport: "foot" },
-  { day: "02", month: "mai", match: "Lille - Lens",           prediction: "Match nul ou Lens",    odd: "1.92", result: "loss", sport: "foot" },
-  { day: "01", month: "mai", match: "Barcelone - Valence",    prediction: "Victoire Barça -1.5",  odd: "2.05", result: "win",  sport: "foot" },
+  // ===== MAI (29 paris avec screenshots Winamax — 24 wins, 5 losses, ROI 72.2%) =====
+  { day: "31", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "2.95", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-01.jpg" },
+  { day: "30", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "3.40", result: "win",  sport: "tennis", image: "/decorations/pronos/mai/mai-02.jpg" },
+  { day: "29", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "2.20", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-03.jpg" },
+  { day: "28", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "1.85", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-04.jpg" },
+  { day: "27", month: "mai", match: "Combiné multi-paris", prediction: "Combiné perdant", odd: "3.10", result: "loss", sport: "foot",   image: "/decorations/pronos/mai/mai-05.jpg" },
+  { day: "26", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "4.20", result: "win",  sport: "tennis", image: "/decorations/pronos/mai/mai-06.jpg" },
+  { day: "25", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "2.65", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-07.jpg" },
+  { day: "24", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "3.75", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-08.jpg" },
+  { day: "23", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "2.40", result: "win",  sport: "tennis", image: "/decorations/pronos/mai/mai-09.jpg" },
+  { day: "22", month: "mai", match: "Combiné multi-paris", prediction: "Combiné perdant", odd: "2.85", result: "loss", sport: "foot",   image: "/decorations/pronos/mai/mai-10.jpg" },
+  { day: "21", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "1.95", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-11.jpg" },
+  { day: "20", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "4.85", result: "win",  sport: "tennis", image: "/decorations/pronos/mai/mai-12.jpg" },
+  { day: "19", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "2.30", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-13.jpg" },
+  { day: "18", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "3.20", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-14.jpg" },
+  { day: "17", month: "mai", match: "Combiné multi-paris", prediction: "Combiné perdant", odd: "3.55", result: "loss", sport: "tennis", image: "/decorations/pronos/mai/mai-15.jpg" },
+  { day: "16", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "2.10", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-16.jpg" },
+  { day: "15", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "4.40", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-17.jpg" },
+  { day: "14", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "2.55", result: "win",  sport: "tennis", image: "/decorations/pronos/mai/mai-18.jpg" },
+  { day: "13", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "3.85", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-19.jpg" },
+  { day: "12", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "1.85", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-20.jpg" },
+  { day: "11", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "5.10", result: "win",  sport: "tennis", image: "/decorations/pronos/mai/mai-21.jpg" },
+  { day: "10", month: "mai", match: "Combiné multi-paris", prediction: "Combiné perdant", odd: "2.95", result: "loss", sport: "foot",   image: "/decorations/pronos/mai/mai-22.jpg" },
+  { day: "09", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "2.45", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-23.jpg" },
+  { day: "08", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "3.65", result: "win",  sport: "tennis", image: "/decorations/pronos/mai/mai-24.jpg" },
+  { day: "07", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "2.20", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-25.jpg" },
+  { day: "06", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "4.05", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-26.jpg" },
+  { day: "05", month: "mai", match: "Combiné multi-paris", prediction: "Combiné perdant", odd: "3.30", result: "loss", sport: "tennis", image: "/decorations/pronos/mai/mai-27.jpg" },
+  { day: "03", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "2.70", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-28.jpg" },
+  { day: "01", month: "mai", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "3.95", result: "win",  sport: "foot",   image: "/decorations/pronos/mai/mai-29.jpg" },
 
   // ===== AVRIL (26 paris avec screenshots Winamax — stats globales à confirmer Alex) =====
   { day: "30", month: "avril", match: "Combiné multi-paris", prediction: "Combiné gagnant", odd: "3.40", result: "win",  sport: "foot",   image: "/decorations/pronos/avril/avril-01.jpg" },
@@ -293,7 +311,7 @@ export const pricingPlans: PricingPlan[] = [
     features: [
       { text: "1 prono / jour\n(foot ou tennis)", strong: true, icon: "Goal" },
       { text: "Analyse complete\nde chaque pari", icon: "FileSearch" },
-      { text: "Carnet personnel\n& ROI suivi", icon: "BarChart3" },
+      { text: "Carnet personnel\n+ ROI", icon: "BarChart3" },
       { text: "Notifications push", icon: "Bell" },
     ],
     stats: [
@@ -306,6 +324,7 @@ export const pricingPlans: PricingPlan[] = [
     ],
     ctaLabel: "Choisir Starter",
     ctaVariant: "secondary",
+    badge: "7 jours offerts",
   },
   {
     name: "Pro",
@@ -319,7 +338,7 @@ export const pricingPlans: PricingPlan[] = [
     hintYearly: "Facture annuellement",
     features: [
       { text: "2 pronos / jour\nde notre analyste", strong: true, icon: "Trophy" },
-      { text: "+1 pari IA valide\npar Julien", icon: "TrendingUp" },
+      { text: "1 pari IA valide\npar Julien en plus", icon: "TrendingUp" },
       { text: "Analyse complete\n+ carnet + ROI", icon: "FileSearch" },
       { text: "Notifications push", icon: "Bell" },
     ],
@@ -350,7 +369,7 @@ export const pricingPlans: PricingPlan[] = [
       { text: "Tout le pack Pro\ninclus", strong: true, icon: "Trophy" },
       { text: "Salon prive avec\nJulien & les VIP", icon: "MessageCircle" },
       { text: "Coaching prive\nsur demande", icon: "Headphones" },
-      { text: "Pronos gros\nevenements", icon: "Trophy" },
+      { text: "Pronos sur les gros\nevenements", icon: "Trophy" },
     ],
     stats: [
       { abbr: "PRO", value: "3" },
@@ -395,7 +414,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Qui est derriere AJ Pronos ?",
     answer:
-      "Une equipe de deux : un profil tech/produit et un analyste avec 10 ans d'experience dans le pari sportif. Deux passionnes qui en avaient marre de parier au feeling. On a fini par systematiser ce qu'on faisait.",
+      "Une equipe de deux : un profil tech/produit et un analyste avec 20 ans d'experience dans le pari sportif. Deux passionnes qui en avaient marre de parier au feeling. On a fini par systematiser ce qu'on faisait.",
   },
   {
     question: "Combien de pronos par jour ?",

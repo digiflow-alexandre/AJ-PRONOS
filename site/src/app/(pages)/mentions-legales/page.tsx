@@ -24,16 +24,16 @@ export default function MentionsLegalesPage() {
         Le site <strong>ajpronos.fr</strong> est édité par :
       </p>
       <ul>
-        <li><strong>Alex Guerreiro</strong>, entrepreneur individuel</li>
+        <li><strong>Julien Ruffin</strong>, entrepreneur individuel</li>
         <li>Statut : Auto-entrepreneur</li>
-        <li>SIRET : <em>[À compléter dès immatriculation]</em></li>
+        <li>SIRET : 105 467 542 00012</li>
         <li>Adresse de domiciliation : <em>[À compléter]</em></li>
         <li>Email : <a href="mailto:hello@ajpronos.fr">hello@ajpronos.fr</a></li>
         <li>Activité : conseil en paris sportifs</li>
       </ul>
 
       <h2>Directeur de la publication</h2>
-      <p>Alex Guerreiro, en qualité d&apos;éditeur.</p>
+      <p>Julien Ruffin, en qualité d&apos;éditeur.</p>
 
       <h2>Hébergeur</h2>
       <p>

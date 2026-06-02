@@ -4,7 +4,7 @@
 **Statut** : Pré-lancement, en attente d'auto-entreprise + logo
 
 ## Projet
-Service de conseil en paris sportifs (FR). Deux co-fondateurs : **Alex** (dev/produit) et **Julien** (pronostiqueur expert, 10 ans d'expérience).
+Service de conseil en paris sportifs (FR). Deux co-fondateurs : **Alex** (dev/produit) et **Julien** (pronostiqueur expert, **20 ans d'expérience** dans les paris sportifs).
 
 **Différenciateur public (site, marketing)** : expertise humaine + méthode rigoureuse + transparence ROI. Alex et Julien analysent manuellement compos, blessés, forme, head-to-head, value bets.
 

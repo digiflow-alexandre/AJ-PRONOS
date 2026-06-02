@@ -22,7 +22,7 @@ export default function ConfidentialitePage() {
       <h2>1. Responsable de traitement</h2>
       <p>
         Le responsable du traitement des données personnelles collectées sur
-        ce site est <strong>Alex Guerreiro</strong>, éditeur d&apos;AJ Pronos
+        ce site est <strong>Julien Ruffin</strong>, éditeur d&apos;AJ Pronos
         (coordonnées complètes dans les <Link href="/mentions-legales">mentions légales</Link>).
       </p>
       <p>
