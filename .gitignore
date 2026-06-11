@@ -1,6 +1,14 @@
 # ============================================================
-# AJ Pronos — racine du projet (site/ + futur app/)
+# AJ Pronos — monorepo racine
+# Le sous-dossier site/ est désormais un repo indépendant
+# (DigiflowAgency/ajpronos.fr) → exclu d'ici depuis 2026-06-11.
 # ============================================================
+
+# Sous-repo dédié à la vitrine
+/site
+
+# Sous-repo dédié à l'app mobile (si applicable, sinon décommenter)
+# /mobile
 
 # Dependencies
 **/node_modules
