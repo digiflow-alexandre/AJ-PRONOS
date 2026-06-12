@@ -29,6 +29,16 @@ export const Colors = {
     backgroundElement: '#F5F4ED',
     backgroundSelected: '#FAF6E3',
     textSecondary: '#525252',
+    // Miroir des tokens "Card light" dark — en mode light on garde les
+    // mêmes valeurs que le bg pour pas casser l'app si on switch un jour.
+    bgCardLight: '#FFFFFF',
+    bgCardLightInner: '#F5F4ED',
+    textOnLight: '#0A0A0A',
+    textOnLightMuted: '#525252',
+    textOnLightDim: '#737373',
+    borderOnLightFaint: 'rgba(10, 10, 10, 0.06)',
+    borderOnLightSoft: 'rgba(10, 10, 10, 0.10)',
+    goldOnLight: '#B8941F',
   },
   dark: {
     bg: '#0A0A0A',
@@ -51,6 +61,18 @@ export const Colors = {
     backgroundElement: '#171717',
     backgroundSelected: '#262626',
     textSecondary: '#A3A3A3',
+    // Cards crème (refonte DA 2026-06-04) — utilisé pour les cards
+    // "primaires" sur fond noir (genre Bilan, Aujourd'hui sur l'Accueil).
+    // À ne PAS confondre avec bgElevated qui reste sombre pour les écrans
+    // dark "purs" (Stats Center, sheets, etc.).
+    bgCardLight: '#FAFAF7',
+    bgCardLightInner: '#F5F4ED',
+    textOnLight: '#0A0A0A',
+    textOnLightMuted: '#525252',
+    textOnLightDim: '#737373',
+    borderOnLightFaint: 'rgba(10, 10, 10, 0.06)',
+    borderOnLightSoft: 'rgba(10, 10, 10, 0.10)',
+    goldOnLight: '#B8941F',
   },
 } as const;
 

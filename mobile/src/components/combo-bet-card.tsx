@@ -1,12 +1,59 @@
 import { SymbolView } from 'expo-symbols';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ImageBackground,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { Spacing } from '@/constants/theme';
+import { displayTeamName } from '@/lib/team-display-names';
 import { useThemeColors } from '@/lib/use-theme-colors';
 import type { ComboBet, ComboBetSelection, PronoResult } from '@/types/prono';
 
 import { ConfidenceDots } from './confidence-dots';
+
+const CONFIDENCE_LABEL: Record<1 | 2 | 3 | 4 | 5, string> = {
+  1: 'CONFIANCE FAIBLE',
+  2: 'CONFIANCE MODÉRÉE',
+  3: 'CONFIANCE CORRECTE',
+  4: 'CONFIANCE ÉLEVÉE',
+  5: 'CONFIANCE MAXIMALE',
+};
+
+/** Image bg pour combo gagné / perdu, selon la composition du combo :
+ *  - 100% foot → ballon foot (vert/rouge)
+ *  - 100% tennis → balle tennis (verte/rouge)
+ *  - mixte foot + tennis → ballon foot + balle tennis (vert/rouge)
+ *  Pour pending/live/void : pas d'image. */
+function getComboBg(
+  result: PronoResult,
+  sports: ComboBetSelection['sport'][],
+) {
+  const set = new Set(sports);
+  const onlyFoot = set.size === 1 && set.has('foot');
+  const onlyTennis = set.size === 1 && set.has('tennis');
+  if (result === 'win') {
+    if (onlyFoot) return require('@/assets/images/bg-card-won.png');
+    if (onlyTennis) return require('@/assets/images/bg-card-won-tennis.png');
+    return require('@/assets/images/bg-card-won-combo.png');
+  }
+  if (result === 'loss') {
+    if (onlyFoot) return require('@/assets/images/bg-card-lost.png');
+    if (onlyTennis) return require('@/assets/images/bg-card-lost-tennis.png');
+    return require('@/assets/images/bg-card-lost-combo.png');
+  }
+  // pending / live / void → bg "en cours" (doré stade)
+  if (result === 'pending' || result === 'live') {
+    if (onlyFoot) return require('@/assets/images/bg-card-pending-foot.png');
+    if (onlyTennis)
+      return require('@/assets/images/bg-card-pending-tennis.png');
+    return require('@/assets/images/bg-card-pending-mixed.png');
+  }
+  return null;
+}
 
 // =============================================================================
 // Couleurs résultat
@@ -18,9 +65,24 @@ const COLOR_VOID = '#A8A29E';
 
 // Style global de la card selon résultat global
 const RESULT_STYLE = {
-  win: { bg: '#ECFDF5', border: '#10B981', chip: '#10B981', label: 'GAGNÉ' },
-  loss: { bg: '#FEF2F2', border: '#EF4444', chip: '#EF4444', label: 'PERDU' },
-  void: { bg: '#F5F5F4', border: '#A8A29E', chip: '#A8A29E', label: 'ANNULÉ' },
+  win: {
+    bg: 'rgba(16, 185, 129, 0.10)',
+    border: '#10B981',
+    chip: '#10B981',
+    label: 'GAGNÉ',
+  },
+  loss: {
+    bg: 'rgba(239, 68, 68, 0.10)',
+    border: '#EF4444',
+    chip: '#EF4444',
+    label: 'PERDU',
+  },
+  void: {
+    bg: 'rgba(168, 162, 158, 0.10)',
+    border: '#A8A29E',
+    chip: '#A8A29E',
+    label: 'ANNULÉ',
+  },
 } as const;
 
 type Props = {
@@ -31,7 +93,8 @@ type Props = {
 
 export function ComboBetCard({ combo, hasAccess, onPress }: Props) {
   const c = useThemeColors();
-  const [expanded, setExpanded] = useState(false);
+  // Toujours déplié par défaut (cohérent avec la maquette dark).
+  const [expanded, setExpanded] = useState(true);
 
   const resultStyle =
     combo.result === 'win' || combo.result === 'loss' || combo.result === 'void'
@@ -39,11 +102,32 @@ export function ComboBetCard({ combo, hasAccess, onPress }: Props) {
       : null;
   const isResolved = resultStyle !== null;
 
-  // Compteurs V/D des sélections (affichés seulement si combiné résolu)
+  // Compteurs V/D/void + nombre joués (badge "X/N joués").
   const counts = useMemo(() => {
     const wins = combo.selections.filter((s) => s.result === 'win').length;
     const losses = combo.selections.filter((s) => s.result === 'loss').length;
-    return { wins, losses, total: combo.selections.length };
+    const voids = combo.selections.filter((s) => s.result === 'void').length;
+    const now = Date.now();
+    const played = combo.selections.filter(
+      (s) => new Date(s.matchStartAt).getTime() <= now,
+    ).length;
+    return {
+      wins,
+      losses,
+      voids,
+      played,
+      total: combo.selections.length,
+    };
+  }, [combo.selections]);
+
+  // Cote totale ajustée : produit des cotes des sélections non-void.
+  // Une sélection annulée compte ×1 dans la convention bookmaker FR.
+  const adjustedOdd = useMemo(() => {
+    let odd = 1;
+    combo.selections.forEach((s) => {
+      if (s.result !== 'void') odd *= s.odd;
+    });
+    return Math.round(odd * 100) / 100;
   }, [combo.selections]);
 
   // Sports présents (mono ou multi-sport)
@@ -52,21 +136,110 @@ export function ComboBetCard({ combo, hasAccess, onPress }: Props) {
     return Array.from(set);
   }, [combo.selections]);
 
+  const bgImage = getComboBg(combo.result, sports);
+
   return (
-    <View
-      style={[
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
         styles.outerFrame,
-        { backgroundColor: c.goldDecorative, shadowColor: '#0A0A0A' },
+        {
+          backgroundColor: resultStyle?.border ?? c.gold,
+          shadowColor: '#0A0A0A',
+          opacity: pressed ? 0.97 : 1,
+        },
       ]}>
-      <View
-        style={[
-          styles.card,
-          {
-            backgroundColor: resultStyle ? resultStyle.bg : c.bgElevated,
-            borderColor: resultStyle ? resultStyle.border : 'transparent',
-            borderWidth: resultStyle ? 1.5 : 0,
-          },
-        ]}>
+      {/* Badge "ticket dispo" en haut à gauche (preuve bookmaker) */}
+      {combo.bookmakerScreenshotUrl ? (
+        <View
+          style={[
+            styles.ticketBadge,
+            { backgroundColor: c.bgWarm, borderColor: c.goldDecorative },
+          ]}>
+          <SymbolView
+            name="doc.text.image"
+            size={10}
+            tintColor={c.gold}
+            weight="semibold"
+          />
+          <Text style={[styles.ticketBadgeText, { color: c.gold }]}>
+            Ticket réel
+          </Text>
+        </View>
+      ) : null}
+
+      {bgImage ? (
+        <ImageBackground
+          source={bgImage}
+          style={styles.cardBgWrap}
+          imageStyle={styles.cardBgImg}>
+          <View style={styles.cardBgOverlay} pointerEvents="none" />
+          <ComboCardContent
+            combo={combo}
+            hasAccess={hasAccess}
+            onPress={onPress}
+            resultStyle={resultStyle}
+            isResolved={isResolved}
+            counts={counts}
+            adjustedOdd={adjustedOdd}
+            sports={sports}
+            expanded={expanded}
+            setExpanded={setExpanded}
+          />
+        </ImageBackground>
+      ) : (
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: resultStyle ? resultStyle.bg : c.bgElevated,
+            },
+          ]}>
+          <ComboCardContent
+            combo={combo}
+            hasAccess={hasAccess}
+            onPress={onPress}
+            resultStyle={resultStyle}
+            isResolved={isResolved}
+            counts={counts}
+            adjustedOdd={adjustedOdd}
+            sports={sports}
+            expanded={expanded}
+            setExpanded={setExpanded}
+          />
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+function ComboCardContent({
+  combo,
+  hasAccess,
+  onPress,
+  resultStyle,
+  isResolved,
+  counts,
+  adjustedOdd,
+  sports,
+  expanded,
+  setExpanded,
+}: {
+  combo: ComboBet;
+  hasAccess: boolean;
+  onPress: () => void;
+  resultStyle: (typeof RESULT_STYLE)[keyof typeof RESULT_STYLE] | null;
+  isResolved: boolean;
+  counts: { wins: number; losses: number; voids: number; played: number; total: number };
+  /** Cote totale ajustée (exclut les sélections void). */
+  adjustedOdd: number;
+  sports: ComboBetSelection['sport'][];
+  expanded: boolean;
+  setExpanded: (v: ((prev: boolean) => boolean) | boolean) => void;
+}) {
+  const c = useThemeColors();
+  return (
+    <>
         {/* ===== HEADER : statut + label + sport + nb sélections ===== */}
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
@@ -111,6 +284,22 @@ export function ComboBetCard({ combo, hasAccess, onPress }: Props) {
               </Text>
             </View>
           </View>
+          {/* Badge progression : combien de matchs sont déjà passés */}
+          {!isResolved && counts.played > 0 && counts.played < counts.total ? (
+            <View
+              style={[
+                styles.progressBadge,
+                {
+                  borderColor: c.gold,
+                  backgroundColor: 'rgba(232,201,90,0.12)',
+                },
+              ]}>
+              <View style={[styles.progressDot, { backgroundColor: c.gold }]} />
+              <Text style={[styles.progressBadgeText, { color: c.gold }]}>
+                {counts.played}/{counts.total} joués
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         {/* ===== Barre proportions V/D (uniquement si résolu) ===== */}
@@ -192,11 +381,16 @@ export function ComboBetCard({ combo, hasAccess, onPress }: Props) {
 
           <View style={{ flex: 1 }} />
 
-          <ConfidenceDots
-            value={combo.confidence}
-            showLabel={false}
-            dotSize={8}
-          />
+          <View style={styles.confidenceCol}>
+            <ConfidenceDots
+              value={combo.confidence}
+              showLabel={false}
+              dotSize={8}
+            />
+            <Text style={[styles.confidenceLabel, { color: c.textMuted }]}>
+              {CONFIDENCE_LABEL[combo.confidence]}
+            </Text>
+          </View>
         </View>
 
         {/* ===== Détail sélections (si expanded ou si verrouillé) ===== */}
@@ -210,16 +404,24 @@ export function ComboBetCard({ combo, hasAccess, onPress }: Props) {
           <LockedSelections minTier={combo.minTier} />
         ) : null}
 
-        {/* ===== Footer : cote totale + CTA ===== */}
+        {/* ===== Footer : cote totale (ajustée si void) + CTA ===== */}
         <View style={styles.footer}>
           <View style={styles.footerLeft}>
             <Text style={[styles.footerLabel, { color: c.textMuted }]}>
               COTE TOTALE
             </Text>
-            <View style={[styles.oddBadge, { backgroundColor: c.gold }]}>
-              <Text style={styles.oddBadgeText}>
-                {combo.combinationOdd.toFixed(2)}
-              </Text>
+            <View style={styles.oddBadgeStack}>
+              {counts.voids > 0 ? (
+                <Text
+                  style={[styles.oddInitial, { color: c.textDim }]}>
+                  initiale {combo.combinationOdd.toFixed(2)}
+                </Text>
+              ) : null}
+              <View style={[styles.oddBadge, { backgroundColor: c.gold }]}>
+                <Text style={styles.oddBadgeText}>
+                  {adjustedOdd.toFixed(2)}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -230,13 +432,12 @@ export function ComboBetCard({ combo, hasAccess, onPress }: Props) {
               styles.ctaBtn,
               { opacity: pressed ? 0.6 : 1 },
             ]}>
-            <Text style={[styles.ctaText, { color: c.text }]}>
+            <Text style={[styles.ctaText, { color: c.gold }]}>
               {hasAccess ? 'Analyse →' : 'Débloquer →'}
             </Text>
           </Pressable>
         </View>
-      </View>
-    </View>
+    </>
   );
 }
 
@@ -251,9 +452,13 @@ function SelectionRow({
   index: number;
 }) {
   const c = useThemeColors();
+  const isVoid = selection.result === 'void';
   return (
     <View
-      style={[styles.selRow, { borderTopColor: c.borderFaint }]}>
+      style={[
+        styles.selRow,
+        { borderTopColor: c.borderFaint, opacity: isVoid ? 0.6 : 1 },
+      ]}>
       <Text style={[styles.selIndex, { color: c.textDim }]}>{index}</Text>
 
       <View style={styles.selBody}>
@@ -276,24 +481,57 @@ function SelectionRow({
             />
           )}
           <Text
-            style={[styles.selMatch, { color: c.text }]}
+            style={[
+              styles.selMatch,
+              {
+                color: c.text,
+                textDecorationLine: isVoid ? 'line-through' : 'none',
+              },
+            ]}
             numberOfLines={1}>
-            {selection.teamHome} vs {selection.teamAway}
+            {displayTeamName(selection.teamHome)} vs {displayTeamName(selection.teamAway)}
           </Text>
         </View>
         <Text
-          style={[styles.selPrediction, { color: c.textMuted }]}
+          style={[
+            styles.selPrediction,
+            {
+              color: c.textMuted,
+              textDecorationLine: isVoid ? 'line-through' : 'none',
+            },
+          ]}
           numberOfLines={1}>
           {selection.prediction}
         </Text>
       </View>
 
       <View style={styles.selRight}>
-        <Text style={[styles.selOdd, { color: c.text }]}>
+        <Text
+          style={[
+            styles.selOdd,
+            {
+              color: c.text,
+              textDecorationLine: isVoid ? 'line-through' : 'none',
+            },
+          ]}>
           {selection.odd.toFixed(2)}
         </Text>
         <SelectionStatusIcon result={selection.result} />
       </View>
+
+      {/* Watermark "ANNULÉ" en diagonale par-dessus toute la ligne.
+          Convention tampon "VOID" comme sur les tickets bookmaker. */}
+      {isVoid ? (
+        <View style={styles.voidStamp} pointerEvents="none">
+          <Text
+            style={[
+              styles.voidStampText,
+              { color: c.danger, borderColor: c.danger },
+            ]}>
+            ANNULÉ
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -374,10 +612,57 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 3,
   },
+  // — Badge "ticket réel dispo" en haut à gauche —
+  ticketBadge: {
+    position: 'absolute',
+    top: -10,
+    left: Spacing.three,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+    zIndex: 10,
+  },
+  ticketBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
   card: {
     borderRadius: 15,
     padding: Spacing.three,
     gap: Spacing.two,
+  },
+  cardBgWrap: {
+    borderRadius: 15,
+    padding: Spacing.three,
+    gap: Spacing.two,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  cardBgImg: {
+    borderRadius: 15,
+    resizeMode: 'cover',
+  },
+  cardBgOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(10,10,10,0.65)',
+  },
+  confidenceCol: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  confidenceLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
   },
   // — Header —
   headerRow: {
@@ -432,6 +717,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginLeft: 2,
   },
+  progressBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  progressDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  progressBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
   tennisBg: {
     width: 16,
     height: 16,
@@ -485,6 +789,29 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  voidStamp: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '-12deg' }],
+  },
+  voidStampText: {
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: 4,
+    opacity: 0.6,
+    borderWidth: 2.5,
+    paddingHorizontal: 12,
+    paddingVertical: 2,
+    // Effet "tampon" : police italique
+    fontStyle: 'italic',
   },
   selIndex: {
     fontSize: 11,
@@ -520,6 +847,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '800',
     letterSpacing: -0.3,
+  },
+  selVoidLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6,
   },
   statusIconWrap: {
     width: 18,
@@ -561,6 +893,17 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.8,
+  },
+  oddBadgeStack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  oddInitial: {
+    fontSize: 10,
+    fontWeight: '600',
+    textDecorationLine: 'line-through',
+    letterSpacing: 0.2,
   },
   oddBadge: {
     paddingHorizontal: 12,

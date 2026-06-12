@@ -1,13 +1,24 @@
+import { Image as ExpoImage } from 'expo-image';
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ImageBackground,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandedButton } from '@/components/branded-button';
 import { ConfidenceDots } from '@/components/confidence-dots';
+import { MarkAsPlayedSheet } from '@/components/mark-as-played-sheet';
 import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import { formatHour, formatLongDate } from '@/lib/format-date';
+import { displayTeamName } from '@/lib/team-display-names';
 import { useThemeColors } from '@/lib/use-theme-colors';
+import { useUserBets } from '@/lib/use-user-bets';
 import type {
   ComboBet,
   ComboBetSelection,
@@ -16,6 +27,7 @@ import type {
 } from '@/types/prono';
 
 import { StatsCenterSheet } from './stats-center-sheet';
+import { TennisScoreBoard } from './tennis-score-board';
 
 const COLOR_WIN = '#10B981';
 const COLOR_LOSS = '#EF4444';
@@ -28,6 +40,21 @@ const RESULT_TINT = {
   void: { bg: '#F5F5F4', accent: COLOR_VOID, label: 'COMBINÉ ANNULÉ' },
 } as const;
 
+/** BG image pour les cards sélection résolues (gagné/perdu), selon sport. */
+function getSelectionBg(
+  sport: ComboBetSelection['sport'],
+  result: 'win' | 'loss',
+) {
+  if (sport === 'tennis') {
+    return result === 'win'
+      ? require('@/assets/images/bg-card-won-tennis.png')
+      : require('@/assets/images/bg-card-lost-tennis.png');
+  }
+  return result === 'win'
+    ? require('@/assets/images/bg-card-won.png')
+    : require('@/assets/images/bg-card-lost.png');
+}
+
 export function ComboBetDetail({
   combo,
   onBack,
@@ -39,14 +66,39 @@ export function ComboBetDetail({
   const insets = useSafeAreaInsets();
   const [statsForSelection, setStatsForSelection] =
     useState<ComboBetSelection | null>(null);
+  const [markSheetOpen, setMarkSheetOpen] = useState(false);
+  const { playedBetIds, unmarkBet } = useUserBets();
+  const alreadyPlayed = playedBetIds.has(combo.id);
 
   const resultTint =
     combo.result === 'win' || combo.result === 'loss' || combo.result === 'void'
       ? RESULT_TINT[combo.result]
       : null;
 
+  // Bg de la card hero : image stade selon le sport du combo.
+  // 100% foot → stade foot · 100% tennis → court tennis · mixte → terrain mixte.
+  const heroBg = (() => {
+    const sportsSet = new Set(combo.selections.map((s) => s.sport));
+    if (sportsSet.size === 1) {
+      if (sportsSet.has('foot'))
+        return require('@/assets/images/bg-detail-foot.png');
+      if (sportsSet.has('tennis'))
+        return require('@/assets/images/bg-detail-tennis.png');
+    }
+    // Mixte (foot + tennis) → image terrain mixte doré.
+    return require('@/assets/images/bg-detail-combo.png');
+  })();
+
   return (
     <View style={[styles.screen, { backgroundColor: c.bg }]}>
+      {/* BG page : rayures dorées (même image que Stats/Carnet/Fiche détail) */}
+      <ExpoImage
+        source={require('@/assets/images/bg-stats.png')}
+        style={styles.pageBgImage}
+        contentFit="cover"
+      />
+      <View style={styles.pageBgOverlay} pointerEvents="none" />
+
       <BackHeader onBack={onBack} />
 
       <ScrollView
@@ -62,6 +114,17 @@ export function ComboBetDetail({
             { backgroundColor: c.goldDecorative, shadowColor: '#0A0A0A' },
           ]}>
           <View style={[styles.hero, { backgroundColor: c.bgElevated }]}>
+            {/* BG image stade selon sport du combo (foot ou tennis only) */}
+            {heroBg ? (
+              <>
+                <ExpoImage
+                  source={heroBg}
+                  style={styles.heroBgImage}
+                  contentFit="cover"
+                />
+                <View style={styles.heroBgOverlay} pointerEvents="none" />
+              </>
+            ) : null}
             {resultTint ? (
               <View
                 style={[
@@ -129,20 +192,31 @@ export function ComboBetDetail({
           </View>
         </View>
 
-        {/* ============ CTA carnet personnel (Phase 2) ============ */}
+        {/* ============ CTA carnet personnel ============ */}
         <View style={styles.ctaBlock}>
-          <BrandedButton
-            label="Marquer comme joué"
-            variant="ghost"
-            onPress={() => {
-              /* Phase 2 : carnet personnel */
-            }}
-            disabled
-          />
-          <Text style={[styles.ctaHint, { color: c.textDim }]}>
-            Le carnet personnel arrive bientôt — tu pourras suivre ton
-            historique de paris et ton ROI réel.
-          </Text>
+          {alreadyPlayed ? (
+            <>
+              <BrandedButton
+                label="✓ Ajouté à ton carnet"
+                variant="ghost"
+                onPress={() => unmarkBet(combo.id)}
+              />
+              <Text style={[styles.ctaHint, { color: c.textDim }]}>
+                Tape de nouveau pour retirer ce combiné de ton carnet.
+              </Text>
+            </>
+          ) : (
+            <>
+              <BrandedButton
+                label="J’ai joué ce combiné"
+                variant="gold"
+                onPress={() => setMarkSheetOpen(true)}
+              />
+              <Text style={[styles.ctaHint, { color: c.textDim }]}>
+                Ajoute ce combiné à ton carnet personnel pour suivre ton ROI réel.
+              </Text>
+            </>
+          )}
         </View>
       </ScrollView>
 
@@ -151,6 +225,12 @@ export function ComboBetDetail({
         visible={statsForSelection !== null}
         prono={statsForSelection ? selectionToProno(statsForSelection) : null}
         onClose={() => setStatsForSelection(null)}
+      />
+
+      <MarkAsPlayedSheet
+        visible={markSheetOpen}
+        bet={combo}
+        onClose={() => setMarkSheetOpen(false)}
       />
     </View>
   );
@@ -201,22 +281,87 @@ function SelectionCard({
     selection.result === 'win' ||
     selection.result === 'loss' ||
     selection.result === 'void';
+  // BG image uniquement pour win/loss (pas pour void qui reste sobre).
+  const bgImage =
+    selection.result === 'win' || selection.result === 'loss'
+      ? getSelectionBg(selection.sport, selection.result)
+      : null;
+  const borderColor =
+    selection.result === 'win'
+      ? COLOR_WIN
+      : selection.result === 'loss'
+        ? COLOR_LOSS
+        : c.borderFaint;
 
+  if (bgImage) {
+    return (
+      <ImageBackground
+        source={bgImage}
+        style={[
+          styles.selCard,
+          { borderColor, borderWidth: 1.5, overflow: 'hidden' },
+        ]}
+        imageStyle={styles.selCardBgImg}>
+        <View style={styles.selCardOverlay} pointerEvents="none" />
+        <SelectionCardContent
+          selection={selection}
+          index={index}
+          onOpenStats={onOpenStats}
+          resolved={resolved}
+        />
+      </ImageBackground>
+    );
+  }
+
+  const isVoid = selection.result === 'void';
   return (
     <View
       style={[
         styles.selCard,
         {
           backgroundColor: c.bgElevated,
-          borderColor:
-            selection.result === 'win'
-              ? COLOR_WIN
-              : selection.result === 'loss'
-                ? COLOR_LOSS
-                : c.borderFaint,
+          borderColor,
           borderWidth: resolved ? 1.5 : StyleSheet.hairlineWidth,
+          opacity: isVoid ? 0.65 : 1,
+          overflow: 'hidden',
+          position: 'relative',
         },
       ]}>
+      <SelectionCardContent
+        selection={selection}
+        index={index}
+        onOpenStats={onOpenStats}
+        resolved={resolved}
+      />
+      {isVoid ? (
+        <View style={styles.voidStamp} pointerEvents="none">
+          <Text
+            style={[
+              styles.voidStampText,
+              { color: c.danger, borderColor: c.danger },
+            ]}>
+            ANNULÉ
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function SelectionCardContent({
+  selection,
+  index,
+  onOpenStats,
+  resolved,
+}: {
+  selection: ComboBetSelection;
+  index: number;
+  onOpenStats: () => void;
+  resolved: boolean;
+}) {
+  const c = useThemeColors();
+  return (
+    <>
       <View style={styles.selHeader}>
         <View style={styles.selHeaderLeft}>
           <Text style={[styles.selIndex, { color: c.textDim }]}>{index}</Text>
@@ -248,7 +393,7 @@ function SelectionCard({
 
       <View style={styles.selTeams}>
         <Text style={[styles.selTeamName, { color: c.text }]} numberOfLines={1}>
-          {selection.teamHome}
+          {displayTeamName(selection.teamHome)}
         </Text>
         <View style={[styles.vsPill, { backgroundColor: c.bgDeeper }]}>
           <Text style={[styles.vsText, { color: c.textMuted }]}>VS</Text>
@@ -259,15 +404,25 @@ function SelectionCard({
             { color: c.text, textAlign: 'right' },
           ]}
           numberOfLines={1}>
-          {selection.teamAway}
+          {displayTeamName(selection.teamAway)}
         </Text>
       </View>
 
-      <Text style={[styles.selTime, { color: c.textDim }]}>
-        {resolved && selection.finalScore
-          ? selection.finalScore
-          : `${formatLongDate(selection.matchStartAt)} · ${formatHour(selection.matchStartAt)}`}
-      </Text>
+      {resolved && selection.finalScore && selection.sport === 'tennis' ? (
+        <View style={styles.selTennisBoardWrap}>
+          <TennisScoreBoard
+            home={{ name: displayTeamName(selection.teamHome) }}
+            away={{ name: displayTeamName(selection.teamAway) }}
+            score={selection.finalScore}
+          />
+        </View>
+      ) : (
+        <Text style={[styles.selTime, { color: c.textDim }]}>
+          {resolved && selection.finalScore
+            ? `Score · ${selection.finalScore}`
+            : `${formatLongDate(selection.matchStartAt)} · ${formatHour(selection.matchStartAt)}`}
+        </Text>
+      )}
 
       <View
         style={[styles.selDivider, { backgroundColor: c.borderFaint }]}
@@ -324,7 +479,7 @@ function SelectionCard({
           weight="semibold"
         />
       </Pressable>
-    </View>
+    </>
   );
 }
 
@@ -390,6 +545,48 @@ function BackHeader({ onBack }: { onBack: () => void }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+  pageBgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  pageBgOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(10,10,10,0.55)',
+  },
+  heroBgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  heroBgOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(10,10,10,0.55)',
+  },
+  selCardBgImg: {
+    borderRadius: 14,
+    resizeMode: 'cover',
+  },
+  selCardOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(10,10,10,0.55)',
+  },
   backHeader: {
     paddingHorizontal: Spacing.four,
     paddingBottom: 10,
@@ -494,6 +691,26 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     gap: Spacing.two,
   },
+  voidStamp: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '-12deg' }],
+  },
+  voidStampText: {
+    fontSize: 48,
+    fontWeight: '900',
+    letterSpacing: 8,
+    opacity: 0.55,
+    borderWidth: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 4,
+    fontStyle: 'italic',
+  },
   selHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -577,6 +794,10 @@ const styles = StyleSheet.create({
   selDivider: {
     height: StyleSheet.hairlineWidth,
     marginVertical: 4,
+  },
+  selTennisBoardWrap: {
+    marginTop: 4,
+    marginBottom: 4,
   },
   selPronoRow: {
     flexDirection: 'row',

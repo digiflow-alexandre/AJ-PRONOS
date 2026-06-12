@@ -91,15 +91,18 @@ Bien que ce projet ne soit pas un client DIGIFLOW classique, **tu appliques le p
 
 Ces règles sont **non négociables**. Toute violation = bloquant immédiat.
 
-### 1. Outil IA interne — JAMAIS public
-- L'outil Python + Claude API qui pré-analyse les données pour Julien est un **outil de productivité interne**.
-- **JAMAIS** mentionner publiquement :
-  - Pas dans le copy du site
-  - Pas dans les commits sur le repo public
-  - Pas dans la doc client
-  - Pas dans les emails marketing
-  - Pas dans les posts sociaux
-- Communication publique = **expertise humaine + méthode rigoureuse + transparence ROI**. Point.
+### 1. Outil IA — assumé comme OUTIL de productivité de Julien (révisé 2026-06-10)
+- L'outil Python + Claude API qui pré-analyse les données pour Julien est désormais **assumé publiquement**, mais **TOUJOURS comme un outil**, jamais comme un oracle.
+- **OK de mentionner** :
+  - "Julien s'appuie sur un outil IA pour parcourir les statistiques rapidement"
+  - "L'IA pré-analyse, Julien valide" (validation humaine = clé)
+  - Pack Pro inclut "1 pari IA validé par l'analyste" comme valeur ajoutée
+- **JAMAIS** dans le copy / fiche App Store / site / réseaux :
+  - ❌ "L'IA prédit qui va gagner"
+  - ❌ "Notre IA gagne 80 % du temps" (claim sans preuve documentée)
+  - ❌ "L'IA = oracle / boule de cristal / système infaillible"
+- Communication publique = **expertise humaine PRIMAIRE + IA = OUTIL + méthode rigoureuse + transparence ROI**.
+- Note : avant le 10/06/2026, cette règle interdisait toute mention publique de l'IA. Décision révisée car (a) précédents Apple validés (Rithmm, Tipster AI, BetSmartAI sur App Store), (b) valeur ajoutée différenciante claire pour le pack Pro, (c) wording "IA outil + validation humaine" reste safe ANJ et Apple Guideline 5.3.
 
 ### 2. Mentions légales obligatoires sur TOUTES les pages
 - "**+18**" visible (footer ou bandeau)
@@ -127,12 +130,16 @@ Ces règles sont **non négociables**. Toute violation = bloquant immédiat.
 
 **Plus de pack Découverte gratuit** (supprimé 2026-05-25). À la place : **essai gratuit 7 jours sur Starter** au premier login (Apple-IAP-compatible). Pas de paiement actif tant qu'Alex n'a pas son SIRET — les boutons mènent à une "Liste d'attente".
 
-| Plan | Mensuel | Annuel | Inclus |
-|---|---|---|---|
-| **Starter** | 9,90€/mois | 95€/an | Tous pronos foot + app + alertes |
-| **Pro** | **19,90€/mois** | **191€/an** | Multi-sports + value bets + analyse détaillée |
-| **VIP** | **49,90€/mois** | **479€/an** | Salon privé in-app + Teams hebdo (50 places max) |
-| À la carte | 4,90€ / 9,90€ | — | Ticket "gros match" / pack weekend |
+| Plan | Mensuel | Inclus |
+|---|---|---|
+| **Starter** | 9,90€/mois | Tous pronos foot + app + alertes |
+| **Pro** | **19,90€/mois** | Multi-sports + value bets + analyse détaillée |
+| **VIP** | **49,90€/mois** | Salon privé in-app + Teams hebdo (50 places max) |
+
+> Note 2026-06-10 : (1) option "À la carte" (ticket gros match / pack weekend)
+> abandonnée pour le V1. (2) Abonnements annuels supprimés — uniquement mensuel
+> au lancement. Simplicité = vente. Modèle 100% mensuel sans engagement
+> (= MRR prévisible). À ré-évaluer en V1.5 selon demandes.
 
 **Canal VIP** = salon privé in-app (Supabase Realtime) + Teams hebdomadaire. WhatsApp Business possible aussi pour les notifs critiques. PAS Telegram (refusé explicitement par Alex).
 

@@ -32,7 +32,7 @@ export const TEAM_LOGOS: Record<string, string> = {
   'Saint-Étienne': 'https://media.api-sports.io/football/teams/1063.png',
   'Paris FC': 'https://media.api-sports.io/football/teams/107.png',
 
-  // ===== La Liga =====
+  // ===== La Liga (20 équipes) =====
   'Real Madrid': 'https://media.api-sports.io/football/teams/541.png',
   Real: 'https://media.api-sports.io/football/teams/541.png',
   Barcelona: 'https://media.api-sports.io/football/teams/529.png',
@@ -50,6 +50,15 @@ export const TEAM_LOGOS: Record<string, string> = {
   Osasuna: 'https://media.api-sports.io/football/teams/727.png',
   Girona: 'https://media.api-sports.io/football/teams/547.png',
   Mallorca: 'https://media.api-sports.io/football/teams/798.png',
+  'Rayo Vallecano': 'https://media.api-sports.io/football/teams/728.png',
+  Getafe: 'https://media.api-sports.io/football/teams/546.png',
+  'Las Palmas': 'https://media.api-sports.io/football/teams/534.png',
+  Leganés: 'https://media.api-sports.io/football/teams/537.png',
+  Celta: 'https://media.api-sports.io/football/teams/538.png',
+  'Celta Vigo': 'https://media.api-sports.io/football/teams/538.png',
+  Espanyol: 'https://media.api-sports.io/football/teams/540.png',
+  Valladolid: 'https://media.api-sports.io/football/teams/720.png',
+  Alavés: 'https://media.api-sports.io/football/teams/542.png',
 
   // ===== Premier League =====
   Liverpool: 'https://media.api-sports.io/football/teams/40.png',
@@ -73,7 +82,7 @@ export const TEAM_LOGOS: Record<string, string> = {
   Ipswich: 'https://media.api-sports.io/football/teams/57.png',
   Southampton: 'https://media.api-sports.io/football/teams/41.png',
 
-  // ===== Bundesliga =====
+  // ===== Bundesliga (18 équipes) =====
   Bayern: 'https://media.api-sports.io/football/teams/157.png',
   'B. Munich': 'https://media.api-sports.io/football/teams/157.png',
   'Bayern Munich': 'https://media.api-sports.io/football/teams/157.png',
@@ -81,8 +90,22 @@ export const TEAM_LOGOS: Record<string, string> = {
   Borussia: 'https://media.api-sports.io/football/teams/165.png',
   Mainz: 'https://media.api-sports.io/football/teams/164.png',
   Bayer: 'https://media.api-sports.io/football/teams/168.png',
+  'RB Leipzig': 'https://media.api-sports.io/football/teams/173.png',
+  'Eintracht Francfort': 'https://media.api-sports.io/football/teams/169.png',
+  Stuttgart: 'https://media.api-sports.io/football/teams/172.png',
+  Wolfsburg: 'https://media.api-sports.io/football/teams/161.png',
+  Hoffenheim: 'https://media.api-sports.io/football/teams/167.png',
+  'Werder Brême': 'https://media.api-sports.io/football/teams/162.png',
+  Fribourg: 'https://media.api-sports.io/football/teams/160.png',
+  Augsburg: 'https://media.api-sports.io/football/teams/170.png',
+  'Union Berlin': 'https://media.api-sports.io/football/teams/182.png',
+  Mönchengladbach: 'https://media.api-sports.io/football/teams/163.png',
+  'Holstein Kiel': 'https://media.api-sports.io/football/teams/175.png',
+  'St Pauli': 'https://media.api-sports.io/football/teams/186.png',
+  Heidenheim: 'https://media.api-sports.io/football/teams/180.png',
+  Bochum: 'https://media.api-sports.io/football/teams/176.png',
 
-  // ===== Serie A =====
+  // ===== Serie A (20 équipes) =====
   Inter: 'https://media.api-sports.io/football/teams/505.png',
   Milan: 'https://media.api-sports.io/football/teams/489.png',
   Juventus: 'https://media.api-sports.io/football/teams/496.png',
@@ -90,6 +113,19 @@ export const TEAM_LOGOS: Record<string, string> = {
   Torino: 'https://media.api-sports.io/football/teams/503.png',
   Napoli: 'https://media.api-sports.io/football/teams/492.png',
   Atalanta: 'https://media.api-sports.io/football/teams/499.png',
+  Fiorentina: 'https://media.api-sports.io/football/teams/502.png',
+  Lazio: 'https://media.api-sports.io/football/teams/487.png',
+  Bologne: 'https://media.api-sports.io/football/teams/500.png',
+  Empoli: 'https://media.api-sports.io/football/teams/511.png',
+  Genoa: 'https://media.api-sports.io/football/teams/495.png',
+  Verona: 'https://media.api-sports.io/football/teams/504.png',
+  Cagliari: 'https://media.api-sports.io/football/teams/490.png',
+  Lecce: 'https://media.api-sports.io/football/teams/867.png',
+  Monza: 'https://media.api-sports.io/football/teams/1579.png',
+  Como: 'https://media.api-sports.io/football/teams/895.png',
+  Parma: 'https://media.api-sports.io/football/teams/521.png',
+  Venezia: 'https://media.api-sports.io/football/teams/517.png',
+  Udinese: 'https://media.api-sports.io/football/teams/494.png',
 
   // ===== Misc / Champions =====
   Sporting: 'https://media.api-sports.io/football/teams/228.png',
@@ -124,11 +160,23 @@ const FLAG_BY_PLAYER: Record<string, string> = {
 };
 
 export function getPlayerFlag(playerName: string): string | undefined {
-  // Cherche par nom de famille (peut contenir suffixe pays type "Alcaraz (ESP)")
+  // 1) Si le nom contient un suffixe (XX) avec un code ISO2 → utilise direct
+  //    ex "John Smith (fr)" → drapeau FR. Permet de gérer les joueurs custom.
+  const suffixMatch = playerName.match(/\s*\(([A-Za-z]{2})\)\s*$/);
+  if (suffixMatch) {
+    const code = suffixMatch[1].toLowerCase();
+    return `https://flagcdn.com/w80/${code}.png`;
+  }
+  // 2) Sinon, cherche dans la liste des joueurs connus (top ATP/WTA)
   const cleanName = playerName.replace(/\s*\([A-Z]+\)\s*$/, '').trim();
   const iso = FLAG_BY_PLAYER[cleanName];
   if (!iso) return undefined;
   return `https://flagcdn.com/w80/${iso}.png`;
+}
+
+/** Extrait le nom propre d'un joueur en retirant le suffixe pays éventuel. */
+export function getPlayerCleanName(playerName: string): string {
+  return playerName.replace(/\s*\([A-Za-z]{2,3}\)\s*$/, '').trim();
 }
 
 /**

@@ -103,7 +103,7 @@ function TabBtn({
   );
 }
 
-// ============= PROFIL =============
+// ============= PROFIL (comparatif gauche/droite) =============
 function ProfilPanel({
   prono,
   stats,
@@ -112,95 +112,160 @@ function ProfilPanel({
   stats: TennisStats;
 }) {
   const c = useThemeColors();
-  const surfaceLabel = SURFACE_LABEL[stats.tournament.surface];
-
-  return (
-    <View style={{ gap: Spacing.three }}>
-      <Text style={[styles.sectionLabel, { color: c.text }]}>
-        Profil sur {stats.tournament.name}
-      </Text>
-
-      <View style={styles.playersSwitchRow}>
-        <PlayerProfileCard
-          profile={stats.homeProfile}
-          name={prono.teamHome}
-          surfaceLabel={surfaceLabel}
-        />
-        <PlayerProfileCard
-          profile={stats.awayProfile}
-          name={prono.teamAway}
-          surfaceLabel={surfaceLabel}
-        />
-      </View>
-    </View>
-  );
-}
-
-function PlayerProfileCard({
-  profile,
-  name,
-  surfaceLabel,
-}: {
-  profile: PlayerProfile;
-  name: string;
-  surfaceLabel: string;
-}) {
-  const c = useThemeColors();
+  const surfaceLabel = SURFACE_LABEL[stats.tournament.surface].toLowerCase();
+  const home = stats.homeProfile;
+  const away = stats.awayProfile;
 
   return (
     <View
       style={[
-        styles.profileCard,
+        styles.compareCard,
         {
           backgroundColor: c.bgElevated,
           borderColor: c.goldDecorative,
           shadowColor: '#0A0A0A',
         },
       ]}>
-      {/* Header avec nom + drapeau */}
-      <View style={styles.profileHeader}>
-        {profile.flag ? (
-          <Image
-            source={{ uri: profile.flag }}
-            style={styles.profileFlag}
-            contentFit="cover"
-          />
-        ) : null}
-        <Text
-          style={[styles.profileName, { color: c.text }]}
-          numberOfLines={1}>
-          {profile.fullName || name}
-        </Text>
+      {/* Header : drapeau + nom de chaque joueur */}
+      <View style={styles.compareHeader}>
+        <PlayerHeader
+          profile={home}
+          name={prono.teamHome}
+          align="left"
+        />
+        <Text style={[styles.compareVs, { color: c.textDim }]}>VS</Text>
+        <PlayerHeader
+          profile={away}
+          name={prono.teamAway}
+          align="right"
+        />
       </View>
 
       {/* BIO */}
-      <SubBlock title="BIO" icon="person.fill">
-        <Row label="Âge" value={profile.age ? `${profile.age} ans` : '—'} />
-        <Row label="Classement ATP" value={profile.rankingAtp ? `#${profile.rankingAtp}` : '—'} />
-        <Row label="Classement Race" value={profile.rankingRace ? `#${profile.rankingRace}` : '—'} />
-        <Row label="Main forte" value={profile.handedness ? cap(profile.handedness) : '—'} />
-        <Row label="Taille" value={profile.heightCm ? `${(profile.heightCm / 100).toFixed(2)} m` : '—'} />
-        <Row label="Passage pro" value={profile.turnedProYear ? `${profile.turnedProYear}` : '—'} />
-      </SubBlock>
+      <CompareBlock title="BIO" icon="person.fill">
+        <CompareRow
+          label="Âge"
+          leftValue={home.age ? `${home.age} ans` : '—'}
+          rightValue={away.age ? `${away.age} ans` : '—'}
+        />
+        <CompareRow
+          label="Classement ATP"
+          leftValue={home.rankingAtp ? `#${home.rankingAtp}` : '—'}
+          rightValue={away.rankingAtp ? `#${away.rankingAtp}` : '—'}
+          better={lowerIsBetter(home.rankingAtp, away.rankingAtp)}
+        />
+        <CompareRow
+          label="Classement Race"
+          leftValue={home.rankingRace ? `#${home.rankingRace}` : '—'}
+          rightValue={away.rankingRace ? `#${away.rankingRace}` : '—'}
+          better={lowerIsBetter(home.rankingRace, away.rankingRace)}
+        />
+        <CompareRow
+          label="Main forte"
+          leftValue={home.handedness ? cap(home.handedness) : '—'}
+          rightValue={away.handedness ? cap(away.handedness) : '—'}
+        />
+        <CompareRow
+          label="Taille"
+          leftValue={home.heightCm ? `${(home.heightCm / 100).toFixed(2)} m` : '—'}
+          rightValue={away.heightCm ? `${(away.heightCm / 100).toFixed(2)} m` : '—'}
+        />
+        <CompareRow
+          label="Passage pro"
+          leftValue={home.turnedProYear ? `${home.turnedProYear}` : '—'}
+          rightValue={away.turnedProYear ? `${away.turnedProYear}` : '—'}
+        />
+      </CompareBlock>
 
       {/* SAISON */}
-      <SubBlock title="SAISON" icon="calendar">
-        <Row label="% Victoires" value={`${profile.seasonWinRate}%`} />
-        <Row label={`% Sur ${surfaceLabel.toLowerCase()}`} value={`${profile.seasonSurfaceWinRate}%`} />
-        <Row label="Titres" value={`${profile.seasonTitles}`} />
-      </SubBlock>
+      <CompareBlock title="SAISON" icon="calendar">
+        <CompareRow
+          label="% Victoires"
+          leftValue={`${home.seasonWinRate}%`}
+          rightValue={`${away.seasonWinRate}%`}
+          better={higherIsBetter(home.seasonWinRate, away.seasonWinRate)}
+        />
+        <CompareRow
+          label={`% Sur ${surfaceLabel}`}
+          leftValue={`${home.seasonSurfaceWinRate}%`}
+          rightValue={`${away.seasonSurfaceWinRate}%`}
+          better={higherIsBetter(
+            home.seasonSurfaceWinRate,
+            away.seasonSurfaceWinRate,
+          )}
+        />
+        <CompareRow
+          label="Titres"
+          leftValue={`${home.seasonTitles}`}
+          rightValue={`${away.seasonTitles}`}
+          better={higherIsBetter(home.seasonTitles, away.seasonTitles)}
+        />
+      </CompareBlock>
 
       {/* CARRIÈRE */}
-      <SubBlock title="CARRIÈRE" icon="trophy.fill">
-        <Row label="% Victoires" value={`${profile.careerWinRate}%`} />
-        <Row label={`% Sur ${surfaceLabel.toLowerCase()}`} value={`${profile.careerSurfaceWinRate}%`} />
-        <Row label="Titres" value={`${profile.careerTitles}`} />
-      </SubBlock>
+      <CompareBlock title="CARRIÈRE" icon="trophy.fill">
+        <CompareRow
+          label="% Victoires"
+          leftValue={`${home.careerWinRate}%`}
+          rightValue={`${away.careerWinRate}%`}
+          better={higherIsBetter(home.careerWinRate, away.careerWinRate)}
+        />
+        <CompareRow
+          label={`% Sur ${surfaceLabel}`}
+          leftValue={`${home.careerSurfaceWinRate}%`}
+          rightValue={`${away.careerSurfaceWinRate}%`}
+          better={higherIsBetter(
+            home.careerSurfaceWinRate,
+            away.careerSurfaceWinRate,
+          )}
+        />
+        <CompareRow
+          label="Titres"
+          leftValue={`${home.careerTitles}`}
+          rightValue={`${away.careerTitles}`}
+          better={higherIsBetter(home.careerTitles, away.careerTitles)}
+        />
+      </CompareBlock>
     </View>
   );
 }
 
-function SubBlock({
+function PlayerHeader({
+  profile,
+  name,
+  align,
+}: {
+  profile: PlayerProfile;
+  name: string;
+  align: 'left' | 'right';
+}) {
+  const c = useThemeColors();
+  return (
+    <View
+      style={[
+        styles.playerHeader,
+        align === 'right' && { flexDirection: 'row-reverse' },
+      ]}>
+      {profile.flag ? (
+        <Image
+          source={{ uri: profile.flag }}
+          style={styles.playerFlag}
+          contentFit="cover"
+        />
+      ) : null}
+      <Text
+        style={[
+          styles.playerName,
+          { color: c.text, textAlign: align },
+        ]}
+        numberOfLines={1}>
+        {profile.fullName || name}
+      </Text>
+    </View>
+  );
+}
+
+function CompareBlock({
   title,
   icon,
   children,
@@ -211,28 +276,75 @@ function SubBlock({
 }) {
   const c = useThemeColors();
   return (
-    <View style={styles.subBlock}>
-      <View style={styles.subBlockHeader}>
+    <View style={styles.compareBlock}>
+      <View style={styles.compareBlockHeader}>
         <SymbolView name={icon as never} size={11} tintColor={c.gold} weight="semibold" />
-        <Text style={[styles.subBlockTitle, { color: c.textMuted }]}>
+        <Text style={[styles.compareBlockTitle, { color: c.textMuted }]}>
           {title}
         </Text>
       </View>
-      <View style={{ gap: 4 }}>{children}</View>
+      <View style={{ gap: 6 }}>{children}</View>
     </View>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function CompareRow({
+  label,
+  leftValue,
+  rightValue,
+  better,
+}: {
+  label: string;
+  leftValue: string;
+  rightValue: string;
+  /** 'left' = joueur domicile meilleur. 'right' = visiteur meilleur. undefined = neutre. */
+  better?: 'left' | 'right';
+}) {
   const c = useThemeColors();
   return (
-    <View style={styles.row}>
-      <Text style={[styles.rowLabel, { color: c.textMuted }]} numberOfLines={1}>
+    <View style={styles.compareRow}>
+      <Text
+        style={[
+          styles.compareValue,
+          {
+            color: c.text,
+            fontWeight: better === 'left' ? '800' : '500',
+            textAlign: 'left',
+          },
+        ]}>
+        {leftValue}
+      </Text>
+      <Text
+        style={[styles.compareLabel, { color: c.textMuted }]}
+        numberOfLines={1}>
         {label}
       </Text>
-      <Text style={[styles.rowValue, { color: c.text }]}>{value}</Text>
+      <Text
+        style={[
+          styles.compareValue,
+          {
+            color: c.text,
+            fontWeight: better === 'right' ? '800' : '500',
+            textAlign: 'right',
+          },
+        ]}>
+        {rightValue}
+      </Text>
     </View>
   );
+}
+
+function higherIsBetter(left: number, right: number): 'left' | 'right' | undefined {
+  if (left === right) return undefined;
+  return left > right ? 'left' : 'right';
+}
+
+function lowerIsBetter(
+  left: number | null,
+  right: number | null,
+): 'left' | 'right' | undefined {
+  if (left === null || right === null || left === right) return undefined;
+  return left < right ? 'left' : 'right';
 }
 
 function cap(s: string): string {
@@ -339,18 +451,121 @@ function FormePanel({
         </View>
       </View>
 
-      {/* Liste matchs */}
+      {/* Liste matchs — groupés par tournoi */}
       {matches.length === 0 ? (
         <Text style={[styles.empty, { color: c.textMuted }]}>
           Aucun match récent sur {SURFACE_LABEL[surface].toLowerCase()}.
         </Text>
       ) : (
-        <View>
-          {matches.map((m, i) => (
-            <TennisMatchRow key={i} match={m} />
+        <View style={{ gap: Spacing.three }}>
+          {groupByTournament(matches).map((group) => (
+            <TournamentGroup key={group.key} group={group} />
           ))}
         </View>
       )}
+    </View>
+  );
+}
+
+/**
+ * Groupe les matchs par tournoi en gardant l'ordre chronologique :
+ * un nouveau "groupe" démarre dès qu'on change de tournoi entre 2 matchs
+ * consécutifs (et pas un dédoublonnage absolu — si le joueur retourne sur
+ * un tournoi 2 mois plus tard, ça crée bien 2 sections).
+ */
+type TournamentGroupData = {
+  key: string;
+  tournament: string;
+  tournamentFlag?: string;
+  surface: TennisSurface;
+  matches: TennisMatch[];
+  wins: number;
+  losses: number;
+};
+
+function groupByTournament(matches: TennisMatch[]): TournamentGroupData[] {
+  const groups: TournamentGroupData[] = [];
+  matches.forEach((m, i) => {
+    const last = groups[groups.length - 1];
+    if (last && last.tournament === m.tournament) {
+      last.matches.push(m);
+      if (m.result === 'V') last.wins++;
+      else last.losses++;
+    } else {
+      groups.push({
+        key: `${m.tournament}-${i}`,
+        tournament: m.tournament,
+        tournamentFlag: m.tournamentFlag,
+        surface: m.surface,
+        matches: [m],
+        wins: m.result === 'V' ? 1 : 0,
+        losses: m.result === 'D' ? 1 : 0,
+      });
+    }
+  });
+  return groups;
+}
+
+function TournamentGroup({ group }: { group: TournamentGroupData }) {
+  const c = useThemeColors();
+  return (
+    <View
+      style={[
+        styles.tournamentCard,
+        {
+          backgroundColor: c.bgElevated,
+          borderColor: c.borderFaint,
+        },
+      ]}>
+      {/* Header tournoi */}
+      <View
+        style={[
+          styles.tournamentHeader,
+          { backgroundColor: c.bgWarm, borderBottomColor: c.borderFaint },
+        ]}>
+        <View style={styles.tournamentHeaderLeft}>
+          {group.tournamentFlag ? (
+            <Image
+              source={{ uri: group.tournamentFlag }}
+              style={styles.tournamentFlag}
+              contentFit="cover"
+            />
+          ) : null}
+          <Text
+            style={[styles.tournamentName, { color: c.text }]}
+            numberOfLines={1}>
+            {group.tournament}
+          </Text>
+          <View
+            style={[
+              styles.surfaceBadge,
+              { backgroundColor: c.bgElevated, borderColor: c.borderSoft },
+            ]}>
+            <Text style={[styles.surfaceBadgeText, { color: c.textMuted }]}>
+              {SURFACE_LABEL[group.surface]}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.tournamentBilan}>
+          {group.wins > 0 ? (
+            <Text style={[styles.bilanCount, { color: COLOR_WIN }]}>
+              +{group.wins}
+            </Text>
+          ) : null}
+          {group.losses > 0 ? (
+            <Text style={[styles.bilanCount, { color: COLOR_LOSS }]}>
+              -{group.losses}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+
+      {/* Matchs du tournoi */}
+      <View>
+        {group.matches.map((m, i) => (
+          <TennisMatchRow key={i} match={m} hideTournament />
+        ))}
+      </View>
     </View>
   );
 }
@@ -450,7 +665,15 @@ function CountBigLabel({
   );
 }
 
-function TennisMatchRow({ match }: { match: TennisMatch }) {
+function TennisMatchRow({
+  match,
+  hideTournament,
+}: {
+  match: TennisMatch;
+  /** Quand utilisé dans un TournamentGroup, on cache le nom du tournoi
+   *  pour éviter la redondance (le header de section l'affiche déjà). */
+  hideTournament?: boolean;
+}) {
   const c = useThemeColors();
   const outcomeColor = match.result === 'V' ? COLOR_WIN : COLOR_LOSS;
 
@@ -458,20 +681,22 @@ function TennisMatchRow({ match }: { match: TennisMatch }) {
     <View style={[styles.matchRow, { borderBottomColor: c.borderFaint }]}>
       <Text style={[styles.matchDate, { color: c.textDim }]}>{match.date}</Text>
 
-      <View style={styles.matchTournament}>
-        {match.tournamentFlag ? (
-          <Image
-            source={{ uri: match.tournamentFlag }}
-            style={styles.miniFlag}
-            contentFit="cover"
-          />
-        ) : null}
-        <Text
-          style={[styles.matchTournamentName, { color: c.textMuted }]}
-          numberOfLines={1}>
-          {match.tournament}
-        </Text>
-      </View>
+      {!hideTournament ? (
+        <View style={styles.matchTournament}>
+          {match.tournamentFlag ? (
+            <Image
+              source={{ uri: match.tournamentFlag }}
+              style={styles.miniFlag}
+              contentFit="cover"
+            />
+          ) : null}
+          <Text
+            style={[styles.matchTournamentName, { color: c.textMuted }]}
+            numberOfLines={1}>
+            {match.tournament}
+          </Text>
+        </View>
+      ) : null}
 
       <View style={styles.matchOpponent}>
         {match.opponentFlag ? (
@@ -547,69 +772,83 @@ const styles = StyleSheet.create({
     width: '60%',
     borderRadius: 1,
   },
-  // Profil
+  // Profil comparatif (card unique avec 2 colonnes)
   sectionLabel: {
     fontSize: 14,
     fontWeight: '800',
     letterSpacing: -0.2,
   },
-  playersSwitchRow: {
-    gap: Spacing.three,
-  },
-  profileCard: {
+  compareCard: {
     borderRadius: 16,
     borderWidth: 1.2,
-    padding: Spacing.three,
+    padding: Spacing.four,
     gap: Spacing.three,
     shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
   },
-  profileHeader: {
+  compareHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'space-between',
+    gap: 8,
+    paddingBottom: Spacing.two,
   },
-  profileFlag: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  playerHeader: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  profileName: {
-    fontSize: 18,
+  playerFlag: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+  },
+  playerName: {
+    fontSize: 15,
     fontWeight: '800',
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
     flex: 1,
   },
-  subBlock: {
-    gap: 6,
+  compareVs: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.5,
   },
-  subBlockHeader: {
+  compareBlock: {
+    gap: 8,
+    paddingTop: Spacing.two,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(10,10,10,0.06)',
+  },
+  compareBlockHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    paddingBottom: 2,
   },
-  subBlockTitle: {
+  compareBlockTitle: {
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.2,
   },
-  row: {
+  compareRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 2,
+    paddingVertical: 4,
+    gap: 8,
   },
-  rowLabel: {
-    fontSize: 13,
-    fontWeight: '500',
+  compareValue: {
+    fontSize: 14,
+    minWidth: 70,
+  },
+  compareLabel: {
     flex: 1,
-  },
-  rowValue: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: -0.1,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   // Forme
   chipsRow: {
@@ -683,6 +922,60 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     paddingVertical: Spacing.four,
+  },
+  // Tournament group (Forme)
+  tournamentCard: {
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
+  tournamentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 8,
+  },
+  tournamentHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  tournamentFlag: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+  },
+  tournamentName: {
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+    flexShrink: 1,
+  },
+  surfaceBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  surfaceBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  tournamentBilan: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  bilanCount: {
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: -0.2,
   },
   matchRow: {
     flexDirection: 'row',

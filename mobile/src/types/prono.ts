@@ -43,6 +43,10 @@ export type Prono = {
   reasoning: string;
   minTier: Exclude<SubscriptionTier, 'trial'>;
   publishedAt: string;
+  /** Date du dernier update du pari côté DB (= date de marquage win/loss
+   *  par l'admin). Sert au filtrage du DailyRecapModal pour montrer les
+   *  paris "fraîchement résolus". Undefined pour les fixtures statiques. */
+  updatedAt?: string;
   result: PronoResult;
   finalScore?: string;
 
@@ -54,6 +58,10 @@ export type Prono = {
   absences?: string[];
   stats?: ProNoStats;
   tennisStats?: TennisStats;
+
+  // ===== Capture du ticket bookmaker (preuve "Julien joue vraiment") =====
+  bookmakerScreenshotUrl?: string;
+  bookmakerName?: string; // ex "Winamax"
 };
 
 /**
@@ -96,6 +104,8 @@ export type ComboBet = {
   reasoning: string;
   minTier: Exclude<SubscriptionTier, 'trial'>;
   publishedAt: string;
+  /** Date du dernier update du combiné côté DB. Sert au DailyRecapModal. */
+  updatedAt?: string;
   /**
    * Résultat global du combiné :
    * - pending : au moins une sélection pending (pas commencée)
@@ -105,19 +115,75 @@ export type ComboBet = {
    * - void    : annulé global
    */
   result: PronoResult;
+
+  // ===== Capture du ticket bookmaker (preuve "Julien joue vraiment") =====
+  bookmakerScreenshotUrl?: string;
+  bookmakerName?: string;
 };
 
 /** Union de tous les types de paris (simple ou combiné). */
 export type AnyBet = Prono | ComboBet;
 
 /**
- * Helper : retourne la date du PREMIER match d'un pari (pour le tri liste).
- * Pour un simple = sa matchStartAt. Pour un combo = min des matchStartAt des sélections.
+ * Helper : retourne la date pivot d'un pari pour le tri (carnet, stats…).
+ * Pour un simple = sa matchStartAt.
+ * Pour un combo = la date du DERNIER match (= jour où il sera entièrement
+ * résolu) — c'est la date qui compte pour le bilan / l'historique.
  */
 export function getBetStartDate(bet: AnyBet): string {
   if (bet.type === 'single') return bet.matchStartAt;
   return bet.selections.reduce(
-    (min, s) => (new Date(s.matchStartAt) < new Date(min) ? s.matchStartAt : min),
+    (max, s) => (new Date(s.matchStartAt) > new Date(max) ? s.matchStartAt : max),
     bet.selections[0]?.matchStartAt ?? new Date().toISOString(),
   );
+}
+
+/**
+ * Convertit une date en clé YYYY-MM-DD **dans le fuseau local de l'app**
+ * (et pas en UTC). Important pour pas qu'un match "5 juin 1h heure FR"
+ * (= 4 juin 23h UTC) se range sous le mauvais jour.
+ */
+export function localDayKey(d: Date | string): string {
+  const date = typeof d === 'string' ? new Date(d) : d;
+  // "sv-SE" est le seul locale qui formatte YYYY-MM-DD nativement.
+  return date.toLocaleDateString('sv-SE');
+}
+
+/**
+ * Helper : retourne les dates uniques (YYYY-MM-DD, locale) couvertes par
+ * les matchs d'un pari. Pour un single = 1 date. Pour un combo = N dates
+ * (1 par sélection, dédupliquées).
+ *
+ * Utilisé pour le bucketing par jour dans la liste Pronos : un combo
+ * étalé sur 3 jours apparaît dans les 3 buckets (option A — 2026-06-05).
+ */
+export function getBetActiveDates(bet: AnyBet): string[] {
+  const isoDates =
+    bet.type === 'single'
+      ? [bet.matchStartAt]
+      : bet.selections.map((s) => s.matchStartAt);
+  const dayKeys = new Set<string>();
+  for (const iso of isoDates) {
+    dayKeys.add(localDayKey(iso));
+  }
+  return Array.from(dayKeys).sort();
+}
+
+/**
+ * Helper : compte le nombre de sélections d'un combo dont le match est
+ * dans le passé (= jouées, en attente de marquage manuel par Julien).
+ * Pour un single = 0 ou 1. Renvoie aussi le total pour afficher "X/N".
+ */
+export function getBetMatchesProgress(
+  bet: AnyBet,
+  now: Date = new Date(),
+): { played: number; total: number } {
+  if (bet.type === 'single') {
+    const played = new Date(bet.matchStartAt) <= now ? 1 : 0;
+    return { played, total: 1 };
+  }
+  const played = bet.selections.filter(
+    (s) => new Date(s.matchStartAt) <= now,
+  ).length;
+  return { played, total: bet.selections.length };
 }

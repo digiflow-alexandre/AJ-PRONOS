@@ -48,6 +48,9 @@ export type StandingRow = {
   goalsAgainst: number;
   goalDiff: number;
   points: number;
+  /** Nom du groupe (ex "Group A") pour les tournois. Null pour les
+   * championnats classiques (= un seul groupe global). */
+  group?: string | null;
 };
 
 /** Données stats complètes attachées à un prono pour le Stats Center. */

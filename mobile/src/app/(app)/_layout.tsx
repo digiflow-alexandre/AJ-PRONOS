@@ -1,39 +1,53 @@
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { Tabs } from 'expo-router';
 
-import { useThemeColors } from '@/lib/use-theme-colors';
+import { CustomTabBar } from '@/components/custom-tab-bar';
+import { useNotificationTapHandler } from '@/lib/use-notification-tap-handler';
+import { useProfile } from '@/lib/use-profile';
 
 export default function AppTabsLayout() {
-  const colors = useThemeColors();
+  const { isStaff, profile, isTrialActive } = useProfile();
+  // Route automatiquement quand l'utilisateur tap sur une notif push
+  useNotificationTapHandler();
+  const isVip = profile?.tier === 'vip' && (isTrialActive || !profile.trial_ends_at);
+  // Le salon est accessible aux VIP et aux staff (Alex + Julien)
+  const canSeeVipSalon = isVip || isStaff;
 
   return (
-    <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Accueil</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+      }}
+      tabBar={(props) => <CustomTabBar {...props} />}>
+      <Tabs.Screen name="index" options={{ title: 'Accueil' }} />
+      <Tabs.Screen name="pronos" options={{ title: 'Pronos' }} />
 
-      <NativeTabs.Trigger name="pronos">
-        <NativeTabs.Trigger.Label>Pronos</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
+      {/* Abonnement — masqué pour les staff (admin/validator), ils n'en
+          ont pas besoin et ça allège leur barre de navigation. */}
+      <Tabs.Screen
+        name="subscribe"
+        options={{
+          title: 'Abonnement',
+          tabBarItemStyle: { display: isStaff ? 'none' : 'flex' },
+        }}
+      />
 
-      <NativeTabs.Trigger name="subscribe">
-        <NativeTabs.Trigger.Label>Abonnement</NativeTabs.Trigger.Label>
-        {/* TODO : remplacer par un icône dédié (crown/star) — réutilise home.png pour l'instant. */}
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
-    </NativeTabs>
+      {/* Tab Salon VIP — visible si tier=vip OU staff */}
+      <Tabs.Screen
+        name="vip"
+        options={{
+          title: 'Salon VIP',
+          tabBarItemStyle: { display: canSeeVipSalon ? 'flex' : 'none' },
+        }}
+      />
+
+      {/* Tab Admin — visible uniquement pour role = admin OU validator */}
+      <Tabs.Screen
+        name="admin"
+        options={{
+          title: 'Admin',
+          tabBarItemStyle: { display: isStaff ? 'flex' : 'none' },
+        }}
+      />
+    </Tabs>
   );
 }

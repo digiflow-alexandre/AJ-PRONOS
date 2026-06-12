@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { SymbolView } from 'expo-symbols';
 import { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Modal,
   Pressable,
   ScrollView,
@@ -12,10 +13,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Spacing } from '@/constants/theme';
+import { useFullTeamStats } from '@/lib/use-full-team-stats';
+import { useStandings } from '@/lib/use-standings';
 import { useThemeColors } from '@/lib/use-theme-colors';
 import type { Prono } from '@/types/prono';
 import type { MatchOutcome, RecentMatch, StandingRow } from '@/types/stats';
 
+import { TennisScoreBoard } from './tennis-score-board';
 import { TennisStatsBody } from './tennis-stats-center';
 
 const OUTCOME_COLORS: Record<MatchOutcome, string> = {
@@ -45,9 +49,31 @@ export function StatsCenterSheet({
   const [tab, setTab] = useState<Tab>('forme');
   const [chip, setChip] = useState<ChipKey>('home');
 
+  // Hooks appelés en premier (avant le early return) pour respecter les
+  // règles des hooks. On leur passe undefined si pas de prono → no-op.
+  const { standings: liveStandings } = useStandings(prono?.competition);
+  const { stats: liveStats, isLoading: liveStatsLoading } = useFullTeamStats(
+    prono?.competition,
+    prono?.teamHome,
+    prono?.teamAway,
+    prono?.sport,
+  );
+
   if (!prono) return null;
-  const stats = prono.stats;
+  // stats live (hydratés via API-Football) prioritaires sur stats statiques
+  const stats = liveStats ?? prono.stats;
   const isTennis = prono.sport === 'tennis';
+
+  // Calcul des positions live (override les positions mockées du prono).
+  const livePositions = (() => {
+    if (!liveStandings || liveStandings.length === 0) return null;
+    const home = liveStandings.find((s) => s.team === prono.teamHome);
+    const away = liveStandings.find((s) => s.team === prono.teamAway);
+    return {
+      home: home?.position ?? stats?.homePosition,
+      away: away?.position ?? stats?.awayPosition,
+    };
+  })();
 
   return (
     <Modal
@@ -92,7 +118,7 @@ export function StatsCenterSheet({
           </View>
 
           {/* Teams summary (commun) */}
-          <TeamsSummary prono={prono} />
+          <TeamsSummary prono={prono} livePositions={livePositions} />
 
           {/* Tabs : tennis vs foot — tennis a ses propres onglets dans TennisStatsBody */}
           {!isTennis ? (
@@ -127,7 +153,22 @@ export function StatsCenterSheet({
               paddingBottom: insets.bottom + Spacing.five,
             }}
             showsVerticalScrollIndicator={false}>
-            {!stats ? (
+            {tab === 'classement' ? (
+              // Classement : on peut afficher avec juste liveStandings
+              // même si prono.stats est null (cas des paris publiés par
+              // l'admin sans enrichissement API-Football complet).
+              liveStandings && liveStandings.length > 0 ? (
+                <ClassementPanel
+                  prono={prono}
+                  stats={stats}
+                  liveStandings={liveStandings}
+                />
+              ) : (
+                <NoStatsState />
+              )
+            ) : liveStatsLoading && !stats ? (
+              <LoadingState />
+            ) : !stats ? (
               <NoStatsState />
             ) : tab === 'forme' ? (
               <FormePanel
@@ -136,10 +177,8 @@ export function StatsCenterSheet({
                 chip={chip}
                 setChip={setChip}
               />
-            ) : tab === 'saison' ? (
-              <SaisonPanel prono={prono} stats={stats} />
             ) : (
-              <ClassementPanel prono={prono} stats={stats} />
+              <SaisonPanel prono={prono} stats={stats} />
             )}
           </ScrollView>
         )}
@@ -148,11 +187,19 @@ export function StatsCenterSheet({
   );
 }
 
-function TeamsSummary({ prono }: { prono: Prono }) {
+function TeamsSummary({
+  prono,
+  livePositions,
+}: {
+  prono: Prono;
+  livePositions: { home?: number; away?: number } | null;
+}) {
   const c = useThemeColors();
   const stats = prono.stats;
   const homeForm = prono.teamHomeForm ?? [];
   const awayForm = prono.teamAwayForm ?? [];
+  const homePos = livePositions?.home ?? stats?.homePosition;
+  const awayPos = livePositions?.away ?? stats?.awayPosition;
 
   return (
     <View style={styles.teamsSummary}>
@@ -173,10 +220,10 @@ function TeamsSummary({ prono }: { prono: Prono }) {
         </Text>
         <View style={styles.summaryFormRow}>
           <FormPillsMini form={homeForm} />
-          {stats ? (
+          {homePos != null ? (
             <View style={[styles.posBadge, { borderColor: c.borderSoft }]}>
               <Text style={[styles.posBadgeText, { color: c.text }]}>
-                #{stats.homePosition}
+                #{homePos}
               </Text>
             </View>
           ) : null}
@@ -189,12 +236,34 @@ function TeamsSummary({ prono }: { prono: Prono }) {
             .toLocaleDateString('fr-FR', { weekday: 'short' })
             .replace('.', '')}
         </Text>
-        <Text style={[styles.heroHour, { color: c.text }]}>
-          {new Date(prono.matchStartAt).toLocaleTimeString('fr-FR', {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </Text>
+        {/* Match résolu avec score :
+              - Tennis → TennisScoreBoard compact (cases sets style Eurosport)
+              - Foot   → texte "2-1"
+            Sinon → heure du match comme avant. */}
+        {prono.finalScore &&
+        (prono.result === 'win' || prono.result === 'loss') ? (
+          prono.sport === 'tennis' ? (
+            <View style={styles.heroScoreboard}>
+              <TennisScoreBoard
+                home={{ name: prono.teamHome }}
+                away={{ name: prono.teamAway }}
+                score={prono.finalScore}
+                compact
+              />
+            </View>
+          ) : (
+            <Text style={[styles.heroHour, { color: c.text }]}>
+              {prono.finalScore.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim()}
+            </Text>
+          )
+        ) : (
+          <Text style={[styles.heroHour, { color: c.text }]}>
+            {new Date(prono.matchStartAt).toLocaleTimeString('fr-FR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </Text>
+        )}
       </View>
 
       <View style={styles.teamSummary}>
@@ -213,10 +282,10 @@ function TeamsSummary({ prono }: { prono: Prono }) {
           {prono.teamAway}
         </Text>
         <View style={styles.summaryFormRow}>
-          {stats ? (
+          {awayPos != null ? (
             <View style={[styles.posBadge, { borderColor: c.borderSoft }]}>
               <Text style={[styles.posBadgeText, { color: c.text }]}>
-                #{stats.awayPosition}
+                #{awayPos}
               </Text>
             </View>
           ) : null}
@@ -602,6 +671,31 @@ function SaisonPanel({
     { label: 'Cartons rouges', home: stats.homeSeasonStats.redCards, away: stats.awaySeasonStats.redCards },
   ];
 
+  // Filtre Option B (Alex 2026-06-09) : on ne montre que les lignes où
+  // AU MOINS UNE des 2 équipes a une vraie valeur (> 0 ou non-null).
+  // Évite de faire un panneau "0 partout" pour les stats que API-Football
+  // ne renvoie pas (possession, tirs, corners — limite API).
+  const filledRows = rows.filter(
+    (r) => (r.home != null && r.home > 0) || (r.away != null && r.away > 0),
+  );
+
+  // Si rien de filtré → message clair (limite API pour amicaux / nationales)
+  if (filledRows.length === 0) {
+    return (
+      <View style={styles.noStats}>
+        <SymbolView name="chart.bar" size={32} tintColor={c.gold} weight="regular" />
+        <Text style={[styles.noStatsTitle, { color: c.text }]}>
+          Pas de stats saison
+        </Text>
+        <Text style={[styles.noStatsBody, { color: c.textMuted }]}>
+          API-Football ne fournit pas de stats agrégées pour les amicaux ou
+          les équipes nationales. Consulte l'onglet Forme pour les derniers
+          matchs.
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={{ gap: Spacing.three }}>
       <Text style={[styles.sectionLabel, { color: c.text }]}>
@@ -650,7 +744,7 @@ function SaisonPanel({
         </View>
 
         <View style={{ gap: Spacing.three }}>
-          {rows.map((r, i) => (
+          {filledRows.map((r, i) => (
             <ComparisonRow key={i} {...r} />
           ))}
         </View>
@@ -718,18 +812,73 @@ function ComparisonRow({
 function ClassementPanel({
   prono,
   stats,
+  liveStandings,
 }: {
   prono: Prono;
-  stats: NonNullable<Prono['stats']>;
+  stats: Prono['stats'];
+  liveStandings: StandingRow[] | null;
 }) {
   const c = useThemeColors();
-  const isHighlighted = (s: StandingRow) =>
-    s.team === prono.teamHome || s.team === prono.teamAway;
+  const standingsToShow: StandingRow[] =
+    liveStandings && liveStandings.length > 0
+      ? liveStandings
+      : stats?.standings ?? [];
+  // Comparaison normalisée pour surligner les 2 équipes du match — gère les
+  // différences API vs saisie admin ("PSG" vs "Paris Saint Germain", accents,
+  // tirets, casse, espaces multiples).
+  const normalize = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '') // accents
+      .replace(/[-\s]+/g, ' ')
+      .trim();
+  const homeN = normalize(prono.teamHome);
+  const awayN = normalize(prono.teamAway);
+  const teamMatches = (target: string, source: string) => {
+    if (!target || !source) return false;
+    if (target === source) return true;
+    return target.includes(source) || source.includes(target);
+  };
+  const isHighlighted = (s: StandingRow) => {
+    const sN = normalize(s.team);
+    return teamMatches(sN, homeN) || teamMatches(sN, awayN);
+  };
+
+  // Regroupe les standings par "group". Si toutes les équipes partagent
+  // le même groupe (cas championnat classique), une seule entrée.
+  const groupMap = new Map<string, StandingRow[]>();
+  for (const row of standingsToShow) {
+    const g = row.group ?? '';
+    if (!groupMap.has(g)) groupMap.set(g, []);
+    groupMap.get(g)!.push(row);
+  }
+  const allGroupNames = Array.from(groupMap.keys());
+  const isMultiGroup = allGroupNames.length > 1;
+
+  // Identifie le groupe des 2 équipes du match (option B : affichage
+  // par défaut sur le groupe pertinent quand format tournoi).
+  const matchGroup = isMultiGroup
+    ? allGroupNames.find((g) =>
+        groupMap.get(g)!.some((r) => isHighlighted(r)),
+      ) ?? null
+    : null;
+
+  const [showAllGroups, setShowAllGroups] = useState(false);
+
+  // Quels groupes afficher : si tournoi + on n'a pas demandé tout voir,
+  // on n'affiche que le groupe du match (ou rien si pas identifié).
+  const groupsToRender: { name: string; rows: StandingRow[] }[] =
+    isMultiGroup && matchGroup && !showAllGroups
+      ? [{ name: matchGroup, rows: groupMap.get(matchGroup)! }]
+      : isMultiGroup
+        ? allGroupNames.map((g) => ({ name: g, rows: groupMap.get(g)! }))
+        : [{ name: '', rows: standingsToShow }];
 
   return (
     <View style={{ gap: Spacing.three }}>
       <Text style={[styles.sectionLabel, { color: c.text }]}>
-        {stats.standingsLabel}
+        {stats?.standingsLabel ?? `Classement ${prono.competition}`}
       </Text>
 
       <View
@@ -789,79 +938,112 @@ function ClassementPanel({
           </Text>
         </View>
 
-        {stats.standings.map((row) => {
-          const highlight = isHighlighted(row);
-          return (
-            <View
-              key={row.position}
-              style={[
-                styles.standingsRow,
-                {
-                  borderBottomColor: c.borderFaint,
-                  backgroundColor: highlight ? c.bgWarm : 'transparent',
-                },
-              ]}>
-              <Text
+        {groupsToRender.map(({ name: groupName, rows }) => (
+          <View key={groupName || 'flat'}>
+            {isMultiGroup && groupName ? (
+              <View
                 style={[
-                  styles.standingsCell,
-                  styles.colPos,
-                  { color: highlight ? c.text : c.textMuted },
-                ]}>
-                {row.position}
-              </Text>
-              <View style={[styles.colTeam, styles.standingsTeamCell]}>
-                {row.teamLogo ? (
-                  <Image
-                    source={{ uri: row.teamLogo }}
-                    style={styles.standingsTeamLogo}
-                    contentFit="contain"
-                  />
-                ) : (
-                  <View style={styles.standingsTeamLogoPlaceholder} />
-                )}
-                <Text
-                  style={[
-                    styles.standingsCell,
-                    {
-                      color: c.text,
-                      fontWeight: highlight ? '800' : '500',
-                      flexShrink: 1,
-                    },
-                  ]}
-                  numberOfLines={1}>
-                  {row.team}
-                </Text>
-              </View>
-              <Text
-                style={[
-                  styles.standingsCell,
-                  styles.colSmall,
-                  { color: c.textMuted },
-                ]}>
-                {row.played}
-              </Text>
-              <Text
-                style={[
-                  styles.standingsCell,
-                  styles.colSmall,
-                  { color: c.textMuted },
-                ]}>
-                {row.goalDiff > 0 ? `+${row.goalDiff}` : row.goalDiff}
-              </Text>
-              <Text
-                style={[
-                  styles.standingsCell,
-                  styles.colSmall,
+                  styles.standingsGroupHeader,
                   {
-                    color: c.text,
-                    fontWeight: highlight ? '800' : '700',
+                    borderBottomColor: c.borderFaint,
+                    backgroundColor: c.bgWarm,
                   },
                 ]}>
-                {row.points}
-              </Text>
-            </View>
-          );
-        })}
+                <Text
+                  style={[styles.standingsGroupHeaderText, { color: c.gold }]}>
+                  {groupName.toUpperCase()}
+                </Text>
+              </View>
+            ) : null}
+            {rows.map((row) => {
+              const highlight = isHighlighted(row);
+              return (
+                <View
+                  key={`${groupName}-${row.position}-${row.team}`}
+                  style={[
+                    styles.standingsRow,
+                    {
+                      borderBottomColor: c.borderFaint,
+                      backgroundColor: highlight ? c.bgWarm : 'transparent',
+                    },
+                  ]}>
+                  <Text
+                    style={[
+                      styles.standingsCell,
+                      styles.colPos,
+                      { color: highlight ? c.text : c.textMuted },
+                    ]}>
+                    {row.position}
+                  </Text>
+                  <View style={[styles.colTeam, styles.standingsTeamCell]}>
+                    {row.teamLogo ? (
+                      <Image
+                        source={{ uri: row.teamLogo }}
+                        style={styles.standingsTeamLogo}
+                        contentFit="contain"
+                      />
+                    ) : (
+                      <View style={styles.standingsTeamLogoPlaceholder} />
+                    )}
+                    <Text
+                      style={[
+                        styles.standingsCell,
+                        {
+                          color: c.text,
+                          fontWeight: highlight ? '800' : '500',
+                          flexShrink: 1,
+                        },
+                      ]}
+                      numberOfLines={1}>
+                      {row.team}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.standingsCell,
+                      styles.colSmall,
+                      { color: c.textMuted },
+                    ]}>
+                    {row.played}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.standingsCell,
+                      styles.colSmall,
+                      { color: c.textMuted },
+                    ]}>
+                    {row.goalDiff > 0 ? `+${row.goalDiff}` : row.goalDiff}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.standingsCell,
+                      styles.colSmall,
+                      {
+                        color: c.text,
+                        fontWeight: highlight ? '800' : '700',
+                      },
+                    ]}>
+                    {row.points}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        ))}
+        {isMultiGroup ? (
+          <Pressable
+            onPress={() => setShowAllGroups((v) => !v)}
+            style={[
+              styles.standingsToggleAll,
+              { borderTopColor: c.borderFaint },
+            ]}>
+            <Text style={[styles.standingsToggleAllText, { color: c.gold }]}>
+              {showAllGroups
+                ? 'Voir uniquement ce groupe'
+                : `Voir tous les groupes (${allGroupNames.length})`}
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );
@@ -878,6 +1060,22 @@ function NoStatsState() {
       <Text style={[styles.noStatsBody, { color: c.textMuted }]}>
         Les statistiques avancées de ce match seront disponibles dès que
         notre branchement API-Football sera actif.
+      </Text>
+    </View>
+  );
+}
+
+function LoadingState() {
+  const c = useThemeColors();
+  return (
+    <View style={styles.noStats}>
+      <ActivityIndicator size="large" color={c.gold} />
+      <Text style={[styles.noStatsTitle, { color: c.text }]}>
+        Chargement des stats…
+      </Text>
+      <Text style={[styles.noStatsBody, { color: c.textMuted }]}>
+        On récupère la forme, les derniers matchs et les confrontations
+        directes via API-Football.
       </Text>
     </View>
   );
@@ -977,6 +1175,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.5,
     marginTop: 2,
+  },
+  heroScoreboard: {
+    marginTop: 4,
   },
   // Tabs
   tabsRow: {
@@ -1237,6 +1438,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  standingsGroupHeader: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  standingsGroupHeaderText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+  },
+  standingsToggleAll: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  standingsToggleAllText: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.4,
   },
   standingsCell: {
     fontSize: 13,

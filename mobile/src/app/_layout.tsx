@@ -4,11 +4,12 @@ import {
   Stack,
   ThemeProvider,
 } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { SplashOverlay } from '@/components/splash-overlay';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
+import { setupNotificationHandler } from '@/lib/push-notifications';
 
 function RootStack() {
   const { session } = useAuth();
@@ -19,6 +20,14 @@ function RootStack() {
       </Stack.Protected>
       <Stack.Protected guard={!session}>
         <Stack.Screen name="(auth)" />
+      </Stack.Protected>
+      {/* Pages légales accessibles depuis n'importe quel state (login ou app).
+          Obligatoire pour la review Apple. */}
+      <Stack.Screen name="legal" options={{ presentation: 'modal' }} />
+      {/* Page Stats AJ Pronos détaillée, accessible depuis l'Accueil. */}
+      <Stack.Protected guard={!!session}>
+        <Stack.Screen name="stats" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="carnet" options={{ presentation: 'modal' }} />
       </Stack.Protected>
     </Stack>
   );
@@ -48,6 +57,10 @@ function App() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  // Setup une seule fois le handler de notifs au foreground.
+  useEffect(() => {
+    setupNotificationHandler();
+  }, []);
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthProvider>

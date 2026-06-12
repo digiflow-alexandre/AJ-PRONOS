@@ -1,4 +1,5 @@
-import type { Prono } from '@/types/prono';
+import { getBetStartDate } from '@/types/prono';
+import type { AnyBet } from '@/types/prono';
 
 export type Bilan = {
   /** Pronos résolus pris en compte. */
@@ -14,15 +15,16 @@ export type Bilan = {
 
 /**
  * Calcule le bilan AJ Pronos sur les N derniers jours.
- * Stats factuelles uniquement (pas de notion de mise/gain en €), pour
- * éviter toute incitation et pour rester honnête sur ce qu'on peut affirmer.
+ * Inclut simples + combinés (tous les paris résolus comptent).
+ * Pas de notion de mise/gain en € pour rester honnête.
  */
-export function computeBilan(pronos: Prono[], periodDays: number): Bilan {
+export function computeBilan(bets: AnyBet[], periodDays: number): Bilan {
   const cutoff = Date.now() - periodDays * 86_400_000;
-  const resolved = pronos.filter(
-    (p) =>
-      p.result !== 'pending' &&
-      new Date(p.matchStartAt).getTime() >= cutoff,
+  const resolved = bets.filter(
+    (b) =>
+      b.result !== 'pending' &&
+      b.result !== 'live' &&
+      new Date(getBetStartDate(b)).getTime() >= cutoff,
   );
 
   let wins = 0;
@@ -30,11 +32,12 @@ export function computeBilan(pronos: Prono[], periodDays: number): Bilan {
   let losses = 0;
   let oddSum = 0;
 
-  resolved.forEach((p) => {
-    if (p.result === 'win') wins++;
-    else if (p.result === 'loss') losses++;
-    else if (p.result === 'void') draws++;
-    oddSum += p.odd;
+  resolved.forEach((b) => {
+    if (b.result === 'win') wins++;
+    else if (b.result === 'loss') losses++;
+    else if (b.result === 'void') draws++;
+    // Cote : single → odd, combo → combinationOdd
+    oddSum += b.type === 'single' ? b.odd : b.combinationOdd;
   });
 
   const total = resolved.length;

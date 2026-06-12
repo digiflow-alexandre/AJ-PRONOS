@@ -1,10 +1,13 @@
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
-import { useState } from 'react';
+import { SymbolView } from 'expo-symbols';
+import { useEffect, useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Linking,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,8 +17,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandedButton, BrandedField } from '@/components/branded-button';
 import { LOGIN_HEADER_LOGO } from '@/components/splash-overlay';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth-context';
+import {
+  authenticateWithBiometric,
+  biometricLabel,
+  disableBiometricLogin,
+  enableBiometricLogin,
+  getBiometricType,
+  isBiometricAvailable,
+  isBiometricEnabled,
+  type BiometricType,
+} from '@/lib/biometric-auth';
 import { useThemeColors } from '@/lib/use-theme-colors';
 
 export default function SignInScreen() {
@@ -27,6 +40,24 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Biométrie : on check au mount si dispo + déjà activée par l'user
+  const [bioAvailable, setBioAvailable] = useState(false);
+  const [bioEnabled, setBioEnabled] = useState(false);
+  const [bioType, setBioType] = useState<BiometricType>('unknown');
+  const [bioLoading, setBioLoading] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const available = await isBiometricAvailable();
+      if (!available) return;
+      const type = await getBiometricType();
+      const enabled = await isBiometricEnabled();
+      setBioAvailable(true);
+      setBioType(type);
+      setBioEnabled(enabled);
+    })();
+  }, []);
+
   async function onSubmit() {
     setError(null);
     if (!email.trim() || !password) {
@@ -36,9 +67,54 @@ export default function SignInScreen() {
     setLoading(true);
     const { error: err } = await signIn(email.trim(), password);
     setLoading(false);
-    if (err) setError(err);
+    if (err) {
+      setError(err);
+      return;
+    }
+    // Login réussi → si biométrie dispo et pas encore activée, on propose
+    if (bioAvailable && !bioEnabled) {
+      const label = biometricLabel(bioType);
+      Alert.alert(
+        `Activer ${label} ?`,
+        `Connecte-toi plus rapidement avec ${label} la prochaine fois.\n\nTon mot de passe sera stocké de manière chiffrée dans le Keychain iOS.`,
+        [
+          { text: 'Plus tard', style: 'cancel' },
+          {
+            text: 'Activer',
+            onPress: async () => {
+              await enableBiometricLogin(email.trim(), password);
+            },
+          },
+        ],
+      );
+    } else if (bioEnabled) {
+      // Si déjà activée, on met à jour les credentials stockés au cas où
+      // l'user a changé son mot de passe
+      await enableBiometricLogin(email.trim(), password);
+    }
     // Pas de redirect manuel : Stack.Protected dans _layout.tsx bascule
     // automatiquement sur (app) dès que la session apparaît.
+  }
+
+  async function onBiometricLogin() {
+    setError(null);
+    setBioLoading(true);
+    const creds = await authenticateWithBiometric(bioType);
+    if (!creds) {
+      setBioLoading(false);
+      return;
+    }
+    const { error: err } = await signIn(creds.email, creds.password);
+    setBioLoading(false);
+    if (err) {
+      // Le mot de passe stocké ne marche plus (changement de password ?)
+      // → on désactive la biométrie pour forcer un nouveau login manuel.
+      setError(
+        'Connexion biométrique échouée. Connecte-toi avec ton mot de passe.',
+      );
+      await disableBiometricLogin();
+      setBioEnabled(false);
+    }
   }
 
   return (
@@ -79,7 +155,7 @@ export default function SignInScreen() {
                 keyboardType="email-address"
                 autoComplete="email"
                 textContentType="emailAddress"
-                placeholder="alex@ajpronos.fr"
+                placeholder="ton@email.fr"
               />
               <BrandedField
                 label="Mot de passe"
@@ -101,6 +177,33 @@ export default function SignInScreen() {
               loading={loading}
               onPress={onSubmit}
             />
+
+            {/* Bouton biométrie — affiché seulement si activée */}
+            {bioAvailable && bioEnabled ? (
+              <Pressable
+                onPress={onBiometricLogin}
+                disabled={bioLoading}
+                style={({ pressed }) => [
+                  styles.bioBtn,
+                  {
+                    borderColor: c.gold,
+                    backgroundColor: c.bgWarm,
+                    opacity: pressed || bioLoading ? 0.7 : 1,
+                  },
+                ]}>
+                <SymbolView
+                  name={bioType === 'face' ? 'faceid' : 'touchid'}
+                  size={20}
+                  tintColor={c.gold}
+                  weight="semibold"
+                />
+                <Text style={[styles.bioBtnText, { color: c.text }]}>
+                  {bioLoading
+                    ? 'Authentification…'
+                    : `Se connecter avec ${biometricLabel(bioType)}`}
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
 
           <View style={styles.bottom}>
@@ -121,6 +224,12 @@ export default function SignInScreen() {
                 joueurs-info-service.fr
               </Text>
             </Text>
+
+            <Link
+              href="/legal"
+              style={[styles.legalLink, { color: c.textMuted }]}>
+              Informations légales
+            </Link>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -171,5 +280,27 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: Spacing.three,
+  },
+  legalLink: {
+    fontSize: 12,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+    marginTop: 4,
+  },
+  bioBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.three,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    marginTop: Spacing.two,
+  },
+  bioBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
 });

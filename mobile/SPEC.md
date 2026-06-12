@@ -3,8 +3,8 @@
 > **Document de référence** pour le développement de l'app mobile AJ Pronos.
 > Toute session de dev future doit s'y référer. À mettre à jour quand on change d'avis.
 >
-> **Dernière mise à jour** : 2026-05-30
-> **Version** : 0.2 (post-visio Julien — refonte packs, salon VIP, IA en V2)
+> **Dernière mise à jour** : 2026-06-01
+> **Version** : 0.3 (deadline ferme 5 jan 2027, captures bookmaker, agents IA sports V2, feedback board V2)
 
 ---
 
@@ -42,8 +42,19 @@ AJ Pronos est un **cabinet de conseil en paris sportifs** sous forme d'app mobil
 
 ### PHASE — MVP v1 (lancement public)
 
-**Objectif** : sortir une app utilisable, sur l'App Store, avec ses premiers abonnés payants.
-**Cible** : 4-6 semaines de dev après validation de ce SPEC.
+**Objectif** : sortir une app utilisable, sur l'App Store **ET** le Google Play Store, avec ses premiers abonnés payants.
+
+**🚨 DEADLINE FERME : 11 juin 2026** (corrigée 1er juin — Alex avait initialement noté 5 janvier 2027 puis 5 juin par erreur).
+
+**"Disponible le 11 juin" = app live sur Apple Store ce jour-là.** Google Play Store = V1.5 ultérieure (focus iOS pour tenir la deadline).
+
+**Pré-requis déjà ok** : SIRET Alex obtenu.
+
+**Sprint imposé : ~10 jours.** Implications :
+- Soumission App Store **le 7 juin au plus tard** pour avoir 4 jours de buffer Apple review (gambling-adjacent = souvent 3-5 jours)
+- Descope agressif de V1 : voir liste MUST HAVE vs V1.1 dans memory `deadline-mvp-v1.md`
+- Compte Apple Developer + RevenueCat doivent être ACTIFS d'ici fin de semaine
+- Carnet perso, salon VIP, push, captures bookmaker, agents IA backend, popup bilan → tout **V1.1** ou plus tard
 
 #### User stories — Abonné
 
@@ -116,7 +127,11 @@ AJ Pronos est un **cabinet de conseil en paris sportifs** sous forme d'app mobil
 - `odd` (cote)
 - `confidence` (indice 1-5)
 - `reasoning` (l'argumentaire de Julien, texte long)
+- `bookmaker_screenshot_url` (capture d'écran du ticket réel posé par Julien — cf. section 4bis "Capture du pari réel")
+- `bookmaker_name` (Winamax / Unibet / Betclic / etc — pour la légende sous la capture)
 - `published_at`, `published_by`
+
+**Storage** : bucket public Supabase `bet-screenshots` (admins write, tous read). Compression côté upload via `expo-image-manipulator` (cible <200 Ko).
 
 #### Agents IA / cron MVP
 
@@ -144,6 +159,8 @@ AJ Pronos est un **cabinet de conseil en paris sportifs** sous forme d'app mobil
 
 - **Chat IA assistant VIP** — assistant Claude explicite (réponses questions générales, escalade vers Julien sur complexité)
 - **Demande IA on-demand** — abonné Pro/VIP demande analyse IA sur match non couvert (avec garde-fous ANJ — cf. section 4bis)
+- **Agents IA spécialisés sports non-foot/tennis** (basket NBA/EuroLeague, rugby Top 14/6 Nations, hockey NHL) — Julien ne couvre que foot+tennis (sa zone d'expertise). Pour étendre l'offre sans diluer la promesse expertise humaine, on lance des **agents IA spécialisés par sport** qui proposent les pronos avec disclaimer EXPLICITE : *"Pronostic généré par IA spécialisée [sport], non validé par notre analyste humain"*. Tarification : à arbitrer (option add-on payant ?). Contraintes ANJ identiques à la demande IA on-demand (cf. section 4bis garde-fous).
+- **Système feedback / suggestions communauté** — module in-app où les abonnés proposent des améliorations : ex *"il manque telle stat sur la fiche pari", "j'aimerais une notif quand cote > X"*. Format type Canny/Featurebase simplifié : formulaire d'idée + vote upvote + statut (À étudier / En cours / Livré). Dashboard admin pour Alex/Julien (lecture + statut). Pourquoi : capter le besoin terrain plutôt que de deviner les features V3.
 - **Stats avancées** : performance par sport, par compétition, par période, courbes ROI
 - **Filtres avancés** sur la liste pronos (sport, risque, type de pari, cote)
 - **Notifs personnalisées par préférences** (sport spécifique, seuil de cote, etc.)
@@ -213,6 +230,35 @@ AJ Pronos est un **cabinet de conseil en paris sportifs** sous forme d'app mobil
 - Sur l'app : on affiche **"Pari IA proposé à Julien et validé par lui"** (transparence assumée)
 - Cohérent avec la règle inviolable "outil IA jamais public" → ici on dit IA mais on dit aussi "validé par Julien" donc la promesse expertise humaine reste intacte
 - Le pari IA reste un pari complet avec analyse Julien, indice de confiance, etc.
+
+### Capture du pari réel (preuve "Julien joue vraiment") — MVP V1
+
+Chaque prono affiché dans l'app doit montrer la **capture d'écran du pari réel** posé par Julien sur son compte bookmaker (Winamax / Unibet / Betclic / etc).
+
+**Pourquoi** : différenciateur fort vs tipsters classiques qui publient juste du texte. Avec la capture, Julien prouve qu'il met son propre argent en jeu → renforce la transparence ROI et le positionnement "expertise humaine + transparence".
+
+**Format** :
+- Hero de la fiche pari = la capture d'écran du ticket bookmaker
+- Sous la capture = l'analyse Julien (carnet, ROI, contexte)
+- Sur les cards de liste = thumbnail compressée de la capture (en accent visuel)
+
+**Anonymisation obligatoire** :
+- Pas de solde de compte visible
+- Pas de username/email visible si exposé sur le ticket
+- Julien doit flouter manuellement avant upload OU utiliser un compte dédié sans identifiants
+
+**Pas de partenariat affiché** : on montre la capture parce que c'est la réalité, mais on n'écrit JAMAIS "partenaire Winamax" tant qu'on n'a pas signé un programme d'affiliation officiel et déclaré l'activité d'apporteur d'affaires (ANJ).
+
+### Méthode IA — construction du prompt système
+
+L'agent IA (Claude API) qui propose les paris quotidiens est construit en **2 phases successives** :
+
+1. **Phase 1 — Base Alex + Claude** (à faire au début) : on construit un prompt système initial avec une méthode d'analyse "raisonnable" basée sur les bonnes pratiques générales du pari sportif (forme récente, H2H, blessures, contexte, value bet). Cette base est mise en production pour générer les premières propositions.
+2. **Phase 2 — Enrichissement méthode Julien** : Julien teste les propositions, identifie les manques et biais, et on enrichit progressivement le prompt avec **sa méthode personnelle** (critères propres, seuils, signaux spécifiques qu'il regarde). Itératif sur plusieurs semaines.
+
+**Pourquoi cette approche** : on ne peut pas extraire d'un coup toute la méthode Julien (20 ans d'expérience implicites, difficiles à verbaliser). Mais on peut démarrer avec un baseline correct et l'affiner via le feedback de validation/rejet de Julien sur les propositions réelles.
+
+**Tech** : prompt système stocké en config Supabase (table `ai_config`, version sémantique). Chaque proposition log la version du prompt utilisée pour faire de l'analyse de qualité par version.
 
 ### Chat IA assistant VIP — **REPORTÉ MVP V2**
 
@@ -303,7 +349,7 @@ Au premier lancement après inscription :
 
 ---
 
-## 8. État d'avancement actuel (au 2026-05-30)
+## 8. État d'avancement actuel (au 2026-06-01)
 
 ### ✅ Fait (MVP V1)
 
@@ -325,37 +371,38 @@ Au premier lancement après inscription :
 - Picker de mois pour naviguer dans l'historique
 - Filtres status (Tous / Live / Gagnés / Perdus) conditionnels sur l'onglet Pronos
 - Filet coloré par compétition sur cards prono simple, doré sur cards combinés
+- Logo corrigé : "AJ PRONOS" (avec S), format portrait 928×1152, fond transparent
 
 ### 🚧 À faire (MVP V1, par ordre logique)
 
-1. **Carnet personnel** (marquer un prono comme joué + stats perso + ROI réel) — désormais V1
-2. **Onboarding complet** (7 écrans : welcome → +18 → sports → risque → notifs → essai)
-3. **Page Stats AJ Pronos** (ROI global, performance par mois)
-4. **Sheet Préférences notifs**
-5. **Sheet Mentions légales + jeu responsable**
-6. **Salon VIP** (chat groupe Supabase Realtime + bouton "Coaching Julien")
-7. **Push notifications** Expo Notifications (foot 1h avant, tennis veille/jour J)
-8. **Admin app** (file propositions IA par sélection + builder combiné + queue publication)
-9. **Backend Supabase Edge Functions** (agents IA cron + API-Football + tracking résultats)
-10. **RevenueCat** (après SIRET Alex)
-11. **EAS Build** + submission App Store
+1. **Popup bilan résultats** (modal à l'ouverture si paris résolus depuis dernière visite — phrase sobre Julien ANJ-compliant)
+2. **Capture du pari réel** (storage Supabase + upload admin Julien + affichage hero fiche pari + thumbnail card)
+3. **Carnet personnel** (marquer un prono comme joué + stats perso + ROI réel)
+4. **Onboarding complet** (7 écrans : welcome → +18 → sports → risque → notifs → essai)
+5. **Page Stats AJ Pronos** (ROI global, performance par mois)
+6. **Sheet Préférences notifs**
+7. **Sheet Mentions légales + jeu responsable**
+8. **Salon VIP** (chat groupe Supabase Realtime + bouton "Coaching Julien")
+9. **Push notifications** Expo Notifications (foot 1h avant, tennis veille/jour J)
+10. **Admin app** (file propositions IA par sélection + builder combiné + queue publication, upload screenshot pari)
+11. **Backend Supabase Edge Functions** (agents IA cron + API-Football + tracking résultats)
+12. **Connexions APIs externes** (API-Football, OddsAPI manuel V1 → automatique post-100 abonnés)
+13. **RevenueCat** (après SIRET Alex)
+14. **EAS Build** + submission App Store + Google Play (deadline 5 jan 2027)
 
 ### 🚧 À faire (MVP V2, post-lancement)
 
 - Chat IA assistant VIP (Claude API + escalade Julien)
 - Demande IA on-demand (avec garde-fous ANJ stricts)
-8. **Admin** : files Propositions + Queue + édition prono
-9. **Agents IA Supabase Edge Functions** (collecte, analyse, tracking)
-10. **Notifs push** (Expo Notifications + Supabase trigger)
-11. **RevenueCat** (après SIRET)
-12. **EAS Build** + submission stores
+- **Agents IA spécialisés basket / rugby / hockey** (zones non couvertes par Julien — disclaimer fort)
+- **Système feedback / suggestions communauté** (in-app, type Canny simplifié)
 
 ---
 
 ## 9. Décisions ouvertes (à valider en cours de route)
 
 - **Onboarding** : skip possible des étapes 3-5 ou obligatoire ?
-- **Sports MVP** : foot + tennis seulement ? ou ajout basket ?
+- **Sports MVP V1** : foot + tennis (acté — basket/rugby/hockey via agents IA spécialisés en V2)
 - **Niveau de risque** : 3 ou 5 niveaux ?
 - **Push notifs** : heures de coupure (pas après 22h) ?
 - **Tunnel essai expiré** : grâce de 24h en lecture limitée ou bascule immédiate ?

@@ -1,28 +1,23 @@
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import {
-  Modal,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
-import { BrandedButton } from '@/components/branded-button';
 import { BrandHeader } from '@/components/brand-header';
 import { PricingCard } from '@/components/pricing-card';
+import { WaitlistModal } from '@/components/waitlist-modal';
 import { PACKS, type Pack } from '@/constants/packs';
 import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import { useProfile } from '@/lib/use-profile';
 import { useThemeColors } from '@/lib/use-theme-colors';
 
-type Billing = 'monthly' | 'yearly';
-
 export default function SubscribeScreen() {
   const c = useThemeColors();
   const { isTrialActive, trialDaysLeft, profile } = useProfile();
-  const [billing, setBilling] = useState<Billing>('monthly');
   const [waitlistOpen, setWaitlistOpen] = useState<Pack | null>(null);
 
   return (
@@ -37,14 +32,11 @@ export default function SubscribeScreen() {
           trialDaysLeft={trialDaysLeft}
         />
 
-        <BillingToggle value={billing} onChange={setBilling} />
-
         <View style={styles.cards}>
           {PACKS.map((pack) => (
             <PricingCard
               key={pack.tier}
               pack={pack}
-              billing={billing}
               isCurrent={profile?.tier === pack.tier}
               onPress={() => setWaitlistOpen(pack)}
             />
@@ -143,104 +135,6 @@ function BenefitTile({
   );
 }
 
-function BillingToggle({
-  value,
-  onChange,
-}: {
-  value: Billing;
-  onChange: (v: Billing) => void;
-}) {
-  const c = useThemeColors();
-  return (
-    <View style={[styles.toggle, { backgroundColor: c.bgDeeper }]}>
-      <ToggleOption
-        label="Mensuel"
-        active={value === 'monthly'}
-        onPress={() => onChange('monthly')}
-      />
-      <ToggleOption
-        label="Annuel · -20%"
-        active={value === 'yearly'}
-        onPress={() => onChange('yearly')}
-      />
-    </View>
-  );
-}
-
-function ToggleOption({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  const c = useThemeColors();
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[
-        styles.toggleOption,
-        active && { backgroundColor: c.bgElevated },
-      ]}>
-      <Text
-        style={[
-          styles.toggleLabel,
-          { color: active ? c.text : c.textMuted },
-        ]}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-function WaitlistModal({
-  pack,
-  onClose,
-}: {
-  pack: Pack | null;
-  onClose: () => void;
-}) {
-  const c = useThemeColors();
-
-  return (
-    <Modal
-      visible={!!pack}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}>
-      <Pressable
-        style={[styles.modalBackdrop, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
-        onPress={onClose}>
-        <Pressable
-          style={[
-            styles.modalCard,
-            { backgroundColor: c.bgElevated, borderColor: c.borderSoft },
-          ]}
-          onPress={(e) => e.stopPropagation()}>
-          <Text style={[styles.modalEyebrow, { color: c.gold }]}>
-            — LISTE D’ATTENTE
-          </Text>
-          <Text style={[styles.modalTitle, { color: c.text }]}>
-            Ouverture imminente.
-          </Text>
-          <Text style={[styles.modalBody, { color: c.textMuted }]}>
-            Le pack{' '}
-            <Text style={{ color: c.text, fontWeight: '600' }}>
-              {pack?.name}
-            </Text>{' '}
-            sera dispo à l’abonnement dans quelques jours, le temps qu’on
-            finalise les paiements côté App Store. Tu seras prévenu par
-            notification dès que c’est ouvert.
-          </Text>
-          <BrandedButton label="Compris" onPress={onClose} />
-        </Pressable>
-      </Pressable>
-    </Modal>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   container: {
@@ -306,22 +200,6 @@ const styles = StyleSheet.create({
   benefitSublabel: {
     fontSize: 10,
     lineHeight: 13,
-  },
-  toggle: {
-    flexDirection: 'row',
-    padding: 4,
-    borderRadius: Radius.lg,
-  },
-  toggleOption: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: Radius.md,
-  },
-  toggleLabel: {
-    fontSize: 14,
-    fontWeight: '600',
   },
   cards: {
     gap: Spacing.five,

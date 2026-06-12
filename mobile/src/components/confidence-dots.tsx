@@ -14,10 +14,14 @@ export function ConfidenceDots({
   value,
   showLabel = true,
   dotSize = 8,
+  onDarkBg = false,
 }: {
   value: 1 | 2 | 3 | 4 | 5;
   showLabel?: boolean;
   dotSize?: number;
+  /** Set true si le composant est sur un fond très sombre (image bg
+   *  avec overlay) — booste le contraste du label. */
+  onDarkBg?: boolean;
 }) {
   const c = useThemeColors();
 
@@ -44,7 +48,11 @@ export function ConfidenceDots({
         })}
       </View>
       {showLabel ? (
-        <Text style={[styles.label, { color: c.textMuted }]}>
+        <Text
+          style={[
+            styles.label,
+            { color: onDarkBg ? c.text : c.textMuted },
+          ]}>
           {LABELS[value]}
         </Text>
       ) : null}

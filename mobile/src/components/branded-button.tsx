@@ -15,7 +15,7 @@ type ButtonProps = {
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
-  variant?: 'primary' | 'ghost';
+  variant?: 'primary' | 'ghost' | 'gold';
 };
 
 export function BrandedButton({
@@ -40,6 +40,28 @@ export function BrandedButton({
           { opacity: pressed || isDisabled ? 0.5 : 1 },
         ]}>
         <Text style={[styles.label, { color: c.text }]}>{displayLabel}</Text>
+      </Pressable>
+    );
+  }
+
+  if (variant === 'gold') {
+    return (
+      <Pressable
+        onPress={onPress}
+        disabled={isDisabled}
+        style={({ pressed }) => [
+          styles.base,
+          {
+            backgroundColor: c.gold,
+            shadowColor: c.gold,
+            shadowOpacity: 0.4,
+            shadowRadius: 14,
+            shadowOffset: { width: 0, height: 0 },
+            elevation: 4,
+            opacity: pressed || isDisabled ? 0.7 : 1,
+          },
+        ]}>
+        <Text style={[styles.label, { color: '#0A0A0A' }]}>{displayLabel}</Text>
       </Pressable>
     );
   }

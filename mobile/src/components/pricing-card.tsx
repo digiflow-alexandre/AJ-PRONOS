@@ -87,14 +87,13 @@ const FRAMES: Record<Pack['tier'], ImageSourcePropType> = {
 
 type Props = {
   pack: Pack;
-  billing: 'monthly' | 'yearly';
   isCurrent: boolean;
   onPress: () => void;
 };
 
-export function PricingCard({ pack, billing, isCurrent, onPress }: Props) {
-  const price = billing === 'monthly' ? pack.monthly : pack.yearly;
-  const period = billing === 'monthly' ? '/ mois' : '/ an';
+export function PricingCard({ pack, isCurrent, onPress }: Props) {
+  const price = pack.monthly;
+  const period = '/ mois';
   const showBadge = !!pack.badge && !isCurrent;
   const zones = ZONES_BY_TIER[pack.tier];
 

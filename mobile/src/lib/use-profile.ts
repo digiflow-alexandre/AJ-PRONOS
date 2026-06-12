@@ -1,10 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import type { Profile, SubscriptionTier } from '@/types/profile';
+import type {
+  Profile,
+  RiskLevel,
+  Sport,
+  SubscriptionTier,
+} from '@/types/profile';
 import { TIER_LEVEL } from '@/types/profile';
 
 import { useAuth } from './auth-context';
 import { supabase } from './supabase';
+
+export type OnboardingPrefs = {
+  displayName: string;
+  dateOfBirth: string; // ISO date YYYY-MM-DD
+  sportsFollowed: Sport[];
+  riskLevel: RiskLevel;
+  notificationsOptedIn: boolean;
+};
 
 type UseProfileResult = {
   profile: Profile | null;
@@ -22,6 +35,19 @@ type UseProfileResult = {
   canAccess: (requiredTier: SubscriptionTier) => boolean;
   /** Démarre l'essai gratuit 7 jours (tier=trial, dates posées). */
   startTrial: () => Promise<{ error: string | null }>;
+  /** L'utilisateur a-t-il fini son onboarding ? */
+  isOnboarded: boolean;
+  /** Marque l'onboarding comme terminé et persiste les préférences. */
+  completeOnboarding: (
+    prefs: OnboardingPrefs,
+  ) => Promise<{ error: string | null }>;
+  /** Vérifie si un pseudo est disponible (via RPC Supabase, case-insensitive). */
+  checkDisplayNameAvailable: (name: string) => Promise<boolean>;
+  /** Soft-delete le compte (marque deleted_at + anonymise display_name).
+   *  Apple Guideline 5.1.1.v : suppression doit être initiée depuis l'app. */
+  deleteAccount: () => Promise<{ error: string | null }>;
+  /** L'utilisateur est-il admin ou validator (= accès admin app) ? */
+  isStaff: boolean;
   /** Recharge manuellement le profile depuis la DB. */
   refresh: () => Promise<void>;
 };
@@ -130,7 +156,14 @@ export function useProfile(): UseProfileResult {
 
   const canAccess = useCallback(
     (requiredTier: SubscriptionTier) => {
-      if (!profile?.tier) return false;
+      if (!profile) return false;
+      // Staff (admin / validator = Alex & Julien) → accès total à tous
+      // les pronos peu importe leur tier minimum. Logique : ils publient,
+      // ils doivent pouvoir tout consulter pour QA.
+      if (profile.role === 'admin' || profile.role === 'validator') {
+        return true;
+      }
+      if (!profile.tier) return false;
       // Trial expiré = aucun accès, même si tier en DB est encore 'trial'
       if (trial.isExpired) return false;
       // Trial actif = équivalent Starter (TIER_LEVEL.trial = TIER_LEVEL.starter = 1)
@@ -158,6 +191,59 @@ export function useProfile(): UseProfileResult {
     return { error: null };
   }, [userId, fetchProfile]);
 
+  const completeOnboarding = useCallback(
+    async (prefs: OnboardingPrefs) => {
+      if (!userId) return { error: 'Pas de session.' };
+      const { error: err } = await supabase
+        .from('profiles')
+        .update({
+          display_name: prefs.displayName,
+          date_of_birth: prefs.dateOfBirth,
+          onboarding_completed_at: new Date().toISOString(),
+          sports_followed: prefs.sportsFollowed,
+          risk_level: prefs.riskLevel,
+          notifications_opted_in: prefs.notificationsOptedIn,
+        })
+        .eq('id', userId);
+      if (err) return { error: err.message };
+      await fetchProfile(userId);
+      return { error: null };
+    },
+    [userId, fetchProfile],
+  );
+
+  /** Vérifie via RPC si un pseudo est disponible (case-insensitive). */
+  const checkDisplayNameAvailable = useCallback(
+    async (name: string): Promise<boolean> => {
+      const { data, error: err } = await supabase.rpc(
+        'check_display_name_available',
+        { p_name: name },
+      );
+      if (err) return false; // En cas d'erreur, on considère "indispo" par sécurité
+      return data === true;
+    },
+    [],
+  );
+
+  const deleteAccount = useCallback(async () => {
+    if (!userId) return { error: 'Pas de session.' };
+    // Soft delete : on marque deleted_at + anonymise le pseudo public.
+    // L'email reste dans auth.users car non modifiable côté client (Apple
+    // exige juste que la suppression soit initiée depuis l'app, pas que
+    // le hard delete soit immédiat). Edge Function quotidienne purgera
+    // les comptes deleted_at > 30 jours.
+    const { error: err } = await supabase
+      .from('profiles')
+      .update({
+        deleted_at: new Date().toISOString(),
+        display_name: null,
+        expo_push_token: null,
+      })
+      .eq('id', userId);
+    if (err) return { error: err.message };
+    return { error: null };
+  }, [userId]);
+
   const refresh = useCallback(async () => {
     if (!userId) return;
     setIsLoading(true);
@@ -173,6 +259,11 @@ export function useProfile(): UseProfileResult {
     trialDaysLeft: trial.daysLeft,
     canAccess,
     startTrial,
+    isOnboarded: !!profile?.onboarding_completed_at,
+    completeOnboarding,
+    checkDisplayNameAvailable,
+    deleteAccount,
+    isStaff: profile?.role === 'admin' || profile?.role === 'validator',
     refresh,
   };
 }

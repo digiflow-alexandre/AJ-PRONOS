@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>AJ Pronos — Maquettes emails transactionnels</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+      background: #1a1a1a;
+      padding: 40px 16px;
+      color: #aaa;
+    }
+    h1 {
+      text-align: center;
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #aaa;
+      font-weight: 600;
+      margin: 0 0 12px;
+    }
+    .intro {
+      max-width: 900px;
+      margin: 0 auto 40px;
+      color: #888;
+      font-size: 13px;
+      line-height: 1.7;
+      text-align: center;
+    }
+    .intro strong { color: #E8C95A; }
+    .grid {
+      max-width: 1700px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 32px;
+    }
+    .frame {
+      background: #f5f5f5;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+    .frame-label {
+      text-align: center;
+      color: #E8C95A;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+    .email-inbox-mock {
+      background: #ddd;
+      padding: 10px 16px;
+      border-radius: 8px 8px 0 0;
+      font-size: 11px;
+      color: #444;
+      display: flex;
+      justify-content: space-between;
+    }
+    .email-content {
+      background: #ffffff;
+      border-radius: 0 0 8px 8px;
+      overflow: hidden;
+    }
+
+    /* ============================== */
+    /* EMAIL TEMPLATE V2 — Premium    */
+    /* ============================== */
+
+    .email-body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      max-width: 560px;
+      margin: 0 auto;
+      background: #ffffff;
+      color: #0A0A0A;
+    }
+
+    /* Header noir avec logo doré */
+    .email-header {
+      background: #0A0A0A;
+      padding: 28px 32px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .email-header::before {
+      content: "";
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, rgba(232,201,90,0.22), transparent 70%);
+      pointer-events: none;
+    }
+    .email-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+    .email-logo-mark {
+      width: 38px; height: 38px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #E8C95A, #D4AF37);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900;
+      font-size: 16px;
+      color: #0A0A0A;
+      letter-spacing: -0.5px;
+    }
+    .email-logo-name {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: #FAFAF7;
+      text-transform: uppercase;
+    }
+
+    /* Eyebrow */
+    .email-eyebrow {
+      padding: 28px 32px 0;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: #B8941F;
+    }
+
+    /* Title */
+    .email-title {
+      padding: 8px 32px 16px;
+      font-size: 28px;
+      line-height: 1.15;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: #0A0A0A;
+      margin: 0;
+    }
+    .email-title em { color: #B8941F; font-style: normal; }
+
+    /* Lead */
+    .email-lead {
+      padding: 0 32px 24px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #4a4a4a;
+      margin: 0;
+    }
+
+    /* Pack highlight card */
+    .email-pack-card {
+      margin: 0 32px 24px;
+      background: linear-gradient(135deg, #FAFAF7, #F5F4ED);
+      border: 1px solid #E5E1D4;
+      border-radius: 14px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .email-pack-card::before {
+      content: "";
+      position: absolute;
+      top: 0; right: 0;
+      width: 100%; height: 4px;
+      background: linear-gradient(90deg, #E8C95A, #D4AF37);
+    }
+    .email-pack-eyebrow {
+      font-size: 10px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: #999;
+      margin-bottom: 6px;
+    }
+    .email-pack-name {
+      font-size: 24px;
+      font-weight: 900;
+      color: #B8941F;
+      letter-spacing: -0.3px;
+      margin: 0;
+    }
+    .email-pack-meta {
+      font-size: 13px;
+      color: #666;
+      margin-top: 8px;
+    }
+
+    /* Warning card */
+    .email-warning-card {
+      margin: 0 32px 24px;
+      background: #FFFBEB;
+      border: 1px solid #FCD34D;
+      border-left: 4px solid #F59E0B;
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+    .email-warning-card p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #78350F;
+    }
+    .email-warning-card strong { color: #78350F; }
+
+    /* Steps */
+    .email-section-title {
+      padding: 0 32px 12px;
+      font-size: 13px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: #999;
+      margin: 0;
+    }
+    .email-steps {
+      padding: 0 32px 24px;
+      margin: 0;
+      list-style: none;
+    }
+    .email-step {
+      display: flex;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .email-step:last-child { border-bottom: 0; }
+    .email-step-num {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #0A0A0A;
+      color: #E8C95A;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900;
+      font-size: 12px;
+    }
+    .email-step-body { flex: 1; padding-top: 3px; }
+    .email-step-title { font-weight: 700; font-size: 14px; color: #0A0A0A; margin: 0 0 2px; }
+    .email-step-desc { font-size: 13px; color: #666; line-height: 1.5; margin: 0; }
+
+    /* CTA */
+    .email-cta-wrap {
+      padding: 0 32px 28px;
+      text-align: center;
+    }
+    .email-cta {
+      display: inline-block;
+      background: #0A0A0A;
+      color: #FAFAF7;
+      padding: 15px 32px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+      box-shadow: 0 0 0 2px #B8941F inset;
+    }
+    .email-cta-secondary {
+      display: block;
+      margin-top: 14px;
+      font-size: 13px;
+      color: #999;
+      text-decoration: none;
+    }
+    .email-cta-secondary a { color: #B8941F; font-weight: 700; }
+
+    /* Sign-off */
+    .email-signoff {
+      padding: 0 32px 24px;
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+    .email-signoff strong { color: #0A0A0A; }
+
+    /* Footer */
+    .email-footer {
+      background: #FAFAF7;
+      padding: 24px 32px;
+      border-top: 1px solid #eee;
+    }
+    .email-footer-links {
+      text-align: center;
+      margin-bottom: 14px;
+      font-size: 11px;
+      color: #aaa;
+    }
+    .email-footer-links a {
+      color: #888;
+      text-decoration: none;
+      margin: 0 6px;
+    }
+    .email-footer-disclaimer {
+      margin: 0;
+      font-size: 10px;
+      line-height: 1.6;
+      color: #999;
+      text-align: center;
+    }
+    .email-footer-disclaimer strong { color: #B8941F; }
+    .email-footer-disclaimer a { color: #B8941F; text-decoration: none; }
+
+    /* Variantes */
+    .email-header.danger { background: #0A0A0A; }
+    .email-header.danger::before {
+      background: radial-gradient(circle, rgba(220,38,38,0.3), transparent 70%);
+    }
+    .email-cta.danger { box-shadow: 0 0 0 2px #DC2626 inset; }
+
+    /* Annotation */
+    .annot {
+      max-width: 900px;
+      margin: 40px auto 0;
+      color: #aaa;
+      font-size: 13px;
+      line-height: 1.7;
+      background: rgba(255,255,255,0.03);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .annot h2 { color: #E8C95A; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0 0 10px; }
+    .annot ul { margin: 0; padding-left: 20px; }
+    .annot li { margin-bottom: 6px; }
+    .annot strong { color: #fff; }
+  </style>
+</head>
+<body>
+
+<h1>Maquettes — 4 emails AJ Pronos</h1>
+<p class="intro">
+  Style premium éditorial. Logo or sur fond noir, typo bold, cards crème.<br/>
+  Tous les emails ont la même architecture : <strong>header</strong> · <strong>title</strong> · <strong>contenu</strong> · <strong>CTA</strong> · <strong>footer 18+ joueurs-info-service</strong>.
+</p>
+
+<div class="grid">
+
+  <!-- ====================================================== -->
+  <!-- 1. BIENVENUE (après checkout)                          -->
+  <!-- ====================================================== -->
+  <div class="frame">
+    <div class="frame-label">1 · Bienvenue (Starter trial)</div>
+    <div class="email-inbox-mock">
+      <span><strong>De</strong> AJ Pronos &lt;contact@ajpronos.fr&gt;</span>
+      <span>Aujourd'hui · 14h32</span>
+    </div>
+    <div class="email-inbox-mock" style="border-top:1px solid #ccc; border-radius: 0;">
+      <span><strong>Objet</strong> · Bienvenue dans le pack Starter — AJ Pronos</span>
+    </div>
+    <div class="email-content">
+      <div class="email-body">
+        <div class="email-header">
+          <img
+            src="https://ajpronos.fr/aj-pronos-logo-white.png"
+            alt="AJ Pronos"
+            width="56"
+            height="69"
+            style="display:inline-block; width:56px; height:auto;"
+          />
+        </div>
+        <div class="email-eyebrow">— BIENVENUE</div>
+        <h1 class="email-title">Bienvenue dans <em>la méthode.</em></h1>
+        <p class="email-lead">
+          Tes <strong>7 jours offerts</strong> sont activés. Tu as accès à tout le pack Starter pendant 7 jours, sans engagement.
+        </p>
+
+        <div class="email-pack-card">
+          <div class="email-pack-eyebrow">TON ABONNEMENT</div>
+          <p class="email-pack-name">Pack Starter</p>
+          <p class="email-pack-meta">Essai gratuit jusqu'au <strong>18 juin 2026</strong> · Puis 9,90 €/mois</p>
+        </div>
+
+        <p class="email-section-title">ET MAINTENANT ?</p>
+        <ul class="email-steps">
+          <li class="email-step">
+            <div class="email-step-num">1</div>
+            <div class="email-step-body">
+              <p class="email-step-title">Télécharge l'app</p>
+              <p class="email-step-desc">Disponible sur App Store et Google Play</p>
+            </div>
+          </li>
+          <li class="email-step">
+            <div class="email-step-num">2</div>
+            <div class="email-step-body">
+              <p class="email-step-title">Connecte-toi</p>
+              <p class="email-step-desc">Avec ton email <strong>alex@digiflow-agency.fr</strong></p>
+            </div>
+          </li>
+          <li class="email-step">
+            <div class="email-step-num">3</div>
+            <div class="email-step-body">
+              <p class="email-step-title">Active les notifications</p>
+              <p class="email-step-desc">Pour recevoir les pronos en temps réel</p>
+            </div>
+          </li>
+        </ul>
+
+        <div class="email-cta-wrap">
+          <a href="#" class="email-cta">Télécharger l'app →</a>
+          <a href="#" class="email-cta-secondary">Une question ? <a href="#">contact@ajpronos.fr</a></a>
+        </div>
+
+        <p class="email-signoff">
+          <strong>— L'équipe AJ Pronos</strong><br/>
+          Méthode rigoureuse · Transparence ROI · Sans engagement
+        </p>
+
+        <div class="email-footer">
+          <div class="email-footer-links">
+            <a href="#">Site</a> · <a href="#">Mon compte</a> · <a href="#">CGV</a> · <a href="#">Confidentialité</a>
+          </div>
+          <p class="email-footer-disclaimer">
+            <strong>+18 ans uniquement.</strong> Les paris sportifs comportent des risques d'addiction et de pertes financières.<br/>
+            Joueurs Info Service : <a href="tel:0974751313">09 74 75 13 13</a> · <a href="#">joueurs-info-service.fr</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- 2. RAPPEL J-1 FIN ESSAI                                 -->
+  <!-- ====================================================== -->
+  <div class="frame">
+    <div class="frame-label">2 · Rappel J-1 fin d'essai</div>
+    <div class="email-inbox-mock">
+      <span><strong>De</strong> AJ Pronos &lt;contact@ajpronos.fr&gt;</span>
+      <span>Aujourd'hui · 12h05</span>
+    </div>
+    <div class="email-inbox-mock" style="border-top:1px solid #ccc; border-radius: 0;">
+      <span><strong>Objet</strong> · ⏰ Ton essai se termine demain — AJ Pronos</span>
+    </div>
+    <div class="email-content">
+      <div class="email-body">
+        <div class="email-header">
+          <img
+            src="https://ajpronos.fr/aj-pronos-logo-white.png"
+            alt="AJ Pronos"
+            width="56"
+            height="69"
+            style="display:inline-block; width:56px; height:auto;"
+          />
+        </div>
+        <div class="email-eyebrow">— ESSAI GRATUIT</div>
+        <h1 class="email-title">Ton essai se termine <em>demain.</em></h1>
+        <p class="email-lead">
+          Salut Alex ! Tes 7 jours offerts sur le pack <strong>Starter</strong> se terminent dans 24h. À cette date, ton abonnement passera en facturation mensuelle automatique.
+        </p>
+
+        <div class="email-pack-card">
+          <div class="email-pack-eyebrow">FACTURATION DEMAIN</div>
+          <p class="email-pack-name">9,90 €</p>
+          <p class="email-pack-meta">Renouvellement automatique le <strong>18 juin 2026</strong></p>
+        </div>
+
+        <div class="email-warning-card" style="background: #F0FDF4; border-color: #BBF7D0; border-left-color: #16A34A;">
+          <p style="color: #14532D;">
+            <strong>✓ Tu veux continuer ?</strong><br/>
+            Tu n'as <strong>rien à faire</strong>. Les pronos continuent à arriver dans l'app.
+          </p>
+        </div>
+
+        <div class="email-warning-card" style="background: #FAFAF7; border-color: #e5e1d4; border-left-color: #999;">
+          <p style="color: #666;">
+            <strong>✗ Tu veux arrêter ?</strong><br/>
+            Annule en <strong>1 clic</strong> depuis ton espace abonné. Aucune justification demandée.
+          </p>
+        </div>
+
+        <div class="email-cta-wrap">
+          <a href="#" class="email-cta">Gérer mon abonnement →</a>
+          <a href="#" class="email-cta-secondary">Une question ? <a href="#">contact@ajpronos.fr</a></a>
+        </div>
+
+        <p class="email-signoff">
+          <strong>— L'équipe AJ Pronos</strong>
+        </p>
+
+        <div class="email-footer">
+          <div class="email-footer-links">
+            <a href="#">Site</a> · <a href="#">Mon compte</a> · <a href="#">CGV</a> · <a href="#">Confidentialité</a>
+          </div>
+          <p class="email-footer-disclaimer">
+            <strong>+18 ans uniquement.</strong> Les paris sportifs comportent des risques d'addiction et de pertes financières.<br/>
+            Joueurs Info Service : <a href="tel:0974751313">09 74 75 13 13</a> · <a href="#">joueurs-info-service.fr</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- 3. PAIEMENT ÉCHOUÉ                                      -->
+  <!-- ====================================================== -->
+  <div class="frame">
+    <div class="frame-label">3 · Paiement échoué</div>
+    <div class="email-inbox-mock">
+      <span><strong>De</strong> AJ Pronos &lt;contact@ajpronos.fr&gt;</span>
+      <span>Aujourd'hui · 09h47</span>
+    </div>
+    <div class="email-inbox-mock" style="border-top:1px solid #ccc; border-radius: 0;">
+      <span><strong>Objet</strong> · ⚠️ Paiement échoué — ton abonnement AJ Pronos</span>
+    </div>
+    <div class="email-content">
+      <div class="email-body">
+        <div class="email-header danger">
+          <img
+            src="https://ajpronos.fr/aj-pronos-logo-white.png"
+            alt="AJ Pronos"
+            width="56"
+            height="69"
+            style="display:inline-block; width:56px; height:auto;"
+          />
+        </div>
+        <div class="email-eyebrow" style="color: #DC2626;">— PAIEMENT ÉCHOUÉ</div>
+        <h1 class="email-title">Petit souci avec <em>ton paiement.</em></h1>
+        <p class="email-lead">
+          Le prélèvement pour ton abonnement <strong>Starter</strong> n'a pas pu aboutir.
+        </p>
+
+        <div class="email-pack-card">
+          <div class="email-pack-eyebrow">MONTANT</div>
+          <p class="email-pack-name" style="color: #DC2626;">9,90 €</p>
+          <p class="email-pack-meta">Carte se terminant par <strong>•••• 4242</strong></p>
+        </div>
+
+        <p class="email-section-title">CAUSES POSSIBLES</p>
+        <ul class="email-steps">
+          <li class="email-step">
+            <div class="email-step-num" style="background: #DC2626; color: #fff;">•</div>
+            <div class="email-step-body">
+              <p class="email-step-title">Carte expirée</p>
+              <p class="email-step-desc">Mets à jour ton moyen de paiement</p>
+            </div>
+          </li>
+          <li class="email-step">
+            <div class="email-step-num" style="background: #DC2626; color: #fff;">•</div>
+            <div class="email-step-body">
+              <p class="email-step-title">Plafond atteint</p>
+              <p class="email-step-desc">Vérifie ton plafond avec ta banque</p>
+            </div>
+          </li>
+          <li class="email-step">
+            <div class="email-step-num" style="background: #DC2626; color: #fff;">•</div>
+            <div class="email-step-body">
+              <p class="email-step-title">Solde insuffisant</p>
+              <p class="email-step-desc">Réessaie après avoir rechargé</p>
+            </div>
+          </li>
+        </ul>
+
+        <div class="email-warning-card">
+          <p>
+            <strong>⏳ Tu as quelques jours</strong> pour mettre à jour ta carte avant que ton abonnement soit suspendu. On va retenter le prélèvement automatiquement.
+          </p>
+        </div>
+
+        <div class="email-cta-wrap">
+          <a href="#" class="email-cta danger">Mettre à jour ma carte →</a>
+          <a href="#" class="email-cta-secondary">Besoin d'aide ? <a href="#">contact@ajpronos.fr</a></a>
+        </div>
+
+        <p class="email-signoff">
+          <strong>— L'équipe AJ Pronos</strong>
+        </p>
+
+        <div class="email-footer">
+          <div class="email-footer-links">
+            <a href="#">Site</a> · <a href="#">Mon compte</a> · <a href="#">CGV</a> · <a href="#">Confidentialité</a>
+          </div>
+          <p class="email-footer-disclaimer">
+            <strong>+18 ans uniquement.</strong> Les paris sportifs comportent des risques d'addiction et de pertes financières.<br/>
+            Joueurs Info Service : <a href="tel:0974751313">09 74 75 13 13</a> · <a href="#">joueurs-info-service.fr</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- 4. CONFIRMATION D'ANNULATION                            -->
+  <!-- ====================================================== -->
+  <div class="frame">
+    <div class="frame-label">4 · Confirmation d'annulation</div>
+    <div class="email-inbox-mock">
+      <span><strong>De</strong> AJ Pronos &lt;contact@ajpronos.fr&gt;</span>
+      <span>Aujourd'hui · 16h12</span>
+    </div>
+    <div class="email-inbox-mock" style="border-top:1px solid #ccc; border-radius: 0;">
+      <span><strong>Objet</strong> · Ton abonnement AJ Pronos est annulé</span>
+    </div>
+    <div class="email-content">
+      <div class="email-body">
+        <div class="email-header">
+          <img
+            src="https://ajpronos.fr/aj-pronos-logo-white.png"
+            alt="AJ Pronos"
+            width="56"
+            height="69"
+            style="display:inline-block; width:56px; height:auto;"
+          />
+        </div>
+        <div class="email-eyebrow">— ANNULATION CONFIRMÉE</div>
+        <h1 class="email-title">À <em>bientôt,</em><br/>peut-être.</h1>
+        <p class="email-lead">
+          On confirme l'annulation de ton pack <strong>Starter</strong>. Plus aucun prélèvement ne sera effectué.
+        </p>
+
+        <div class="email-pack-card">
+          <div class="email-pack-eyebrow">STATUT</div>
+          <p class="email-pack-name">Annulé</p>
+          <p class="email-pack-meta">Accès jusqu'au <strong>18 juin 2026</strong>, fin de période en cours</p>
+        </div>
+
+        <div class="email-warning-card" style="background: #FAFAF7; border-color: #e5e1d4; border-left-color: #B8941F;">
+          <p style="color: #444;">
+            <strong>Merci de nous avoir fait confiance.</strong><br/>
+            Si tu veux nous dire ce qui n'a pas collé, <a href="#" style="color:#B8941F;">réponds à cet email</a> — chaque retour nous aide à améliorer le service.
+          </p>
+        </div>
+
+        <p class="email-section-title">ÇA T'INTÉRESSERA PEUT-ÊTRE</p>
+        <ul class="email-steps">
+          <li class="email-step">
+            <div class="email-step-num">↻</div>
+            <div class="email-step-body">
+              <p class="email-step-title">Reprendre un abonnement</p>
+              <p class="email-step-desc">Voir nos packs Starter / Pro / VIP</p>
+            </div>
+          </li>
+          <li class="email-step">
+            <div class="email-step-num">📊</div>
+            <div class="email-step-body">
+              <p class="email-step-title">Suivre nos résultats publics</p>
+              <p class="email-step-desc">Gains et pertes affichés en transparence</p>
+            </div>
+          </li>
+        </ul>
+
+        <div class="email-cta-wrap">
+          <a href="#" class="email-cta">Voir les packs →</a>
+          <a href="#" class="email-cta-secondary">Une dernière question ? <a href="#">contact@ajpronos.fr</a></a>
+        </div>
+
+        <p class="email-signoff">
+          <strong>— L'équipe AJ Pronos</strong>
+        </p>
+
+        <div class="email-footer">
+          <div class="email-footer-links">
+            <a href="#">Site</a> · <a href="#">CGV</a> · <a href="#">Confidentialité</a>
+          </div>
+          <p class="email-footer-disclaimer">
+            <strong>+18 ans uniquement.</strong> Les paris sportifs comportent des risques d'addiction et de pertes financières.<br/>
+            Joueurs Info Service : <a href="tel:0974751313">09 74 75 13 13</a> · <a href="#">joueurs-info-service.fr</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="annot">
+  <h2>Différences vs version actuelle</h2>
+  <ul>
+    <li><strong>Header noir avec logo or</strong> au lieu de juste du texte → identité immédiate</li>
+    <li><strong>Eyebrow doré</strong> avant le titre (pattern magazine éditorial)</li>
+    <li><strong>Title XXL avec accent doré sur 1 mot</strong> (style Substack/Linear)</li>
+    <li><strong>Pack card crème</strong> avec liseré or → l'info clé saute aux yeux</li>
+    <li><strong>Listes numérotées en cercles</strong> avec contraste noir/or au lieu de simples bullets</li>
+    <li><strong>Cards de mise en garde colorées</strong> (vert pour OK, jaune pour warning, rouge pour danger)</li>
+    <li><strong>CTA noir avec liseré or</strong> (cohérent avec la DA)</li>
+    <li><strong>Footer crème</strong> avec liens + disclaimer 18+ standardisé</li>
+  </ul>
+  <h2 style="margin-top:18px;">Notes techniques</h2>
+  <ul>
+    <li>Code HTML inline (compatible Gmail / Apple Mail / Outlook)</li>
+    <li>Pas de webfont externe (typo système pour compat max)</li>
+    <li>Pas d'image distante (logo dessiné en CSS — pas de blocage anti-tracking)</li>
+    <li>Largeur fixe 560px, responsive sur mobile</li>
+  </ul>
+</div>
+
+</body>
+</html>

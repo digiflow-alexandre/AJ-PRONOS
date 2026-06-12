@@ -1,8 +1,9 @@
 import { Image } from 'expo-image';
 import { SymbolView } from 'expo-symbols';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Spacing } from '@/constants/theme';
+import { displayTeamName } from '@/lib/team-display-names';
 import {
   getCompetitionColor,
   getCompetitionFlag,
@@ -15,29 +16,52 @@ import type { Prono } from '@/types/prono';
 
 import { ConfidenceDots } from './confidence-dots';
 
+/** Mapping sport + résultat → image background pour la card (ballon
+ *  vert/rouge selon sport et résultat). Utilisé partout dans l'app
+ *  pour les cards de paris résolus. Pour 'void', pas d'image. */
+function getResolvedBg(sport: Prono['sport'], result: 'win' | 'loss') {
+  if (sport === 'tennis') {
+    return result === 'win'
+      ? require('@/assets/images/bg-card-won-tennis.png')
+      : require('@/assets/images/bg-card-lost-tennis.png');
+  }
+  return result === 'win'
+    ? require('@/assets/images/bg-card-won.png')
+    : require('@/assets/images/bg-card-lost.png');
+}
+
+/** Bg pour les pronos EN COURS (pending/live) — image dorée sport
+ *  spécifique. Permet de distinguer visuellement un pari à venir d'un
+ *  pari résolu, et de tagger le sport au premier coup d'œil. */
+function getPendingBg(sport: Prono['sport']) {
+  return sport === 'tennis'
+    ? require('@/assets/images/bg-card-pending-tennis.png')
+    : require('@/assets/images/bg-card-pending-foot.png');
+}
+
 const TIER_LABEL: Record<Prono['minTier'], string> = {
   starter: 'STARTER',
   pro: 'PRO',
   vip: 'VIP',
 };
 
-// Teintes pastel pour les cards résolues — compatibles DA crème.
-// pending et live ne sont pas mappés ici (la card reste en bg crème standard).
+// Teintes dark pour les cards résolues — refonte DA 2026-06-04 (dark mode).
+// Les bg sont en rgba pour rester lisibles avec le texte crème par-dessus.
 const RESULT_STYLE = {
   win: {
-    bg: '#ECFDF5',
+    bg: 'rgba(16, 185, 129, 0.10)',
     border: '#10B981',
     badgeBg: '#10B981',
     label: 'GAGNÉ',
   },
   loss: {
-    bg: '#FEF2F2',
+    bg: 'rgba(239, 68, 68, 0.10)',
     border: '#EF4444',
     badgeBg: '#EF4444',
     label: 'PERDU',
   },
   void: {
-    bg: '#F5F5F4',
+    bg: 'rgba(168, 162, 158, 0.10)',
     border: '#A8A29E',
     badgeBg: '#A8A29E',
     label: 'ANNULÉ',
@@ -63,6 +87,15 @@ export function PronoCard({ prono, hasAccess, onPress }: Props) {
   const c = useThemeColors();
   const resultStyle = getResolvedStyle(prono.result);
   const isResolved = resultStyle !== null;
+  // Image bg : win/loss → image résultat (ballon vert/rouge),
+  // pending/live → image "en cours" (ballon doré sport spécifique).
+  // void → pas d'image (sobre).
+  const resultBgImage =
+    prono.result === 'win' || prono.result === 'loss'
+      ? getResolvedBg(prono.sport, prono.result)
+      : prono.result === 'pending' || prono.result === 'live'
+        ? getPendingBg(prono.sport)
+        : null;
 
   const sportSymbol = getSportSymbol(prono.sport);
   const flagUrl = getCompetitionFlag(prono.competition);
@@ -77,19 +110,128 @@ export function PronoCard({ prono, hasAccess, onPress }: Props) {
       <Pressable
         onPress={onPress}
         style={({ pressed }) => [
-          styles.card,
+          styles.cardWrap,
           {
-            backgroundColor: resultStyle ? resultStyle.bg : c.bgElevated,
             borderColor: resultStyle ? resultStyle.border : 'transparent',
             borderWidth: resultStyle ? 1.5 : 0,
             opacity: pressed ? 0.97 : 1,
           },
         ]}>
-      {/* Badge résultat en haut à droite (si résolu) */}
+      {resultBgImage ? (
+        <ImageBackground
+          source={resultBgImage}
+          style={styles.cardBgWrap}
+          imageStyle={styles.cardBgImg}>
+          <View style={styles.cardBgOverlay} pointerEvents="none" />
+          <CardContent
+            prono={prono}
+            hasAccess={hasAccess}
+            onPress={onPress}
+            resultStyle={resultStyle}
+            sportSymbol={sportSymbol}
+            flagUrl={flagUrl ?? undefined}
+            hideTopBadges
+          />
+        </ImageBackground>
+      ) : (
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: resultStyle ? resultStyle.bg : c.bgElevated,
+            },
+          ]}>
+          <CardContent
+            prono={prono}
+            hasAccess={hasAccess}
+            onPress={onPress}
+            resultStyle={resultStyle}
+            sportSymbol={sportSymbol}
+            flagUrl={flagUrl ?? undefined}
+            hideTopBadges
+          />
+        </View>
+      )}
+      {/* Badges qui dépassent en haut — rendus EN DEHORS du cardBgWrap
+          (qui a overflow:hidden pour clipper l'image bg), ici ils sont
+          dans cardWrap qui a overflow:visible. */}
       {resultStyle ? (
+        <View
+          style={[styles.resultBadge, { backgroundColor: resultStyle.badgeBg }]}
+          pointerEvents="none">
+          <Text style={styles.resultBadgeText}>{resultStyle.label}</Text>
+        </View>
+      ) : null}
+      {prono.bookmakerScreenshotUrl ? (
+        <View
+          style={[
+            styles.ticketBadge,
+            { backgroundColor: c.bgWarm, borderColor: c.goldDecorative },
+          ]}
+          pointerEvents="none">
+          <SymbolView
+            name="doc.text.image"
+            size={10}
+            tintColor={c.gold}
+            weight="semibold"
+          />
+          <Text style={[styles.ticketBadgeText, { color: c.gold }]}>
+            Ticket réel
+          </Text>
+        </View>
+      ) : null}
+      </Pressable>
+    </View>
+  );
+}
+
+function CardContent({
+  prono,
+  hasAccess,
+  onPress,
+  resultStyle,
+  sportSymbol,
+  flagUrl,
+  hideTopBadges,
+}: {
+  prono: Prono;
+  hasAccess: boolean;
+  onPress: () => void;
+  resultStyle: ReturnType<typeof getResolvedStyle>;
+  sportSymbol: string;
+  flagUrl?: string;
+  /** Si true, on ne rend pas les badges en haut (gérés en dehors par le
+   *  composant parent pour pas se faire clipper par overflow:hidden). */
+  hideTopBadges?: boolean;
+}) {
+  const c = useThemeColors();
+  const isResolved = resultStyle !== null;
+  return (
+    <>
+      {/* Badge résultat en haut à droite (si résolu) — sauf si hideTopBadges */}
+      {resultStyle && !hideTopBadges ? (
         <View
           style={[styles.resultBadge, { backgroundColor: resultStyle.badgeBg }]}>
           <Text style={styles.resultBadgeText}>{resultStyle.label}</Text>
+        </View>
+      ) : null}
+
+      {/* Badge "ticket dispo" en haut à gauche (preuve bookmaker) */}
+      {prono.bookmakerScreenshotUrl && !hideTopBadges ? (
+        <View
+          style={[
+            styles.ticketBadge,
+            { backgroundColor: c.bgWarm, borderColor: c.goldDecorative },
+          ]}>
+          <SymbolView
+            name="doc.text.image"
+            size={10}
+            tintColor={c.gold}
+            weight="semibold"
+          />
+          <Text style={[styles.ticketBadgeText, { color: c.gold }]}>
+            Ticket réel
+          </Text>
         </View>
       ) : null}
 
@@ -135,7 +277,7 @@ export function PronoCard({ prono, hasAccess, onPress }: Props) {
         </View>
         <Text style={[styles.hour, { color: c.text }]}>
           {isResolved && prono.finalScore
-            ? prono.finalScore
+            ? prono.finalScore.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim()
             : formatHour(prono.matchStartAt)}
         </Text>
       </View>
@@ -143,7 +285,7 @@ export function PronoCard({ prono, hasAccess, onPress }: Props) {
       {/* ====== TEAMS ====== */}
       <View style={styles.teamsRow}>
         <Team
-          name={prono.teamHome}
+          name={displayTeamName(prono.teamHome)}
           logo={prono.teamHomeLogo}
           align="left"
         />
@@ -151,7 +293,7 @@ export function PronoCard({ prono, hasAccess, onPress }: Props) {
           <Text style={[styles.vsText, { color: c.textMuted }]}>VS</Text>
         </View>
         <Team
-          name={prono.teamAway}
+          name={displayTeamName(prono.teamAway)}
           logo={prono.teamAwayLogo}
           align="right"
         />
@@ -176,14 +318,22 @@ export function PronoCard({ prono, hasAccess, onPress }: Props) {
                 styles.oddBlock,
                 { backgroundColor: c.bgDeeper, borderColor: c.borderFaint },
               ]}>
-              <Text style={[styles.oddLabel, { color: c.textDim }]}>COTE</Text>
+              <Text
+                style={[
+                  styles.oddLabel,
+                  // Sur card résolue avec image bg, on a un overlay sombre :
+                  // muted serait illisible → on force text (crème) pour contraste.
+                  { color: isResolved ? c.text : c.textDim },
+                ]}>
+                COTE
+              </Text>
               <Text style={[styles.oddValue, { color: c.text }]}>
                 {prono.odd.toFixed(2)}
               </Text>
             </View>
           </View>
 
-          <ConfidenceDots value={prono.confidence} />
+          <ConfidenceDots value={prono.confidence} onDarkBg={isResolved} />
         </View>
       ) : (
         <LockedBody minTier={prono.minTier} onPress={onPress} />
@@ -207,8 +357,7 @@ export function PronoCard({ prono, hasAccess, onPress }: Props) {
           weight="semibold"
         />
       </View>
-      </Pressable>
-    </View>
+    </>
   );
 }
 
@@ -333,11 +482,38 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 3,
   },
-  card: {
+  cardWrap: {
     borderRadius: 15, // = outerRadius (18) - padding (3) pour fit nickel
+    // overflow visible pour que le badge "GAGNÉ" qui dépasse en haut
+    // reste affiché. L'ImageBackground a son propre borderRadius sur
+    // imageStyle pour clipper l'image au coin arrondi.
+    overflow: 'visible',
+    position: 'relative',
+  },
+  card: {
+    borderRadius: 15,
     padding: Spacing.three,
     gap: Spacing.three,
     position: 'relative',
+  },
+  cardBgWrap: {
+    borderRadius: 15,
+    padding: Spacing.three,
+    gap: Spacing.three,
+    overflow: 'hidden',
+  },
+  cardBgImg: {
+    borderRadius: 15,
+    resizeMode: 'cover',
+  },
+  cardBgOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    // Overlay sombre fort pour la lisibilité du texte par-dessus le ballon coloré.
+    backgroundColor: 'rgba(10,10,10,0.65)',
   },
   resultBadge: {
     position: 'absolute',
@@ -353,6 +529,25 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.2,
+  },
+  // — Badge ticket bookmaker —
+  ticketBadge: {
+    position: 'absolute',
+    top: -8,
+    left: Spacing.three,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+    zIndex: 10,
+  },
+  ticketBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6,
   },
   // — Top strip —
   topStrip: {

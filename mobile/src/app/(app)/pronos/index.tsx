@@ -1,3 +1,4 @@
+import { Image as ExpoImage } from 'expo-image';
 import { SymbolView } from 'expo-symbols';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -8,9 +9,10 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BrandHeader } from '@/components/brand-header';
 import { ComboBetCard } from '@/components/combo-bet-card';
+import { HomeStickyTopBar } from '@/components/home-hero';
 import {
   MonthPickerSheet,
   monthKeyFromDate,
@@ -18,11 +20,11 @@ import {
 import { PronoCard } from '@/components/prono-card';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { getMaxHistoryDays } from '@/lib/competition-meta';
-import { ALL_BETS } from '@/lib/fixtures';
+import { useAllBets } from '@/lib/use-all-bets';
 import { formatLongDate } from '@/lib/format-date';
 import { useProfile } from '@/lib/use-profile';
 import { useThemeColors } from '@/lib/use-theme-colors';
-import { getBetStartDate } from '@/types/prono';
+import { getBetActiveDates, getBetStartDate } from '@/types/prono';
 import type { AnyBet, ComboBet, Prono, PronoResult, Sport } from '@/types/prono';
 
 const MONTHS_FR_SHORT = [
@@ -67,7 +69,9 @@ const CHIP_WIDTH_PX = 96;
 export default function PronosScreen() {
   const c = useThemeColors();
   const router = useRouter();
-  const { profile, isTrialActive, canAccess } = useProfile();
+  const insets = useSafeAreaInsets();
+  const { profile, isTrialActive, canAccess, isStaff } = useProfile();
+  const { bets: ALL_BETS } = useAllBets();
   const [sport, setSport] = useState<SportFilter>('all');
   const [status, setStatus] = useState<StatusFilter>('all');
   const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
@@ -77,7 +81,11 @@ export default function PronosScreen() {
   const didInitialScrollRef = useRef(false);
 
   // Gating historique par tier : Starter 7j, Pro 30j, VIP/trial illimité.
-  const maxHistoryDays = getMaxHistoryDays(profile?.tier ?? null, isTrialActive);
+  // Staff (admin/validator) → accès illimité à tout l'historique pour
+  // pouvoir vérifier la publication de leurs pronos.
+  const maxHistoryDays = isStaff
+    ? Infinity
+    : getMaxHistoryDays(profile?.tier ?? null, isTrialActive);
 
   // Filtre par sport + cap historique par pack (utilisé pour les paris dispo).
   const allowedBets = useMemo(() => {
@@ -95,7 +103,7 @@ export default function PronosScreen() {
       d.setHours(0, 0, 0, 0);
       return d.getTime() >= oldestAllowed;
     });
-  }, [sport, maxHistoryDays]);
+  }, [sport, maxHistoryDays, ALL_BETS]);
 
   // Mois unique disponible le plus récent (utilisé par défaut)
   const availableMonthKeys = useMemo(() => {
@@ -111,6 +119,12 @@ export default function PronosScreen() {
   const { dateBuckets, betsByDate } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    // Comparaison par chaîne YYYY-MM-DD en LOCAL pour éviter les pièges
+    // de timezone (un bucket stocké en ISO UTC peut donner un timestamp
+    // différent de today.getTime() même si c'est "le même jour local").
+    const dayKey = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const todayKey = dayKey(today);
 
     // Si pas de mois sélectionné, on prend le plus récent disponible
     const targetMonth = selectedMonthKey ?? availableMonthKeys[0];
@@ -118,17 +132,30 @@ export default function PronosScreen() {
       return { dateBuckets: [] as DateBucket[], betsByDate: new Map<string, AnyBet[]>() };
     }
 
-    const monthBets = allowedBets.filter(
-      (b) => monthKeyFromDate(new Date(getBetStartDate(b))) === targetMonth,
+    // Garde-fou : un pari (single OU combo) peut "appartenir" au mois si
+    // au moins une de ses dates actives tombe dedans. Pour un combo étalé
+    // sur 2 mois (rare), on l'inclut dans les 2.
+    const monthBets = allowedBets.filter((b) =>
+      getBetActiveDates(b).some(
+        (day) => monthKeyFromDate(new Date(day)) === targetMonth,
+      ),
     );
 
+    // Bucketing par jour : un combo apparaît dans CHAQUE jour où il a
+    // un match (option A — Alex 2026-06-05). Pour un single = 1 bucket.
     const byDate = new Map<string, AnyBet[]>();
     monthBets.forEach((b) => {
-      const d = new Date(getBetStartDate(b));
-      d.setHours(0, 0, 0, 0);
-      const key = d.toISOString();
-      if (!byDate.has(key)) byDate.set(key, []);
-      byDate.get(key)!.push(b);
+      for (const day of getBetActiveDates(b)) {
+        const d = new Date(day);
+        d.setHours(0, 0, 0, 0);
+        if (monthKeyFromDate(d) !== targetMonth) continue;
+        const key = d.toISOString();
+        if (!byDate.has(key)) byDate.set(key, []);
+        // Dédup au cas où (un combo avec 2 matchs le même jour =
+        // 1 seule date dans getBetActiveDates donc safe par construction).
+        const list = byDate.get(key)!;
+        if (!list.some((x) => x.id === b.id)) list.push(b);
+      }
     });
 
     byDate.forEach((list) =>
@@ -147,7 +174,7 @@ export default function PronosScreen() {
           iso,
           short: shortDateLabel(d),
           long: formatLongDate(d.toISOString()),
-          isToday: d.getTime() === today.getTime(),
+          isToday: dayKey(d) === todayKey,
           count: byDate.get(iso)!.length,
         };
       });
@@ -213,7 +240,7 @@ export default function PronosScreen() {
     const foot = ALL_BETS.filter((b) => betHasSport(b, 'foot')).length;
     const tennis = ALL_BETS.filter((b) => betHasSport(b, 'tennis')).length;
     return { all, foot, tennis };
-  }, []);
+  }, [ALL_BETS]);
 
   const selectedBucket = dateBuckets.find((b) => b.iso === selectedDate);
   const allBetsOfDay = useMemo(
@@ -254,14 +281,19 @@ export default function PronosScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: c.bg }]}>
-      <BrandHeader />
+      {/* Background : même image que Stats/Carnet (rayures dorées) */}
+      <ExpoImage
+        source={require('@/assets/images/bg-stats.png')}
+        style={styles.bgImage}
+        contentFit="cover"
+      />
+      <View style={styles.bgOverlay} pointerEvents="none" />
 
-      {/* Tabs sport (icônes + count) */}
-      <View
-        style={[
-          styles.sportBar,
-          { backgroundColor: c.bg, borderBottomColor: c.borderFaint },
-        ]}>
+      {/* Spacer pour décaler sous la sticky bar */}
+      <View style={{ height: insets.top + 60 }} />
+
+      {/* Cards sport sélecteur (Total / Football / Tennis) */}
+      <View style={styles.sportBar}>
         {SPORT_TABS.map((t) => {
           const count =
             t.value === 'all'
@@ -269,10 +301,17 @@ export default function PronosScreen() {
               : t.value === 'foot'
                 ? countsBySport.foot
                 : countsBySport.tennis;
+          const label =
+            t.value === 'all'
+              ? 'TOTAL'
+              : t.value === 'foot'
+                ? 'FOOTBALL'
+                : 'TENNIS';
           return (
             <SportTab
               key={t.value}
               symbol={t.symbol}
+              label={label}
               aria={t.aria}
               count={count}
               active={sport === t.value}
@@ -439,6 +478,11 @@ export default function PronosScreen() {
         }}
         onClose={() => setMonthPickerOpen(false)}
       />
+
+      {/* Sticky top bar (logo + cloche + profil) toujours visible */}
+      <View style={styles.stickyBarWrap} pointerEvents="box-none">
+        <HomeStickyTopBar />
+      </View>
     </View>
   );
 }
@@ -457,32 +501,30 @@ function StatusChip({
   color?: string;
 }) {
   const c = useThemeColors();
-  const accent = color ?? c.text;
+  // Pill border doré par défaut. Si color (Live/Gagnés/Perdus), border colorée.
+  const borderActive = color ?? c.gold;
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
         styles.statusChip,
-        active && {
-          backgroundColor: accent,
+        {
+          borderColor: active ? borderActive : c.borderSoft,
+          backgroundColor: active ? 'rgba(232,201,90,0.10)' : 'transparent',
+          opacity: pressed ? 0.7 : 1,
         },
-        !active && { borderColor: c.borderSoft },
-        { opacity: pressed ? 0.7 : 1 },
       ]}>
       <Text
         style={[
           styles.statusChipText,
-          { color: active ? '#FFFFFF' : c.textMuted },
+          { color: active ? (color ?? c.text) : c.textMuted },
         ]}>
         {label}
       </Text>
       <Text
         style={[
           styles.statusChipCount,
-          {
-            color: active ? '#FFFFFF' : accent,
-            opacity: active ? 0.9 : 1,
-          },
+          { color: active ? (color ?? c.gold) : c.textMuted },
         ]}>
         {count}
       </Text>
@@ -492,12 +534,14 @@ function StatusChip({
 
 function SportTab({
   symbol,
+  label,
   aria,
   count,
   active,
   onPress,
 }: {
   symbol: string;
+  label: string;
   aria: string;
   count: number;
   active: boolean;
@@ -509,38 +553,59 @@ function SportTab({
       onPress={onPress}
       accessibilityLabel={`${aria} (${count} pronos)`}
       style={({ pressed }) => [
-        styles.sportTab,
-        active && { backgroundColor: c.text },
-        { opacity: pressed ? 0.7 : 1 },
+        styles.sportCard,
+        {
+          backgroundColor: c.bgElevated,
+          borderColor: active ? c.gold : c.borderSoft,
+          opacity: pressed ? 0.7 : 1,
+        },
+        active && {
+          shadowColor: c.gold,
+          shadowOpacity: 0.3,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 0 },
+          elevation: 4,
+        },
       ]}>
-      {/* Pour tennis : on encapsule l'icône dans un mini cercle noir
-          pour que le jaune fluo ressorte sur le fond crème. */}
-      {symbol === 'tennisball' ? (
-        <View style={styles.tennisBg}>
+      <View style={styles.sportCardLeft}>
+        {symbol === 'tennisball' ? (
           <SymbolView
             name={symbol as never}
-            size={14}
+            size={18}
             tintColor="#D4FF00"
             weight="bold"
           />
-        </View>
-      ) : (
-        <SymbolView
-          name={symbol as never}
-          size={18}
-          {...(symbol === 'soccerball'
-            ? { type: 'multicolor' as const }
-            : { tintColor: active ? c.ctaText : c.textMuted })}
-          weight="bold"
-        />
-      )}
-      <Text
-        style={[
-          styles.sportCount,
-          { color: active ? c.ctaText : c.textMuted },
-        ]}>
-        {count}
-      </Text>
+        ) : symbol === 'soccerball' ? (
+          <SymbolView
+            name={symbol as never}
+            size={18}
+            type="multicolor"
+            tintColor="#1E88E5"
+            weight="bold"
+          />
+        ) : (
+          <SymbolView
+            name={symbol as never}
+            size={16}
+            tintColor={c.gold}
+            weight="bold"
+          />
+        )}
+      </View>
+      <View style={styles.sportCardRight}>
+        <Text
+          style={[styles.sportCardCount, { color: c.text }]}
+          numberOfLines={1}>
+          {count}
+        </Text>
+        <Text
+          style={[styles.sportCardLabel, { color: c.textMuted }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}>
+          {label}
+        </Text>
+      </View>
     </Pressable>
   );
 }
@@ -617,32 +682,66 @@ function shortDateLabel(d: Date): string {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+  bgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  bgOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(10,10,10,0.55)',
+  },
+  stickyBarWrap: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+  },
   sportBar: {
     flexDirection: 'row',
     paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    gap: Spacing.two,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: Spacing.three,
+    gap: 10,
   },
-  sportTab: {
+  sportCard: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1.5,
   },
-  sportCount: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  tennisBg: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#0A0A0A',
+  sportCardLeft: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(232,201,90,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  sportCardRight: {
+    flex: 1,
+    gap: 1,
+  },
+  sportCardCount: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    lineHeight: 20,
+  },
+  sportCardLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
   },
   monthPickerBar: {
     flexDirection: 'row',
@@ -733,7 +832,7 @@ const styles = StyleSheet.create({
   scroll: {
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.four,
-    paddingBottom: BottomTabInset + Spacing.five,
+    paddingBottom: BottomTabInset + Spacing.five + 60,
     gap: Spacing.three,
   },
   sectionHead: {

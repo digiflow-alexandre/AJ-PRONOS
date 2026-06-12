@@ -1,7 +1,8 @@
-import { Image } from 'expo-image';
+import { Image, Image as ExpoImage } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
+import { ImageBackground } from 'react-native';
 import {
   Pressable,
   ScrollView,
@@ -15,7 +16,13 @@ import { BrandedButton } from '@/components/branded-button';
 import { ComboBetDetail } from '@/components/combo-bet-detail';
 import { ConfidenceDots } from '@/components/confidence-dots';
 import { FormPills } from '@/components/form-pills';
+import { MarkAsPlayedSheet } from '@/components/mark-as-played-sheet';
 import { StatsCenterSheet } from '@/components/stats-center-sheet';
+import { TennisScoreBoard } from '@/components/tennis-score-board';
+import { useTeamStatsEnrichment } from '@/lib/use-team-stats-enrichment';
+import { useStatSummary } from '@/lib/use-stat-summary';
+import { StatSummaryBlock } from '@/components/stat-summary-block';
+import { displayTeamName } from '@/lib/team-display-names';
 import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import {
   getCompetitionColor,
@@ -23,11 +30,12 @@ import {
   getSportSymbol,
   SPORT_COLOR,
 } from '@/lib/competition-meta';
-import { ALL_BETS } from '@/lib/fixtures';
+import { useAllBets } from '@/lib/use-all-bets';
 import { formatHour, formatLongDate } from '@/lib/format-date';
 import { useProfile } from '@/lib/use-profile';
+import { useUserBets } from '@/lib/use-user-bets';
 import { useThemeColors } from '@/lib/use-theme-colors';
-import type { Prono } from '@/types/prono';
+import type { AnyBet, Prono } from '@/types/prono';
 
 const RESULT_TINT = {
   win: { bg: '#ECFDF5', accent: '#10B981', label: 'PARI GAGNÉ' },
@@ -41,9 +49,52 @@ export default function PronoDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isLoading, canAccess } = useProfile();
+  const { playedBetIds, unmarkBet } = useUserBets();
+  const { bets: ALL_BETS, isLoading: betsLoading } = useAllBets();
   const [statsOpen, setStatsOpen] = useState(false);
+  const [markSheetOpen, setMarkSheetOpen] = useState(false);
+  const [markedBet, setMarkedBet] = useState<AnyBet | null>(null);
+  // Ratio dynamique du ticket bookmaker (détecté à onLoad de l'image)
+  const [ticketRatio, setTicketRatio] = useState<number | null>(null);
 
   const bet = ALL_BETS.find((b) => b.id === id);
+
+  // ⚠️ Tous les hooks DOIVENT être appelés ici, AVANT les early returns,
+  // sinon React crash "Rendered more hooks than during the previous
+  // render" (le compteur de hooks doit être stable entre renders).
+  // Pour les combos, on passe sport=undefined → le hook no-op.
+  const singleBet = bet && bet.type === 'single' ? bet : null;
+  const enrichment = useTeamStatsEnrichment(
+    singleBet?.competition,
+    singleBet?.teamHome,
+    singleBet?.teamAway,
+    singleBet?.sport,
+  );
+  // Résumé statistique factuel auto-généré (foot uniquement)
+  const statSummary = useStatSummary(
+    singleBet?.sport,
+    singleBet?.competition,
+    singleBet?.teamHome,
+    singleBet?.teamAway,
+    singleBet?.result,
+    singleBet?.finalScore,
+    singleBet?.prediction,
+  );
+
+  function openMarkSheet(b: AnyBet) {
+    setMarkedBet(b);
+    setMarkSheetOpen(true);
+  }
+  async function onUnmark(betId: string) {
+    await unmarkBet(betId);
+  }
+
+  // Pendant que les bets se chargent (1er fetch ou re-fetch realtime),
+  // on n'affiche PAS "n'existe plus" : ça flash 1s puis bascule sur la
+  // vraie fiche dès que ALL_BETS est rempli. → écran neutre.
+  if (!bet && betsLoading) {
+    return <View style={[styles.screen, { backgroundColor: c.bg }]} />;
+  }
 
   if (!bet) {
     return (
@@ -82,7 +133,21 @@ export default function PronoDetailScreen() {
   }
 
   // bet.type === 'single' à partir d'ici
-  const prono = bet;
+  const rawProno = bet;
+
+  // Auto-enrichissement : pour les paris foot publiés à la main par Julien
+  // sans MatchPicker, on lookup team_stats pour récupérer position, forme
+  // et logo des 2 équipes (le hook est appelé tout en haut du composant).
+  const prono = {
+    ...rawProno,
+    teamHomeLogo: rawProno.teamHomeLogo ?? enrichment.homeLogo,
+    teamAwayLogo: rawProno.teamAwayLogo ?? enrichment.awayLogo,
+    teamHomeForm: rawProno.teamHomeForm ?? enrichment.teamHomeForm,
+    teamAwayForm: rawProno.teamAwayForm ?? enrichment.teamAwayForm,
+  };
+  // Positions live extraites de team_stats (overrident prono.stats si présentes).
+  const homePos = enrichment.homePosition ?? prono.stats?.homePosition;
+  const awayPos = enrichment.awayPosition ?? prono.stats?.awayPosition;
 
   if (!hasAccess) {
     return (
@@ -104,8 +169,24 @@ export default function PronoDetailScreen() {
   const flagUrl = getCompetitionFlag(prono.competition);
   const sportSymbol = getSportSymbol(prono.sport);
 
+  // Bg de la card hero : image stade adaptée au sport (foot ou tennis).
+  const heroBg =
+    prono.sport === 'foot'
+      ? require('@/assets/images/bg-detail-foot.png')
+      : prono.sport === 'tennis'
+        ? require('@/assets/images/bg-detail-tennis.png')
+        : null;
+
   return (
     <View style={[styles.screen, { backgroundColor: c.bg }]}>
+      {/* BG page : rayures dorées (même image que Stats/Carnet) */}
+      <ExpoImage
+        source={require('@/assets/images/bg-stats.png')}
+        style={styles.pageBgImage}
+        contentFit="cover"
+      />
+      <View style={styles.pageBgOverlay} pointerEvents="none" />
+
       <BackHeader onBack={() => router.back()} />
 
       <ScrollView
@@ -121,6 +202,17 @@ export default function PronoDetailScreen() {
             { backgroundColor: competitionColor, shadowColor: '#0A0A0A' },
           ]}>
           <View style={[styles.hero, { backgroundColor: c.bgElevated }]}>
+            {/* BG image stade (uniquement foot pour l'instant) */}
+            {heroBg ? (
+              <>
+                <ExpoImage
+                  source={heroBg}
+                  style={styles.heroBgImage}
+                  contentFit="cover"
+                />
+                <View style={styles.heroBgOverlay} pointerEvents="none" />
+              </>
+            ) : null}
             {resultTint ? (
               <View
                 style={[
@@ -194,16 +286,18 @@ export default function PronoDetailScreen() {
                 <Text
                   style={[styles.teamNameBig, { color: c.text }]}
                   numberOfLines={2}>
-                  {prono.teamHome}
+                  {displayTeamName(prono.teamHome)}
                 </Text>
-                {prono.teamHomeForm ? (
+                {prono.teamHomeForm || homePos !== undefined ? (
                   <View style={styles.teamMeta}>
-                    <FormPills form={prono.teamHomeForm} size={13} />
-                    {prono.stats ? (
+                    {prono.teamHomeForm ? (
+                      <FormPills form={prono.teamHomeForm} size={13} />
+                    ) : null}
+                    {homePos !== undefined ? (
                       <View
                         style={[styles.posBadge, { borderColor: c.borderSoft }]}>
                         <Text style={[styles.posBadgeText, { color: c.text }]}>
-                          #{prono.stats.homePosition}
+                          #{homePos}
                         </Text>
                       </View>
                     ) : null}
@@ -213,9 +307,64 @@ export default function PronoDetailScreen() {
 
               <View style={styles.middleCol}>
                 {isResolved && prono.finalScore ? (
-                  <Text style={[styles.score, { color: c.text }]}>
-                    {prono.finalScore.split(/\d.*\d/)[0]?.trim()}
-                  </Text>
+                  <>
+                    <Text style={[styles.heroDate, { color: c.textDim }]}>
+                      {formatLongDate(prono.matchStartAt)}
+                    </Text>
+                    {/* Pour le tennis, on n'affiche PAS le score ici :
+                        le TennisScoreBoard en bas le montre déjà en détail
+                        avec les sets + tiebreaks. Doublon visuel évité. */}
+                    {prono.sport !== 'tennis' ? (
+                      <Text style={[styles.score, { color: c.text }]}>
+                        {prono.finalScore.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim()}
+                      </Text>
+                    ) : null}
+                    <Text
+                      style={[
+                        styles.heroResult,
+                        {
+                          color:
+                            prono.result === 'win'
+                              ? c.success
+                              : prono.result === 'loss'
+                                ? c.danger
+                                : c.textMuted,
+                        },
+                      ]}>
+                      {prono.result === 'win'
+                        ? '✓ GAGNÉ'
+                        : prono.result === 'loss'
+                          ? '✗ PERDU'
+                          : '— ANNULÉ'}
+                    </Text>
+                  </>
+                ) : isResolved ? (
+                  // Pari résolu sans score renseigné : on remplace l'heure
+                  // (qui n'a aucun sens, le match est passé) par un badge
+                  // de résultat cohérent avec le bandeau du haut.
+                  <>
+                    <Text style={[styles.heroDate, { color: c.textDim }]}>
+                      {formatLongDate(prono.matchStartAt)}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.heroResult,
+                        {
+                          color:
+                            prono.result === 'win'
+                              ? c.success
+                              : prono.result === 'loss'
+                                ? c.danger
+                                : c.textMuted,
+                        },
+                      ]}>
+                      {prono.result === 'win'
+                        ? '✓ GAGNÉ'
+                        : prono.result === 'loss'
+                          ? '✗ PERDU'
+                          : '— ANNULÉ'}
+                    </Text>
+                  </>
                 ) : (
                   <>
                     <Text style={[styles.heroDate, { color: c.textDim }]}>
@@ -241,16 +390,18 @@ export default function PronoDetailScreen() {
                 <Text
                   style={[styles.teamNameBig, { color: c.text }]}
                   numberOfLines={2}>
-                  {prono.teamAway}
+                  {displayTeamName(prono.teamAway)}
                 </Text>
-                {prono.teamAwayForm ? (
+                {prono.teamAwayForm || awayPos !== undefined ? (
                   <View style={styles.teamMeta}>
-                    <FormPills form={prono.teamAwayForm} size={13} />
-                    {prono.stats ? (
+                    {prono.teamAwayForm ? (
+                      <FormPills form={prono.teamAwayForm} size={13} />
+                    ) : null}
+                    {awayPos !== undefined ? (
                       <View
                         style={[styles.posBadge, { borderColor: c.borderSoft }]}>
                         <Text style={[styles.posBadgeText, { color: c.text }]}>
-                          #{prono.stats.awayPosition}
+                          #{awayPos}
                         </Text>
                       </View>
                     ) : null}
@@ -260,12 +411,23 @@ export default function PronoDetailScreen() {
             </View>
 
             {isResolved && prono.finalScore ? (
-              <View
-                style={[styles.scoreLine, { backgroundColor: c.bgDeeper }]}>
-                <Text style={[styles.scoreLineText, { color: c.text }]}>
-                  Score final · {prono.finalScore}
-                </Text>
-              </View>
+              prono.sport === 'tennis' ? (
+                <View
+                  style={[styles.tennisBoardWrap, { backgroundColor: c.bgDeeper }]}>
+                  <TennisScoreBoard
+                    home={{ name: displayTeamName(prono.teamHome) }}
+                    away={{ name: displayTeamName(prono.teamAway) }}
+                    score={prono.finalScore}
+                  />
+                </View>
+              ) : (
+                <View
+                  style={[styles.scoreLine, { backgroundColor: c.bgDeeper }]}>
+                  <Text style={[styles.scoreLineText, { color: c.text }]}>
+                    Score final · {prono.finalScore.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim()}
+                  </Text>
+                </View>
+              )
             ) : null}
 
             {/* Bouton stats center */}
@@ -303,17 +465,29 @@ export default function PronoDetailScreen() {
           <View
             style={[
               styles.predictionCard,
-              { backgroundColor: c.bgElevated, borderColor: c.borderFaint },
+              {
+                backgroundColor: c.bgElevated,
+                borderColor: c.gold,
+                shadowColor: c.gold,
+              },
             ]}>
             <Text style={[styles.predictionText, { color: c.text }]}>
               {prono.prediction}
             </Text>
             <View style={styles.predictionMeta}>
-              <View style={styles.oddPill}>
-                <Text style={[styles.oddPillLabel, { color: c.textDim }]}>
+              <View
+                style={[
+                  styles.oddPill,
+                  {
+                    backgroundColor: c.bgElevated,
+                    borderColor: c.gold,
+                    borderWidth: 1.2,
+                  },
+                ]}>
+                <Text style={[styles.oddPillLabel, { color: c.gold }]}>
                   COTE
                 </Text>
-                <Text style={[styles.oddPillValue, { color: c.text }]}>
+                <Text style={[styles.oddPillValue, { color: c.gold }]}>
                   {prono.odd.toFixed(2)}
                 </Text>
               </View>
@@ -335,19 +509,76 @@ export default function PronoDetailScreen() {
           </Text>
         </Section>
 
-        {/* ============ CTA carnet personnel (P2) ============ */}
+        {/* ============ RÉSUMÉ STATISTIQUE (factuel, auto) ============
+            S'affiche uniquement si on a des stats suffisantes en DB.
+            Label "RÉSUMÉ STATISTIQUE" pour ne JAMAIS être confondu avec
+            l'analyse de Julien (transparence éthique). */}
+        {statSummary.text ? (
+          <Section title="STATS DU MATCH">
+            <StatSummaryBlock text={statSummary.text} />
+          </Section>
+        ) : null}
+
+        {/* ============ TICKET DU BOOKMAKER (preuve réelle) ============ */}
+        {prono.bookmakerScreenshotUrl ? (
+          <Section
+            title={
+              prono.bookmakerName
+                ? `TICKET RÉEL · ${prono.bookmakerName.toUpperCase()}`
+                : 'TICKET RÉEL DE JULIEN'
+            }>
+            <Text style={[styles.ticketIntro, { color: c.textMuted }]}>
+              Pari réellement posé sur le compte bookmaker de Julien — preuve
+              que la mise est engagée.
+            </Text>
+            <View
+              style={[
+                styles.ticketBox,
+                { backgroundColor: c.bgElevated, borderColor: c.borderSoft },
+              ]}>
+              <Image
+                source={{ uri: prono.bookmakerScreenshotUrl }}
+                style={[
+                  styles.ticketImage,
+                  ticketRatio != null ? { aspectRatio: ticketRatio } : null,
+                ]}
+                contentFit="contain"
+                onLoad={(e) => {
+                  const w = e?.source?.width;
+                  const h = e?.source?.height;
+                  if (w && h) setTicketRatio(w / h);
+                }}
+              />
+            </View>
+          </Section>
+        ) : null}
+
+        {/* ============ CTA carnet personnel ============ */}
         <View style={styles.ctaBlock}>
-          <BrandedButton
-            label="Marquer comme joué"
-            variant="ghost"
-            onPress={() => {
-              /* Phase 2 : carnet personnel */
-            }}
-            disabled
-          />
-          <Text style={[styles.ctaHint, { color: c.textDim }]}>
-            Le carnet personnel arrive bientôt — tu pourras suivre ton historique de paris et ton ROI réel.
-          </Text>
+          {playedBetIds.has(prono.id) ? (
+            <>
+              <BrandedButton
+                label="✓ Ajouté à ton carnet"
+                variant="ghost"
+                onPress={() => onUnmark(prono.id)}
+              />
+              <Text style={[styles.ctaHint, { color: c.textDim }]}>
+                Tape de nouveau pour retirer ce pari de ton carnet.
+              </Text>
+            </>
+          ) : (
+            <>
+              <BrandedButton
+                label="J’ai joué ce pari"
+                variant="gold"
+                onPress={() => openMarkSheet(prono)}
+              />
+              <Text style={[styles.ctaHint, { color: c.textDim }]}>
+                Ajoute ce pari à ton carnet personnel pour suivre ton ROI réel.
+                Tu pourras renseigner ta mise (optionnel).
+              </Text>
+            </>
+          )}
         </View>
       </ScrollView>
 
@@ -355,6 +586,12 @@ export default function PronoDetailScreen() {
         visible={statsOpen}
         prono={prono}
         onClose={() => setStatsOpen(false)}
+      />
+
+      <MarkAsPlayedSheet
+        visible={markSheetOpen}
+        bet={markedBet}
+        onClose={() => setMarkSheetOpen(false)}
       />
     </View>
   );
@@ -477,6 +714,38 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   // === Hero ===
+  // BG page (rayures dorées) — couvre tout l'écran derrière le contenu.
+  pageBgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  pageBgOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(10,10,10,0.55)',
+  },
+  // BG card hero (stade doré) — occupe toute la card derrière le contenu.
+  heroBgImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  heroBgOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(10,10,10,0.55)',
+  },
   heroFrame: {
     borderRadius: 18,
     padding: 3,
@@ -594,6 +863,12 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     marginTop: 2,
   },
+  heroResult: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginTop: 4,
+  },
   score: {
     fontSize: 28,
     fontWeight: '800',
@@ -609,6 +884,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: -0.1,
+  },
+  tennisBoardWrap: {
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
   },
   teamMeta: {
     flexDirection: 'row',
@@ -660,8 +940,12 @@ const styles = StyleSheet.create({
   predictionCard: {
     padding: Spacing.three,
     borderRadius: Radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1.5,
     gap: Spacing.three,
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 4,
   },
   predictionText: {
     fontSize: 20,
@@ -678,9 +962,8 @@ const styles = StyleSheet.create({
   oddPill: {
     alignItems: 'center',
     paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 10,
-    backgroundColor: '#F5F4ED',
   },
   oddPillLabel: {
     fontSize: 9,
@@ -706,6 +989,25 @@ const styles = StyleSheet.create({
   reasoning: {
     fontSize: 15,
     lineHeight: 23,
+  },
+  // === Ticket bookmaker ===
+  ticketIntro: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: Spacing.two,
+    fontStyle: 'italic',
+  },
+  ticketBox: {
+    padding: Spacing.two,
+    borderRadius: Radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+  },
+  ticketImage: {
+    width: '100%',
+    aspectRatio: 9 / 16, // par défaut avant onLoad, écrasé dynamiquement
+    maxHeight: 560,
+    borderRadius: Radius.sm,
   },
   // === Stats ===
   statBlock: {

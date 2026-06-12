@@ -10,9 +10,10 @@ import { useThemeColors } from '@/lib/use-theme-colors';
 import { AccountSheet } from './account-sheet';
 import { NotificationsSheet } from './notifications-sheet';
 
-// Logo natif 1536×1024 (ratio 3:2). Taille header app (plus petit que le login).
-const LOGO_WIDTH = 96;
-const LOGO_HEIGHT = (LOGO_WIDTH * 1024) / 1536;
+// Logo natif 928×1152 (portrait). Taille header app (plus petit que le login).
+// On part d'une hauteur cible pour rester compact dans la barre.
+const LOGO_HEIGHT = 64;
+const LOGO_WIDTH = (LOGO_HEIGHT * 928) / 1152;
 
 export function BrandHeader() {
   const c = useThemeColors();

@@ -18,11 +18,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useThemeColors } from '@/lib/use-theme-colors';
 
-// Logo natif : 1536 × 1024. On garde le ratio 3:2.
-const SPLASH_LOGO_WIDTH = 260;
-const SPLASH_LOGO_HEIGHT = (SPLASH_LOGO_WIDTH * 1024) / 1536;
-const HEADER_LOGO_WIDTH = 180;
-const HEADER_LOGO_HEIGHT = (HEADER_LOGO_WIDTH * 1024) / 1536;
+// Logo natif : 928 × 1152 (portrait). Ratio H/W = 1.241.
+const SPLASH_LOGO_WIDTH = 200;
+const SPLASH_LOGO_HEIGHT = (SPLASH_LOGO_WIDTH * 1152) / 928;
+const HEADER_LOGO_WIDTH = 140;
+const HEADER_LOGO_HEIGHT = (HEADER_LOGO_WIDTH * 1152) / 928;
 
 // Doit matcher exactement la position du logo dans le header du login.
 // Top safe-area + padding visuel — descendu pour donner de la place au logo.
