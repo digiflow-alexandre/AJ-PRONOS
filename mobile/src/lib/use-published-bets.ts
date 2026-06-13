@@ -202,6 +202,8 @@ export function usePublishedBets(): UsePublishedBetsResult {
       }
       const betId = betData.id as string;
       // 2) Insert la sélection unique (auto-attach les logos via team-logos)
+      // ⚠️ match_api_fixture_id DOIT être propagé ici (pas que sur published_bets),
+      // sinon track-results ne peut pas matcher la sélection au fixture API.
       const { error: selErr } = await supabase
         .from('published_bet_selections')
         .insert({
@@ -218,6 +220,7 @@ export function usePublishedBets(): UsePublishedBetsResult {
           match_start_at: input.selection.matchStartAt,
           prediction: input.selection.prediction,
           odd: input.selection.odd,
+          match_api_fixture_id: input.matchApiFixtureId ?? null,
         });
       if (selErr) {
         // Cleanup : si la sélection plante, on supprime le bet pour
