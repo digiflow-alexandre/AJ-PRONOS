@@ -10,6 +10,7 @@ import { useColorScheme } from 'react-native';
 import { SplashOverlay } from '@/components/splash-overlay';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 import { setupNotificationHandler } from '@/lib/push-notifications';
+import { initRevenueCat } from '@/lib/revenuecat';
 
 function RootStack() {
   const { session } = useAuth();
@@ -57,9 +58,10 @@ function App() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  // Setup une seule fois le handler de notifs au foreground.
+  // Setup une seule fois : handler de notifs + init RevenueCat
   useEffect(() => {
     setupNotificationHandler();
+    initRevenueCat();
   }, []);
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

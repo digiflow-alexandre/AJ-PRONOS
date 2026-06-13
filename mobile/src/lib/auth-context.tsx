@@ -1,6 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
+import { linkRevenueCatUser, unlinkRevenueCatUser } from './revenuecat';
 import { supabase } from './supabase';
 
 type AuthContextValue = {
@@ -29,12 +30,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!mounted) return;
       setSession(data.session);
       setIsLoading(false);
+      if (data.session?.user) {
+        // Lie le user RevenueCat (best-effort, ne bloque pas le rendu).
+        void linkRevenueCatUser(
+          data.session.user.id,
+          data.session.user.email ?? undefined,
+        );
+      }
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
+      // Sync RevenueCat selon l'event
+      if (event === 'SIGNED_IN' && newSession?.user) {
+        void linkRevenueCatUser(
+          newSession.user.id,
+          newSession.user.email ?? undefined,
+        );
+      } else if (event === 'SIGNED_OUT') {
+        void unlinkRevenueCatUser();
+      }
     });
 
     return () => {
