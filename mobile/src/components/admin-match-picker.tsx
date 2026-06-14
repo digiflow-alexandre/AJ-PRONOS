@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { SymbolView } from 'expo-symbols';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -177,8 +177,19 @@ function MatchPickerSheet({
 }) {
   const c = useThemeColors();
   const insets = useSafeAreaInsets();
+  // Step préliminaire : on demande d'abord le sport pour ne pas mélanger
+  // les matchs foot et tennis dans la liste (UX + filtres incompatibles).
+  const [selectedSport, setSelectedSport] = useState<'foot' | 'tennis' | null>(null);
   const [competitionFilter, setCompetitionFilter] = useState<string | null>(null);
   const [compPickerOpen, setCompPickerOpen] = useState(false);
+
+  // Reset à chaque fermeture du sheet
+  useEffect(() => {
+    if (!visible) {
+      setSelectedSport(null);
+      setCompetitionFilter(null);
+    }
+  }, [visible]);
 
   const selectedComp = competitionFilter
     ? FOOT_COMPETITIONS.find((c) => c.id === competitionFilter) ?? null
@@ -204,6 +215,7 @@ function MatchPickerSheet({
     [],
   );
   const { matches, isLoading } = useUpcomingMatches({
+    sport: selectedSport ?? undefined,
     competitionId: competitionFilter ?? undefined,
     // 200 = assez large pour absorber un tournoi complet (Mondial = 104 matchs)
     // sans risque de perf — c'est juste une liste admin paginée visuellement.
@@ -244,14 +256,95 @@ function MatchPickerSheet({
             ]}>
             <View style={[styles.handle, { backgroundColor: c.borderStrong }]} />
             <View style={styles.sheetHeaderPadded}>
+              {selectedSport ? (
+                <Pressable
+                  onPress={() => {
+                    setSelectedSport(null);
+                    setCompetitionFilter(null);
+                  }}
+                  hitSlop={6}
+                  style={({ pressed }) => ({
+                    opacity: pressed ? 0.5 : 1,
+                    marginBottom: 4,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                  })}>
+                  <SymbolView
+                    name="chevron.left"
+                    size={12}
+                    tintColor={c.textMuted}
+                    weight="medium"
+                  />
+                  <Text style={{ color: c.textMuted, fontSize: 12 }}>
+                    Changer de sport
+                  </Text>
+                </Pressable>
+              ) : null}
               <Text style={[styles.sheetTitle, { color: c.text }]}>
-                Choisir un match
+                {selectedSport === 'foot'
+                  ? 'Match de football'
+                  : selectedSport === 'tennis'
+                    ? 'Match de tennis'
+                    : 'Choisir un match'}
               </Text>
             </View>
 
-            {/* Filtre par compétition — bouton qui ouvre un sheet picker
-                avec recherche. Plus ergonomique que des chips quand on
-                a 25+ compétitions. */}
+            {/* STEP 1 : choix du sport — affiché tant qu'aucun sport sélectionné */}
+            {!selectedSport ? (
+              <View style={styles.sportPickerRow}>
+                <Pressable
+                  onPress={() => setSelectedSport('foot')}
+                  style={({ pressed }) => [
+                    styles.sportCard,
+                    {
+                      backgroundColor: c.bgDeeper,
+                      borderColor: c.borderSoft,
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}>
+                  <SymbolView
+                    name="soccerball"
+                    size={36}
+                    tintColor={c.gold}
+                    weight="medium"
+                  />
+                  <Text style={[styles.sportCardLabel, { color: c.text }]}>
+                    Football
+                  </Text>
+                  <Text style={[styles.sportCardSub, { color: c.textMuted }]}>
+                    Top 5 + UEFA + Mondial…
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => setSelectedSport('tennis')}
+                  style={({ pressed }) => [
+                    styles.sportCard,
+                    {
+                      backgroundColor: c.bgDeeper,
+                      borderColor: c.borderSoft,
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}>
+                  <SymbolView
+                    name="tennis.racket"
+                    size={36}
+                    tintColor={c.gold}
+                    weight="medium"
+                  />
+                  <Text style={[styles.sportCardLabel, { color: c.text }]}>
+                    Tennis
+                  </Text>
+                  <Text style={[styles.sportCardSub, { color: c.textMuted }]}>
+                    ATP + WTA · simple & double
+                  </Text>
+                </Pressable>
+              </View>
+            ) : null}
+
+            {/* Filtre par compétition — UNIQUEMENT pour foot (V1).
+                Pour tennis on liste tout par défaut, filtre par circuit en V1.5. */}
+            {selectedSport === 'foot' ? (
             <View style={styles.compFilterRow}>
               <Pressable
                 onPress={() => setCompPickerOpen(true)}
@@ -314,8 +407,10 @@ function MatchPickerSheet({
                 </Pressable>
               ) : null}
             </View>
+            ) : null}
 
-            {/* Liste des matchs */}
+            {/* Liste des matchs — affichée uniquement quand un sport est sélectionné */}
+            {selectedSport ? (
             <ScrollView
               style={styles.list}
               contentContainerStyle={[
@@ -335,7 +430,9 @@ function MatchPickerSheet({
                   <Text style={[styles.emptyBody, { color: c.textMuted }]}>
                     {competitionFilter
                       ? 'Aucun match prévu dans cette compétition. Change de filtre ou saisis manuellement.'
-                      : 'La base API-Football n’a pas encore été rafraîchie aujourd’hui, ou aucun match prévu dans les 3 prochains jours.'}
+                      : selectedSport === 'tennis'
+                        ? 'Pas de matchs tennis dans les prochains jours, ou la sync API tennis n’a pas encore tourné.'
+                        : 'La base API-Football n’a pas encore été rafraîchie aujourd’hui, ou aucun match prévu dans les 3 prochains jours.'}
                   </Text>
                 </View>
               ) : (
@@ -351,6 +448,7 @@ function MatchPickerSheet({
                 ))
               )}
             </ScrollView>
+            ) : null}
           </Pressable>
         </Pressable>
       </KeyboardAvoidingView>
@@ -666,6 +764,31 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     textAlign: 'center',
     paddingHorizontal: Spacing.three,
+  },
+  sportPickerRow: {
+    flexDirection: 'row',
+    gap: Spacing.three,
+    paddingHorizontal: Spacing.four,
+    paddingVertical: Spacing.three,
+  },
+  sportCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.five,
+    paddingHorizontal: Spacing.three,
+    alignItems: 'center',
+    gap: 8,
+  },
+  sportCardLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  sportCardSub: {
+    fontSize: 11,
+    textAlign: 'center',
+    lineHeight: 15,
   },
   dayGroup: {
     gap: 6,

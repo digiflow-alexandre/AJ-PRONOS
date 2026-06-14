@@ -5,10 +5,13 @@
 
 export type MatchStatus = 'scheduled' | 'live' | 'finished' | 'postponed' | 'cancelled';
 
+export type TennisSurface = 'hard' | 'clay' | 'grass' | 'hard_indoor' | 'carpet';
+
 export type MatchRow = {
   id: string;
   api_fixture_id: number;
-  api_league_id: number;
+  /** Nullable depuis migration 023 (le tennis n'utilise pas ce concept). */
+  api_league_id: number | null;
   competition_id: string;
   competition_label: string;
   competition_round: string | null;
@@ -28,6 +31,13 @@ export type MatchRow = {
   status_short: string | null;
   score_home: number | null;
   score_away: number | null;
+  /** Tennis uniquement (migration 023). */
+  surface: TennisSurface | null;
+  round: string | null;
+  is_doubles: boolean | null;
+  sets_detail: Array<{ score_first: string; score_second: string; score_set: string }> | null;
+  winner_side: 'home' | 'away' | null;
+  tennis_statistics: unknown[] | null;
   created_at: string;
   updated_at: string;
 };

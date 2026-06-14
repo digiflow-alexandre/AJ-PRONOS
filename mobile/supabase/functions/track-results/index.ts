@@ -15,6 +15,8 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 
+import { evaluateTennisBet, type TennisMatchForEval } from './tennis-parsers.ts';
+
 const API_BASE = 'https://v3.football.api-sports.io';
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 
@@ -817,6 +819,65 @@ serve(async (req) => {
     team_away: string;
     prediction: string;
   }> = [];
+
+  // ========== PASS A-TENNIS : matchs tennis déjà finished en DB ==========
+  // Les matchs tennis sont sync par fetch-tennis-matches (qui met score +
+  // status à jour). On n'a donc pas besoin de fetch l'API ici, juste de
+  // scanner les matchs finished avec des sélections encore pending.
+  const { data: tennisMatches } = await supabase
+    .from('matches')
+    .select('api_fixture_id, team_home, team_away, status, score_home, score_away, sets_detail, winner_side')
+    .eq('sport', 'tennis')
+    .in('status', ['finished', 'cancelled']);
+
+  for (const tm of tennisMatches ?? []) {
+    const { data: pendingTennisSelections } = await supabase
+      .from('published_bet_selections')
+      .select('*')
+      .eq('match_api_fixture_id', tm.api_fixture_id)
+      .eq('result', 'pending');
+
+    if (!pendingTennisSelections || pendingTennisSelections.length === 0) continue;
+
+    const tennisMatchCtx: TennisMatchForEval = {
+      status: tm.status as string,
+      winner_side: tm.winner_side as 'home' | 'away' | null,
+      score_home: tm.score_home as number | null,
+      score_away: tm.score_away as number | null,
+      sets_detail: tm.sets_detail as TennisMatchForEval['sets_detail'],
+    };
+    const finalScore =
+      tm.score_home != null && tm.score_away != null
+        ? `${tm.score_home}-${tm.score_away}`
+        : null;
+
+    for (const sel of pendingTennisSelections) {
+      const result = evaluateTennisBet(
+        sel.prediction,
+        sel.team_home,
+        sel.team_away,
+        tennisMatchCtx,
+      );
+      await supabase
+        .from('published_bet_selections')
+        .update({
+          result,
+          final_score: finalScore,
+          updated_at: nowIso,
+        })
+        .eq('id', sel.id);
+      touchedBetIds.add(sel.published_bet_id);
+      if (result === 'void' && tm.status !== 'cancelled') {
+        // Parser n'a pas compris la prédiction (≠ match cancelled qui est void légitime)
+        unparsedSelections.push({
+          bet_id: sel.published_bet_id,
+          team_home: sel.team_home,
+          team_away: sel.team_away,
+          prediction: sel.prediction,
+        });
+      }
+    }
+  }
 
   // ========== PASS A : pour chaque fixture finie, update les sélections ==========
   // (Singles + sélections de combos sont traitées de la même manière.)

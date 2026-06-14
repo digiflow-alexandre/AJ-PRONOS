@@ -5,6 +5,8 @@ import { supabase } from './supabase';
 import type { MatchRow } from '@/types/match';
 
 type UseUpcomingMatchesOptions = {
+  /** Filtre par sport (foot / tennis). undefined = pas de filtre. */
+  sport?: 'foot' | 'tennis';
   /** Filtre par competition_id (slug). undefined = toutes. */
   competitionId?: string;
   /** Max nombre de matchs ramenés. Défaut 100. */
@@ -28,7 +30,7 @@ type UseUpcomingMatchesResult = {
 export function useUpcomingMatches(
   opts: UseUpcomingMatchesOptions = {},
 ): UseUpcomingMatchesResult {
-  const { competitionId, limit = 100 } = opts;
+  const { sport, competitionId, limit = 100 } = opts;
   const { session } = useAuth();
   const userId = session?.user.id;
 
@@ -46,6 +48,9 @@ export function useUpcomingMatches(
       .order('match_start_at', { ascending: true })
       .limit(limit);
 
+    if (sport) {
+      query = query.eq('sport', sport);
+    }
     if (competitionId) {
       query = query.eq('competition_id', competitionId);
     }
@@ -59,7 +64,7 @@ export function useUpcomingMatches(
       setMatches((data ?? []) as MatchRow[]);
     }
     setIsLoading(false);
-  }, [userId, competitionId, limit]);
+  }, [userId, sport, competitionId, limit]);
 
   useEffect(() => {
     if (!userId) {
