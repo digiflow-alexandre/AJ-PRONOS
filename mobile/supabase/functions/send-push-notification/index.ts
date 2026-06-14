@@ -40,6 +40,11 @@ type PushPayload = {
       | 'vip_new_messages'
       | 'daily_recap';
     sport?: 'foot' | 'tennis';
+    // Restreindre à une liste précise de users (utile pour les rappels
+    // ciblés type "mets à jour ton carnet").
+    user_ids?: string[];
+    // Exclure des users (utile pour ne pas notifier l'envoyeur d'un msg VIP).
+    exclude_user_ids?: string[];
   };
 };
 
@@ -73,8 +78,17 @@ serve(async (req) => {
     return new Response(`DB error: ${error.message}`, { status: 500 });
   }
 
+  const userIdsSet = payload.filter.user_ids
+    ? new Set(payload.filter.user_ids)
+    : null;
+  const excludeIdsSet = payload.filter.exclude_user_ids
+    ? new Set(payload.filter.exclude_user_ids)
+    : null;
+
   // Filtre côté JS (plus simple que joins complexes)
   const recipients = (profiles ?? []).filter((p: any) => {
+    if (userIdsSet && !userIdsSet.has(p.id)) return false;
+    if (excludeIdsSet && excludeIdsSet.has(p.id)) return false;
     const prefs = p.notification_preferences;
     if (!prefs?.enabled) return false;
     if (!prefs[payload.filter.pref_field]) return false;

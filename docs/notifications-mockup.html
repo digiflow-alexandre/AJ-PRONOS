@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AJ Pronos — Maquette notifications push</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --cream: #fafaf7;
+    --cream-dim: rgba(250,250,247,.78);
+    --cream-soft: rgba(250,250,247,.55);
+    --gold: #b8941f;
+    --gold-soft: rgba(184,148,31,.45);
+    --green: #34d399;
+    --red: #f87171;
+    --orange: #fbbf24;
+    --blue: #60a5fa;
+    --violet: #a78bfa;
+    --blur: 38px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: var(--cream);
+    background: #18181b;
+    min-height: 100vh;
+  }
+  .page {
+    min-height: 100vh;
+    padding: 64px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 56px;
+  }
+  .header {
+    text-align: center;
+    max-width: 780px;
+  }
+  .header h1 {
+    font-size: 30px;
+    font-weight: 600;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+  }
+  .header p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--cream-soft);
+    line-height: 1.6;
+  }
+  .gold { color: var(--gold); }
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-left: 8px;
+    vertical-align: 1px;
+  }
+  .badge.ok { background: rgba(52,211,153,.15); color: var(--green); }
+  .badge.todo { background: rgba(251,191,36,.18); color: var(--orange); }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 48px;
+    width: 100%;
+    max-width: 1320px;
+  }
+  .device-card {
+    background: #111114;
+    border: 1px solid rgba(250,250,247,.06);
+    border-radius: 28px;
+    padding: 28px 24px 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .device-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--cream-soft);
+    margin-bottom: 4px;
+  }
+  .device-sub {
+    font-size: 13px;
+    color: var(--cream-dim);
+    text-align: center;
+    line-height: 1.45;
+    max-width: 320px;
+  }
+  /* ---------- iPhone ---------- */
+  .iphone {
+    width: 360px;
+    height: 860px;
+    border-radius: 50px;
+    padding: 8px;
+    background: linear-gradient(145deg, #2a2a30, #0c0c10);
+    box-shadow:
+      0 18px 60px rgba(0,0,0,.5),
+      inset 0 1px 0 rgba(255,255,255,.08);
+    position: relative;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    background:
+      radial-gradient(120% 90% at 50% 0%, #1a1a22 0%, #050507 65%, #000 100%);
+  }
+  .screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(60% 40% at 50% 110%, rgba(184,148,31,.18), transparent 70%),
+      radial-gradient(40% 30% at 20% 30%, rgba(52,211,153,.05), transparent 70%);
+  }
+  .dynamic-island {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 34px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 3;
+  }
+  .status-bar {
+    position: absolute;
+    top: 16px;
+    left: 0;
+    right: 0;
+    padding: 0 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--cream);
+    font-weight: 600;
+    font-size: 14px;
+    font-feature-settings: "tnum";
+    z-index: 4;
+  }
+  .status-right {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 11px;
+  }
+  .time-big {
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: var(--cream);
+    font-size: 74px;
+    font-weight: 200;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .date-big {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: var(--cream-dim);
+    font-size: 14px;
+    font-weight: 500;
+  }
+  /* ---------- Notification stack ---------- */
+  .notif-stack {
+    position: absolute;
+    top: 195px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    z-index: 5;
+  }
+  .notif {
+    background: rgba(40,40,46,.72);
+    backdrop-filter: blur(var(--blur)) saturate(170%);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(170%);
+    border: 0.5px solid rgba(255,255,255,.06);
+    border-radius: 22px;
+    padding: 11px 13px;
+    display: grid;
+    grid-template-columns: 38px 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 3px 11px;
+    align-items: start;
+    color: var(--cream);
+  }
+  .notif-icon {
+    grid-row: 1 / span 2;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid var(--gold-soft);
+  }
+  .notif-icon img {
+    width: 72%;
+    height: 72%;
+    object-fit: contain;
+  }
+  .notif-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 11px;
+    color: var(--cream-soft);
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .notif-title {
+    font-size: 13px;
+    font-weight: 600;
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    line-height: 1.25;
+  }
+  .notif-body {
+    font-size: 12.5px;
+    font-weight: 400;
+    color: var(--cream-dim);
+    grid-column: 2 / span 2;
+    grid-row: 2;
+    margin: 0;
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+  }
+  /* Accent par type */
+  .notif--new   .notif-title { color: var(--gold);   }
+  .notif--combo .notif-title { color: var(--violet); }
+  .notif--win   .notif-title { color: var(--green);  }
+  .notif--loss  .notif-title { color: var(--red);    }
+  .notif--admin .notif-title { color: var(--orange); }
+  .notif--vip   .notif-title { color: var(--blue);   }
+  .notif--carnet .notif-title { color: var(--cream); }
+
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 130px;
+    height: 5px;
+    background: rgba(250,250,247,.85);
+    border-radius: 3px;
+  }
+  /* ---------- Android ---------- */
+  .android {
+    width: 360px;
+    height: 860px;
+    border-radius: 36px;
+    padding: 8px;
+    background: linear-gradient(145deg, #1a1a20, #0a0a0e);
+    box-shadow:
+      0 18px 60px rgba(0,0,0,.5),
+      inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .android .screen {
+    border-radius: 30px;
+    background:
+      radial-gradient(120% 90% at 50% 100%, #1a1a22 0%, #050507 65%, #000 100%);
+  }
+  .android .status-bar { top: 10px; font-size: 13px; }
+  .android .time-big   { top: 56px; font-size: 62px; font-weight: 300; }
+  .android .date-big   { top: 38px; font-size: 13px; }
+  .android .notif-stack { top: 170px; }
+  .android .notif { background: rgba(28,28,32,.85); border-radius: 16px; }
+  .android-hole {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: #000;
+    border-radius: 50%;
+    z-index: 3;
+  }
+  /* ---------- Legend ---------- */
+  .legend {
+    width: 100%;
+    max-width: 1320px;
+    background: #111114;
+    border: 1px solid rgba(250,250,247,.06);
+    border-radius: 20px;
+    padding: 28px 32px;
+  }
+  .legend h2 {
+    margin: 0 0 18px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--cream-soft);
+    font-weight: 600;
+  }
+  .legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+  }
+  .legend-row {
+    display: flex;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid rgba(250,250,247,.06);
+    border-radius: 14px;
+    background: rgba(255,255,255,.02);
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .legend-dot.new    { background: var(--gold);   }
+  .legend-dot.combo  { background: var(--violet); }
+  .legend-dot.win    { background: var(--green);  }
+  .legend-dot.loss   { background: var(--red);    }
+  .legend-dot.admin  { background: var(--orange); }
+  .legend-dot.vip    { background: var(--blue);   }
+  .legend-dot.carnet { background: var(--cream);  }
+  .legend-text {
+    font-size: 13px;
+    color: var(--cream-dim);
+    line-height: 1.5;
+  }
+  .legend-text strong {
+    display: block;
+    color: var(--cream);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .legend-text .who {
+    color: var(--cream-soft);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 6px;
+  }
+  .legend-text code {
+    font-family: "SF Mono", "Menlo", monospace;
+    font-size: 12px;
+    color: var(--gold);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <h1>AJ Pronos — <span class="gold">Notifications push</span></h1>
+    <p>Aperçu lock-screen iOS et Android, dans le ton AJ Pronos (palette crème/noir/or). 7 types de notifications au total : 3 déjà câblées côté backend, 4 prévues dans les préférences utilisateur mais qui restent à brancher.</p>
+  </header>
+
+  <div class="grid">
+
+    <!-- iPhone -->
+    <div class="device-card">
+      <span class="device-title">iPhone — Lock screen</span>
+      <span class="device-sub">Apparence iOS 26, blur lourd, code couleur par type pour scanner d'un coup d'œil.</span>
+      <div class="iphone">
+        <div class="screen">
+          <div class="dynamic-island"></div>
+          <div class="status-bar">
+            <span>9:41</span>
+            <span class="status-right"><span>5G</span><span>●●●</span></span>
+          </div>
+          <div class="date-big">samedi 14 juin</div>
+          <div class="time-big">9:41</div>
+
+          <div class="notif-stack">
+
+            <!-- 1. Nouveau prono simple -->
+            <div class="notif notif--new">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">🔥 Nouveau prono</p>
+              <div class="notif-meta"><span>maintenant</span></div>
+              <p class="notif-body">Real Madrid vs PSG — Real gagne @ 2.40 · Pack Pro</p>
+            </div>
+
+            <!-- 2. Nouveau combiné -->
+            <div class="notif notif--combo">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">🎯 Nouveau combiné 3 sélections</p>
+              <div class="notif-meta"><span>il y a 4 min</span></div>
+              <p class="notif-body">Cote totale @ 8.60 · Pack VIP — analyse complète dans l'app</p>
+            </div>
+
+            <!-- 3. Prono gagné -->
+            <div class="notif notif--win">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">🏆 Prono GAGNÉ</p>
+              <div class="notif-meta"><span>il y a 12 min</span></div>
+              <p class="notif-body">Mexique vs Afrique du Sud — Mexique gagne (1-0). Pari validé.</p>
+            </div>
+
+            <!-- 4. Combiné gagné -->
+            <div class="notif notif--win">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">🏆 Combiné 3 sélections GAGNÉ</p>
+              <div class="notif-meta"><span>il y a 18 min</span></div>
+              <p class="notif-body">3/3 paris validés · cote 8.60 · gain x8.60</p>
+            </div>
+
+            <!-- 5. Prono perdu -->
+            <div class="notif notif--loss">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">❌ Prono PERDU</p>
+              <div class="notif-meta"><span>il y a 28 min</span></div>
+              <p class="notif-body">Canada vs Bosnie — Canada gagne. Résultat final 1-1.</p>
+            </div>
+
+            <!-- 6. Message VIP -->
+            <div class="notif notif--vip">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">💎 Julien dans le salon VIP</p>
+              <div class="notif-meta"><span>il y a 35 min</span></div>
+              <p class="notif-body">« Live coaching tactique sur le Real-PSG dans 10 min. À tout de suite. »</p>
+            </div>
+
+            <!-- 7. Carnet à mettre à jour -->
+            <div class="notif notif--carnet">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">📒 Mets à jour ton carnet</p>
+              <div class="notif-meta"><span>il y a 2 h</span></div>
+              <p class="notif-body">2 paris suivis hier — note tes résultats pour suivre ton ROI perso.</p>
+            </div>
+
+            <!-- 8. Admin -->
+            <div class="notif notif--admin">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">⏰ 2 paris à valider</p>
+              <div class="notif-meta"><span>il y a 3 h</span></div>
+              <p class="notif-body">Le tracker n'a pas pu interpréter 2 prédictions. Valide-les à la main.</p>
+            </div>
+
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Android -->
+    <div class="device-card">
+      <span class="device-title">Android — Lock screen</span>
+      <span class="device-sub">Material You, coins moins arrondis, mêmes contenus pour une cohérence visuelle inter-plateforme.</span>
+      <div class="android">
+        <div class="screen">
+          <div class="android-hole"></div>
+          <div class="status-bar">
+            <span>9:41</span>
+            <span class="status-right"><span>5G</span><span>●●●</span></span>
+          </div>
+          <div class="date-big">samedi 14 juin</div>
+          <div class="time-big">9:41</div>
+
+          <div class="notif-stack">
+            <div class="notif notif--new">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">🔥 Nouveau prono</p>
+              <div class="notif-meta"><span>maintenant</span></div>
+              <p class="notif-body">Real Madrid vs PSG — Real gagne @ 2.40 · Pack Pro</p>
+            </div>
+            <div class="notif notif--combo">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">🎯 Nouveau combiné 3 sélections</p>
+              <div class="notif-meta"><span>4 min</span></div>
+              <p class="notif-body">Cote totale @ 8.60 · Pack VIP — analyse complète dans l'app</p>
+            </div>
+            <div class="notif notif--win">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">🏆 Prono GAGNÉ</p>
+              <div class="notif-meta"><span>12 min</span></div>
+              <p class="notif-body">Mexique vs Afrique du Sud — Mexique gagne (1-0). Pari validé.</p>
+            </div>
+            <div class="notif notif--win">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">🏆 Combiné 3 sélections GAGNÉ</p>
+              <div class="notif-meta"><span>18 min</span></div>
+              <p class="notif-body">3/3 paris validés · cote 8.60 · gain x8.60</p>
+            </div>
+            <div class="notif notif--loss">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">❌ Prono PERDU</p>
+              <div class="notif-meta"><span>28 min</span></div>
+              <p class="notif-body">Canada vs Bosnie — Canada gagne. Résultat final 1-1.</p>
+            </div>
+            <div class="notif notif--vip">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">💎 Julien dans le salon VIP</p>
+              <div class="notif-meta"><span>35 min</span></div>
+              <p class="notif-body">« Live coaching tactique sur le Real-PSG dans 10 min. À tout de suite. »</p>
+            </div>
+            <div class="notif notif--carnet">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">📒 Mets à jour ton carnet</p>
+              <div class="notif-meta"><span>2 h</span></div>
+              <p class="notif-body">2 paris suivis hier — note tes résultats pour suivre ton ROI perso.</p>
+            </div>
+            <div class="notif notif--admin">
+              <div class="notif-icon"><img src="aj-pronos-logo.png" alt="AJ Pronos" /></div>
+              <p class="notif-title">⏰ 2 paris à valider</p>
+              <div class="notif-meta"><span>3 h</span></div>
+              <p class="notif-body">Le tracker n'a pas pu interpréter 2 prédictions. Valide-les à la main.</p>
+            </div>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Légende -->
+  <div class="legend">
+    <h2>Les 7 types — état du câblage</h2>
+    <div class="legend-grid">
+
+      <div class="legend-row">
+        <span class="legend-dot new"></span>
+        <div class="legend-text">
+          <span class="who">USER · or · <span class="badge ok">câblée</span></span>
+          <strong>🔥 Nouveau prono simple</strong>
+          Envoyée à tous les abonnés dont le pack ≥ <code>min_tier</code> du pari, dès qu'un pari simple est publié via l'admin.
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <span class="legend-dot combo"></span>
+        <div class="legend-text">
+          <span class="who">USER · violet · <span class="badge ok">câblée</span></span>
+          <strong>🎯 Nouveau combiné N sélections</strong>
+          Variante du push "nouveau prono" mais avec le wording adapté (titre = "Combiné N sélections", body = cote totale agrégée).
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <span class="legend-dot win"></span>
+        <div class="legend-text">
+          <span class="who">USER · vert · <span class="badge ok">câblée</span></span>
+          <strong>🏆 Prono / Combiné GAGNÉ</strong>
+          Envoyée par <code>track-results</code> dès qu'un pari passe à <code>win</code>. Inclut le score final (single) ou le ratio sélections gagnantes (combiné).
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <span class="legend-dot loss"></span>
+        <div class="legend-text">
+          <span class="who">USER · rouge · <span class="badge ok">câblée</span></span>
+          <strong>❌ Prono / Combiné PERDU</strong>
+          Même déclencheur que la gagnée, mais quand le résultat passe à <code>loss</code>. Body précise ce qui a planté (score, sélection ratée).
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <span class="legend-dot vip"></span>
+        <div class="legend-text">
+          <span class="who">VIP · bleu · <span class="badge todo">à câbler</span></span>
+          <strong>💎 Message dans le salon VIP</strong>
+          Switch présent dans les préférences (<code>vip_new_messages</code> + <code>vip_mentions</code>) mais aucun trigger backend ne push pour l'instant. À brancher : trigger Supabase sur insert dans <code>chat_messages</code>.
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <span class="legend-dot carnet"></span>
+        <div class="legend-text">
+          <span class="who">USER · crème · <span class="badge todo">à câbler</span></span>
+          <strong>📒 Mets à jour ton carnet</strong>
+          Préférence <code>daily_recap</code> existe, mais pas de cron qui envoie. Idée : cron quotidien le soir, push aux users qui ont des paris notés sans résultat saisi.
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <span class="legend-dot admin"></span>
+        <div class="legend-text">
+          <span class="who">ADMIN · orange · <span class="badge ok">câblée</span></span>
+          <strong>⏰ N paris à valider</strong>
+          2 sources : (1) <code>track-results</code> push immédiat quand le parser n'a pas compris une prédiction ; (2) cron <code>admin-pending-reminder</code> qui rappelle les paris en attente. Toi + Julien uniquement.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
