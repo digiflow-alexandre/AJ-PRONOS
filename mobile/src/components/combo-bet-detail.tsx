@@ -246,6 +246,7 @@ function selectionToProno(sel: ComboBetSelection): Prono {
     id: `combo-sel-${sel.matchStartAt}-${sel.teamHome}`,
     sport: sel.sport,
     competition: sel.competition,
+    matchApiFixtureId: sel.matchApiFixtureId,
     teamHome: sel.teamHome,
     teamAway: sel.teamAway,
     teamHomeLogo: sel.teamHomeLogo,
