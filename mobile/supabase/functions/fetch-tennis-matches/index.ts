@@ -285,10 +285,24 @@ serve(async (req) => {
 
   const start = Date.now();
 
-  // Fenêtre : 1 jour passé → 7 jours à venir
-  const now = new Date();
-  const dateStart = ymd(new Date(now.getTime() - 24 * 3600 * 1000));
-  const dateStop = ymd(new Date(now.getTime() + 7 * 24 * 3600 * 1000));
+  // Fenêtre par défaut : 1 jour passé → 7 jours à venir.
+  // Surchargeable via body { date_start, date_stop } pour les backfills
+  // ponctuels (ex : combiné de Julien posté en retard, matchs passés).
+  let dateStart: string;
+  let dateStop: string;
+  try {
+    const body = await req.json().catch(() => null);
+    if (body?.date_start && body?.date_stop) {
+      dateStart = String(body.date_start);
+      dateStop = String(body.date_stop);
+    } else {
+      throw new Error('use default window');
+    }
+  } catch {
+    const now = new Date();
+    dateStart = ymd(new Date(now.getTime() - 24 * 3600 * 1000));
+    dateStop = ymd(new Date(now.getTime() + 7 * 24 * 3600 * 1000));
+  }
 
   // 1) Mapping tournament_key → surface
   const surfaceMap = await loadTournamentSurfaces();
