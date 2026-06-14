@@ -31,19 +31,33 @@ function parseScore(score: string): ParsedSet[] {
   const tokens = score.trim().split(/\s+/);
   const sets: ParsedSet[] = [];
   for (const t of tokens) {
-    // "7-6(7-5)" → match
-    const m = t.match(/^(\d+)-(\d+)(?:\((\d+)-(\d+)\))?$/);
+    // Formats acceptés :
+    //   "6-4"        → set sans tie-break
+    //   "7-6(5)"     → tie-break, on a juste le score du perdant
+    //                  (convention ATP : vainqueur atteint 7 par défaut)
+    //   "7-6(7-5)"   → tie-break avec les 2 scores explicites
+    const m = t.match(/^(\d+)-(\d+)(?:\((\d+)(?:-(\d+))?\))?$/);
     if (!m) continue;
     const home = parseInt(m[1], 10);
     const away = parseInt(m[2], 10);
-    // Tiebreak : on affiche les 2 scores (home et away) en exposant pour
-    // que les 2 joueurs aient leur petit chiffre, style ATP/Eurosport
-    // étendu. Format dans les parenthèses : "(home_tb)-(away_tb)".
     let homeTb: number | undefined;
     let awayTb: number | undefined;
     if (m[3] !== undefined && m[4] !== undefined) {
+      // "(N-M)" : 2 scores explicites
       homeTb = parseInt(m[3], 10);
       awayTb = parseInt(m[4], 10);
+    } else if (m[3] !== undefined) {
+      // "(N)" : un seul score = celui du PERDANT du set.
+      // Le gagnant atteint 7 par convention TB simple (10 pour super TB).
+      const loserTb = parseInt(m[3], 10);
+      const winnerTb = loserTb >= 8 ? 10 : 7;
+      if (home > away) {
+        homeTb = winnerTb;
+        awayTb = loserTb;
+      } else {
+        homeTb = loserTb;
+        awayTb = winnerTb;
+      }
     }
     sets.push({ home, away, homeTb, awayTb });
   }
