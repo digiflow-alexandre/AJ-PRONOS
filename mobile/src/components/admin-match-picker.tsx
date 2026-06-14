@@ -21,6 +21,7 @@ import { FOOT_COMPETITIONS, getFlagUrl } from '@/constants/competitions';
 import { Radius, Spacing } from '@/constants/theme';
 import { formatLongDate } from '@/lib/format-date';
 import { displayTeamName } from '@/lib/team-display-names';
+import { useTennisCompetitions, type TennisCompetition } from '@/lib/use-tennis-competitions';
 import { useUpcomingMatches } from '@/lib/use-upcoming-matches';
 import { useThemeColors } from '@/lib/use-theme-colors';
 import type { MatchRow } from '@/types/match';
@@ -191,9 +192,17 @@ function MatchPickerSheet({
     }
   }, [visible]);
 
-  const selectedComp = competitionFilter
-    ? FOOT_COMPETITIONS.find((c) => c.id === competitionFilter) ?? null
-    : null;
+  // Liste des tournois tennis avec matchs à venir (dynamique depuis DB)
+  const tennisCompetitions = useTennisCompetitions();
+
+  // Mapping surface tennis → libellé FR pour le sous-titre du picker
+  const surfaceLabel: Record<NonNullable<TennisCompetition['surface']>, string> = {
+    clay: 'Terre battue',
+    grass: 'Gazon',
+    hard: 'Dur',
+    hard_indoor: 'Dur (indoor)',
+    carpet: 'Moquette',
+  };
 
   // Fallback logo : si pas de drapeau pays (UEFA, internationales, etc.),
   // on utilise le logo officiel de la ligue via API-Football.
@@ -202,8 +211,33 @@ function MatchPickerSheet({
       ? getFlagUrl(countryCode)
       : `https://media.api-sports.io/football/leagues/${apiLeagueId}.png`;
 
-  const compOptions: PickerOption[] = useMemo(
-    () => [
+  // Compétition actuellement sélectionnée (résolue dans la bonne source selon sport)
+  const selectedComp = useMemo(() => {
+    if (!competitionFilter) return null;
+    if (selectedSport === 'foot') {
+      const c = FOOT_COMPETITIONS.find((c) => c.id === competitionFilter);
+      return c ? { id: c.id, label: c.label, kind: 'foot' as const, footComp: c } : null;
+    }
+    if (selectedSport === 'tennis') {
+      const t = tennisCompetitions.find((t) => t.id === competitionFilter);
+      return t ? { id: t.id, label: t.label, kind: 'tennis' as const, tennisComp: t } : null;
+    }
+    return null;
+  }, [competitionFilter, selectedSport, tennisCompetitions]);
+
+  const compOptions: PickerOption[] = useMemo(() => {
+    if (selectedSport === 'tennis') {
+      return [
+        { id: '__all__', label: 'Tous les tournois', iconFallback: 'tennis.racket' },
+        ...tennisCompetitions.map((t) => ({
+          id: t.id,
+          label: t.label,
+          subtitle: t.surface ? surfaceLabel[t.surface] : undefined,
+          iconFallback: 'tennis.racket',
+        })),
+      ];
+    }
+    return [
       { id: '__all__', label: 'Toutes les compétitions' },
       ...FOOT_COMPETITIONS.filter((c) => c.apiLeagueId != null).map((comp) => ({
         id: comp.id,
@@ -211,9 +245,8 @@ function MatchPickerSheet({
         imageUrl: compLogoFor(comp.countryCode, comp.apiLeagueId!),
         subtitle: comp.countryCode?.toUpperCase() ?? 'UEFA',
       })),
-    ],
-    [],
-  );
+    ];
+  }, [selectedSport, tennisCompetitions]);
   const { matches, isLoading } = useUpcomingMatches({
     sport: selectedSport ?? undefined,
     competitionId: competitionFilter ?? undefined,
@@ -342,9 +375,8 @@ function MatchPickerSheet({
               </View>
             ) : null}
 
-            {/* Filtre par compétition — UNIQUEMENT pour foot (V1).
-                Pour tennis on liste tout par défaut, filtre par circuit en V1.5. */}
-            {selectedSport === 'foot' ? (
+            {/* Filtre par compétition (foot) ou par tournoi (tennis) */}
+            {selectedSport ? (
             <View style={styles.compFilterRow}>
               <Pressable
                 onPress={() => setCompPickerOpen(true)}
@@ -356,16 +388,23 @@ function MatchPickerSheet({
                     opacity: pressed ? 0.7 : 1,
                   },
                 ]}>
-                {selectedComp ? (
+                {selectedComp?.kind === 'foot' ? (
                   <Image
                     source={{
                       uri: compLogoFor(
-                        selectedComp.countryCode,
-                        selectedComp.apiLeagueId!,
+                        selectedComp.footComp.countryCode,
+                        selectedComp.footComp.apiLeagueId!,
                       ),
                     }}
                     style={styles.compFilterFlag}
                     contentFit="contain"
+                  />
+                ) : selectedComp?.kind === 'tennis' ? (
+                  <SymbolView
+                    name="tennis.racket"
+                    size={14}
+                    tintColor={c.gold}
+                    weight="medium"
                   />
                 ) : (
                   <SymbolView
@@ -381,7 +420,11 @@ function MatchPickerSheet({
                     { color: selectedComp ? c.gold : c.text },
                   ]}
                   numberOfLines={1}>
-                  {selectedComp ? selectedComp.label : 'Toutes les compétitions'}
+                  {selectedComp
+                    ? selectedComp.label
+                    : selectedSport === 'tennis'
+                      ? 'Tous les tournois'
+                      : 'Toutes les compétitions'}
                 </Text>
                 <SymbolView
                   name="chevron.down"
@@ -456,9 +499,11 @@ function MatchPickerSheet({
       {/* Sheet picker compétition (imbriqué, ouvert depuis le bouton filtre) */}
       <AdminPickerSheet
         visible={compPickerOpen}
-        title="Filtrer par compétition"
+        title={selectedSport === 'tennis' ? 'Filtrer par tournoi' : 'Filtrer par compétition'}
         options={compOptions}
-        searchPlaceholder="Rechercher une compétition…"
+        searchPlaceholder={
+          selectedSport === 'tennis' ? 'Rechercher un tournoi…' : 'Rechercher une compétition…'
+        }
         allowCustom={false}
         onSelect={(opt) => {
           setCompetitionFilter(opt.id === '__all__' ? null : opt.id);
