@@ -43,6 +43,9 @@ export type PublishedBetSelectionRow = {
   team_home_logo: string | null;
   team_away_logo: string | null;
   match_start_at: string;
+  /** ID du fixture côté API externe (api-football / api-tennis). Nullable
+   *  car les paris saisis 100% manuellement n'ont pas de lien API. */
+  match_api_fixture_id: number | null;
   prediction: string;
   odd: number;
   mini_reasoning: string;
@@ -86,6 +89,7 @@ export function convertToAnyBet(
       teamHomeLogo: s.team_home_logo ?? undefined,
       teamAwayLogo: s.team_away_logo ?? undefined,
       matchStartAt: s.match_start_at,
+      matchApiFixtureId: s.match_api_fixture_id ?? undefined,
       prediction: s.prediction,
       odd: s.odd,
       confidence: bet.confidence,
@@ -110,6 +114,7 @@ export function convertToAnyBet(
     teamHomeLogo: s.team_home_logo ?? undefined,
     teamAwayLogo: s.team_away_logo ?? undefined,
     matchStartAt: s.match_start_at,
+    matchApiFixtureId: s.match_api_fixture_id ?? undefined,
     prediction: s.prediction,
     odd: s.odd,
     miniReasoning: s.mini_reasoning,

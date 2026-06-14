@@ -32,6 +32,11 @@ export type Prono = {
   id: string;
   sport: Sport;
   competition: string;       // ex: "Ligue 1 · J32"
+  /** ID du fixture dans l'API externe (api-football pour foot, api-tennis
+   *  pour tennis). Permet au Stats Center de fetch les vraies données en DB
+   *  via `matches.api_fixture_id`. Absent pour les pronos saisis 100%
+   *  manuellement sans lien API. */
+  matchApiFixtureId?: number;
   teamHome: string;
   teamAway: string;
   teamHomeLogo?: string;
@@ -72,6 +77,8 @@ export type Prono = {
 export type ComboBetSelection = {
   sport: Sport;
   competition: string;
+  /** Voir Prono.matchApiFixtureId. */
+  matchApiFixtureId?: number;
   teamHome: string;
   teamAway: string;
   teamHomeLogo?: string;

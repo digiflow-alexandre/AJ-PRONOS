@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Spacing } from '@/constants/theme';
+import { useTennisStatsLive } from '@/lib/use-tennis-stats-live';
 import { useThemeColors } from '@/lib/use-theme-colors';
 import type { Prono } from '@/types/prono';
 import type {
@@ -33,8 +34,24 @@ const SURFACE_LABEL: Record<SurfaceFilter, string> = {
  */
 export function TennisStatsBody({ prono }: { prono: Prono }) {
   const c = useThemeColors();
-  const stats = prono.tennisStats;
+  // Priorité aux vraies données DB (via api_fixture_id si dispo) ; fallback
+  // sur les mock stats éventuellement pré-chargées dans le prono (fixtures).
+  const { stats: liveStats, isLoading: liveLoading } = useTennisStatsLive(
+    prono.matchApiFixtureId,
+  );
+  const stats = liveStats ?? prono.tennisStats;
   const [tab, setTab] = useState<Tab>('profil');
+
+  if (liveLoading && !prono.tennisStats) {
+    return (
+      <View style={{ padding: Spacing.four, alignItems: 'center', gap: 8 }}>
+        <SymbolView name="chart.bar" size={32} tintColor={c.gold} weight="regular" />
+        <Text style={{ color: c.text, fontSize: 16, fontWeight: '700' }}>
+          Chargement des stats…
+        </Text>
+      </View>
+    );
+  }
 
   if (!stats) {
     return (
