@@ -83,6 +83,11 @@ export function useTournamentBracket(
         )
         .eq('sport', 'tennis')
         .eq('competition_id', competitionId)
+        // Exclut les matchs doubles : leur tournament_key est souvent
+        // partagé avec les singles, ce qui pollue le bracket sinon.
+        // Les paires de doubles ont un "/" dans leur nom.
+        .not('team_home', 'ilike', '%/%')
+        .not('team_away', 'ilike', '%/%')
         .order('match_start_at', { ascending: true });
 
       if (cancelled) return;
