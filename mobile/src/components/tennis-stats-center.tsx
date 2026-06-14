@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Spacing } from '@/constants/theme';
 import { useTennisStatsLive } from '@/lib/use-tennis-stats-live';
+import { useTournamentBracket, type BracketMatch } from '@/lib/use-tournament-bracket';
 import { useThemeColors } from '@/lib/use-theme-colors';
 import type { Prono } from '@/types/prono';
 import type {
@@ -85,7 +86,11 @@ export function TennisStatsBody({ prono }: { prono: Prono }) {
         ) : tab === 'forme' ? (
           <FormePanel prono={prono} stats={stats} />
         ) : (
-          <TableauPanel />
+          <TableauPanel
+            competitionId={stats.competitionId ?? null}
+            tournamentName={stats.tournament.name}
+            highlightTeams={[prono.teamHome, prono.teamAway]}
+          />
         )}
       </ScrollView>
     </>
@@ -243,7 +248,102 @@ function ProfilPanel({
           better={higherIsBetter(home.careerTitles, away.careerTitles)}
         />
       </CompareBlock>
+
+      {/* STATS DU DERNIER MATCH (depuis tennis_statistics) */}
+      {stats.homeLastMatchStats || stats.awayLastMatchStats ? (
+        <LastMatchFineStatsBlock
+          homeStats={stats.homeLastMatchStats ?? null}
+          awayStats={stats.awayLastMatchStats ?? null}
+        />
+      ) : null}
     </View>
+  );
+}
+
+function LastMatchFineStatsBlock({
+  homeStats,
+  awayStats,
+}: {
+  homeStats: import('@/types/tennis-stats').TennisMatchFineStats | null;
+  awayStats: import('@/types/tennis-stats').TennisMatchFineStats | null;
+}) {
+  const c = useThemeColors();
+
+  function bpFmt(bp: { won: number; total: number } | null): string {
+    if (!bp) return '—';
+    return `${bp.won}/${bp.total}`;
+  }
+  function pctFmt(v: number | null): string {
+    return v == null ? '—' : `${v}%`;
+  }
+  function numFmt(v: number | null): string {
+    return v == null ? '—' : `${v}`;
+  }
+
+  return (
+    <CompareBlock title="DERNIER MATCH JOUÉ" icon="figure.tennis">
+      {/* Mini sous-titres : sur quel adversaire chacun a joué */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+        <Text style={{ color: c.textMuted, fontSize: 10 }} numberOfLines={1}>
+          {homeStats ? `vs ${homeStats.opponent} (${homeStats.scoreSets}, ${homeStats.result})` : 'Pas de stats'}
+        </Text>
+        <Text style={{ color: c.textMuted, fontSize: 10, textAlign: 'right' }} numberOfLines={1}>
+          {awayStats ? `vs ${awayStats.opponent} (${awayStats.scoreSets}, ${awayStats.result})` : 'Pas de stats'}
+        </Text>
+      </View>
+      <CompareRow
+        label="Aces"
+        leftValue={numFmt(homeStats?.aces ?? null)}
+        rightValue={numFmt(awayStats?.aces ?? null)}
+        better={higherIsBetter(homeStats?.aces ?? 0, awayStats?.aces ?? 0)}
+      />
+      <CompareRow
+        label="Doubles fautes"
+        leftValue={numFmt(homeStats?.doubleFaults ?? null)}
+        rightValue={numFmt(awayStats?.doubleFaults ?? null)}
+        better={lowerIsBetter(homeStats?.doubleFaults ?? null, awayStats?.doubleFaults ?? null)}
+      />
+      <CompareRow
+        label="% 1ère balle"
+        leftValue={pctFmt(homeStats?.firstServePct ?? null)}
+        rightValue={pctFmt(awayStats?.firstServePct ?? null)}
+        better={higherIsBetter(homeStats?.firstServePct ?? 0, awayStats?.firstServePct ?? 0)}
+      />
+      <CompareRow
+        label="Pts gagnés / 1ère"
+        leftValue={pctFmt(homeStats?.firstServePointsWon ?? null)}
+        rightValue={pctFmt(awayStats?.firstServePointsWon ?? null)}
+        better={higherIsBetter(homeStats?.firstServePointsWon ?? 0, awayStats?.firstServePointsWon ?? 0)}
+      />
+      <CompareRow
+        label="Pts gagnés / 2nde"
+        leftValue={pctFmt(homeStats?.secondServePointsWon ?? null)}
+        rightValue={pctFmt(awayStats?.secondServePointsWon ?? null)}
+        better={higherIsBetter(homeStats?.secondServePointsWon ?? 0, awayStats?.secondServePointsWon ?? 0)}
+      />
+      <CompareRow
+        label="BP sauvées"
+        leftValue={bpFmt(homeStats?.breakPointsSaved ?? null)}
+        rightValue={bpFmt(awayStats?.breakPointsSaved ?? null)}
+      />
+      <CompareRow
+        label="BP converties"
+        leftValue={bpFmt(homeStats?.breakPointsConverted ?? null)}
+        rightValue={bpFmt(awayStats?.breakPointsConverted ?? null)}
+      />
+      <CompareRow
+        label="Winners"
+        leftValue={numFmt(homeStats?.winners ?? null)}
+        rightValue={numFmt(awayStats?.winners ?? null)}
+        better={higherIsBetter(homeStats?.winners ?? 0, awayStats?.winners ?? 0)}
+      />
+      <CompareRow
+        label="Fautes directes"
+        leftValue={numFmt(homeStats?.unforcedErrors ?? null)}
+        rightValue={numFmt(awayStats?.unforcedErrors ?? null)}
+        better={lowerIsBetter(homeStats?.unforcedErrors ?? null, awayStats?.unforcedErrors ?? null)}
+      />
+    </CompareBlock>
   );
 }
 
@@ -744,30 +844,180 @@ function TennisMatchRow({
 }
 
 // ============= TABLEAU (placeholder) =============
-function TableauPanel() {
+function TableauPanel({
+  competitionId,
+  tournamentName,
+  highlightTeams,
+}: {
+  competitionId: string | null;
+  tournamentName: string;
+  highlightTeams: string[];
+}) {
   const c = useThemeColors();
+  const { rounds, isLoading } = useTournamentBracket(competitionId);
+
+  if (!competitionId) {
+    return (
+      <View style={{ alignItems: 'center', paddingVertical: Spacing.six, gap: 8 }}>
+        <SymbolView name="info.circle" size={28} tintColor={c.textMuted} weight="regular" />
+        <Text style={{ color: c.textMuted, fontSize: 13, textAlign: 'center' }}>
+          Pas de tournoi lié à ce match — tableau indisponible.
+        </Text>
+      </View>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <View style={{ alignItems: 'center', paddingVertical: Spacing.six }}>
+        <Text style={{ color: c.textMuted, fontSize: 13 }}>Chargement du tableau…</Text>
+      </View>
+    );
+  }
+
+  if (rounds.length === 0) {
+    return (
+      <View style={{ alignItems: 'center', paddingVertical: Spacing.six, gap: 6 }}>
+        <Text style={{ color: c.text, fontSize: 14, fontWeight: '700' }}>
+          Pas encore de matchs
+        </Text>
+        <Text style={{ color: c.textMuted, fontSize: 12, textAlign: 'center', paddingHorizontal: Spacing.four }}>
+          Le tableau de {tournamentName} se remplira à mesure que les
+          tournois publient leur grille (généralement 24h avant le 1er match).
+        </Text>
+      </View>
+    );
+  }
+
+  const highlightSet = new Set(highlightTeams.map((t) => t.toLowerCase()));
+
   return (
-    <View style={{ alignItems: 'center', paddingVertical: Spacing.six, gap: 8 }}>
-      <SymbolView name="chart.bar" size={32} tintColor={c.gold} weight="regular" />
-      <Text style={{ color: c.text, fontSize: 18, fontWeight: '700' }}>
-        Tableau du tournoi bientôt
-      </Text>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{ paddingHorizontal: Spacing.three, gap: Spacing.three }}>
+      {rounds.map((round) => (
+        <View key={round.label} style={styles.bracketCol}>
+          <Text style={[styles.bracketRoundLabel, { color: c.gold }]}>
+            {round.label.toUpperCase()}
+          </Text>
+          <View style={{ gap: 8 }}>
+            {round.matches.map((m) => (
+              <BracketMatchCard
+                key={m.id}
+                match={m}
+                highlight={
+                  highlightSet.has(m.team_home.toLowerCase()) ||
+                  highlightSet.has(m.team_away.toLowerCase())
+                }
+              />
+            ))}
+          </View>
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
+
+function BracketMatchCard({
+  match,
+  highlight,
+}: {
+  match: BracketMatch;
+  highlight: boolean;
+}) {
+  const c = useThemeColors();
+  const isFinished = match.status === 'finished';
+  const homeWins = match.winner_side === 'home';
+  const awayWins = match.winner_side === 'away';
+  return (
+    <View
+      style={[
+        styles.bracketCard,
+        {
+          backgroundColor: c.bgElevated,
+          borderColor: highlight ? c.gold : c.borderSoft,
+          borderWidth: highlight ? 1.2 : StyleSheet.hairlineWidth,
+        },
+      ]}>
+      <BracketLine
+        name={match.team_home}
+        score={match.score_home}
+        winner={homeWins}
+        loser={isFinished && awayWins}
+      />
+      <View style={[styles.bracketDivider, { backgroundColor: c.borderFaint }]} />
+      <BracketLine
+        name={match.team_away}
+        score={match.score_away}
+        winner={awayWins}
+        loser={isFinished && homeWins}
+      />
+    </View>
+  );
+}
+
+function BracketLine({
+  name,
+  score,
+  winner,
+  loser,
+}: {
+  name: string;
+  score: number | null;
+  winner: boolean;
+  loser: boolean;
+}) {
+  const c = useThemeColors();
+  const color = winner ? c.text : loser ? c.textDim : c.text;
+  const weight = winner ? '700' : '500';
+  return (
+    <View style={styles.bracketLine}>
       <Text
         style={{
-          color: c.textMuted,
-          fontSize: 14,
-          textAlign: 'center',
-          lineHeight: 20,
-          paddingHorizontal: Spacing.four,
-        }}>
-        Le bracket complet du tournoi (Round 1 → Finale) sera disponible
-        avec notre branchement API tennis.
+          color,
+          fontWeight: weight,
+          fontSize: 12,
+          flex: 1,
+        }}
+        numberOfLines={1}>
+        {name}
+      </Text>
+      <Text style={{ color, fontWeight: weight, fontSize: 13, fontVariant: ['tabular-nums'] }}>
+        {score != null ? score : '·'}
       </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // Bracket
+  bracketCol: {
+    width: 200,
+    gap: 8,
+  },
+  bracketRoundLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  bracketCard: {
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  bracketLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 3,
+    gap: 8,
+  },
+  bracketDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 1,
+  },
   // Tabs
   tabsRow: {
     flexDirection: 'row',

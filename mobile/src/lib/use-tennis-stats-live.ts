@@ -13,11 +13,13 @@
 
 import { useEffect, useState } from 'react';
 
+import { parseTennisMatchStats } from './parse-tennis-match-stats';
 import { supabase } from './supabase';
 import type {
   CurrentTournament,
   PlayerProfile,
   TennisMatch,
+  TennisMatchFineStats,
   TennisStats,
   TennisSurface,
 } from '@/types/tennis-stats';
@@ -80,6 +82,7 @@ type DbMatch = {
   score_home: number | null;
   score_away: number | null;
   winner_side: 'home' | 'away' | null;
+  tennis_statistics?: unknown;
 };
 
 function profileFromDb(p: DbPlayer, currentSurface: TennisSurface): PlayerProfile {
@@ -109,6 +112,29 @@ function profileFromDb(p: DbPlayer, currentSurface: TennisSurface): PlayerProfil
     careerSurfaceWinRate: Math.round(surfaceWin ?? 0),
     careerTitles: p.career_titles ?? 0,
   };
+}
+
+/**
+ * Cherche dans la liste des matchs récents (déjà triée DESC par date) le
+ * premier qui a des `tennis_statistics` non-null et parse les stats fines
+ * du joueur cible. Retourne null si aucun match ne contient de stats.
+ */
+function extractLastFineStats(
+  recent: DbMatch[],
+  forPlayerApiKey: number,
+): TennisMatchFineStats | null {
+  for (const m of recent) {
+    if (!m.tennis_statistics) continue;
+    const tm = matchFromDb(m, forPlayerApiKey);
+    const parsed = parseTennisMatchStats(m.tennis_statistics, forPlayerApiKey, {
+      opponent: tm.opponent,
+      date: tm.date,
+      scoreSets: tm.scoreSets,
+      result: tm.result,
+    });
+    if (parsed) return parsed;
+  }
+  return null;
 }
 
 function matchFromDb(
@@ -184,7 +210,7 @@ export function useTennisStatsLive(
           .in('api_player_key', [String(homeKey), String(awayKey)]),
         supabase
           .from('matches')
-          .select('match_start_at, competition_label, surface, team_home, team_away, team_home_api_id, team_away_api_id, score_home, score_away, winner_side')
+          .select('match_start_at, competition_label, surface, team_home, team_away, team_home_api_id, team_away_api_id, score_home, score_away, winner_side, tennis_statistics')
           .eq('sport', 'tennis')
           .eq('status', 'finished')
           .or(`team_home_api_id.eq.${homeKey},team_away_api_id.eq.${homeKey}`)
@@ -192,7 +218,7 @@ export function useTennisStatsLive(
           .limit(30),
         supabase
           .from('matches')
-          .select('match_start_at, competition_label, surface, team_home, team_away, team_home_api_id, team_away_api_id, score_home, score_away, winner_side')
+          .select('match_start_at, competition_label, surface, team_home, team_away, team_home_api_id, team_away_api_id, score_home, score_away, winner_side, tennis_statistics')
           .eq('sport', 'tennis')
           .eq('status', 'finished')
           .or(`team_home_api_id.eq.${awayKey},team_away_api_id.eq.${awayKey}`)
@@ -200,7 +226,7 @@ export function useTennisStatsLive(
           .limit(30),
         supabase
           .from('matches')
-          .select('match_start_at, competition_label, surface, team_home, team_away, team_home_api_id, team_away_api_id, score_home, score_away, winner_side')
+          .select('match_start_at, competition_label, surface, team_home, team_away, team_home_api_id, team_away_api_id, score_home, score_away, winner_side, tennis_statistics')
           .eq('sport', 'tennis')
           .eq('status', 'finished')
           .or(
@@ -225,19 +251,21 @@ export function useTennisStatsLive(
         surface,
       };
 
+      const homeMatchesRaw = (homeMatchesRes.data ?? []) as DbMatch[];
+      const awayMatchesRaw = (awayMatchesRes.data ?? []) as DbMatch[];
+
       const composed: TennisStats = {
         tournament,
+        competitionId: match.competition_id,
         homeProfile: profileFromDb(home, surface),
         awayProfile: profileFromDb(away, surface),
-        homeMatches: ((homeMatchesRes.data ?? []) as DbMatch[]).map((m) =>
-          matchFromDb(m, homeKey),
-        ),
-        awayMatches: ((awayMatchesRes.data ?? []) as DbMatch[]).map((m) =>
-          matchFromDb(m, awayKey),
-        ),
+        homeMatches: homeMatchesRaw.map((m) => matchFromDb(m, homeKey)),
+        awayMatches: awayMatchesRaw.map((m) => matchFromDb(m, awayKey)),
         h2hMatches: ((h2hRes.data ?? []) as DbMatch[]).map((m) =>
           matchFromDb(m, homeKey),
         ),
+        homeLastMatchStats: extractLastFineStats(homeMatchesRaw, homeKey),
+        awayLastMatchStats: extractLastFineStats(awayMatchesRaw, awayKey),
       };
 
       setStats(composed);

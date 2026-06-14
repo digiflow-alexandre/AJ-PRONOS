@@ -56,10 +56,42 @@ export type CurrentTournament = {
 };
 
 /**
+ * Stats fines de service / retour / points d'un joueur sur un match.
+ * Source : matches.tennis_statistics (statistics[] API api-tennis.com,
+ * filtré sur stat_period='match' pour ce joueur uniquement).
+ * Tous les champs sont nullable car l'API ne retourne pas toujours tout.
+ */
+export type TennisMatchFineStats = {
+  /** Contexte du match d'où viennent ces stats */
+  opponent: string;
+  /** Date affichée ("15.05.") */
+  date: string;
+  /** Score sets POV du joueur ("3-1") */
+  scoreSets: string;
+  result: TennisMatchOutcome;
+  // Service
+  aces: number | null;
+  doubleFaults: number | null;
+  firstServePct: number | null;       // %
+  firstServePointsWon: number | null; // %
+  secondServePointsWon: number | null;// %
+  breakPointsSaved: { won: number; total: number } | null;
+  // Retour
+  breakPointsConverted: { won: number; total: number } | null;
+  // Points / jeu
+  winners: number | null;
+  unforcedErrors: number | null;
+  totalPointsWon: number | null;      // %
+};
+
+/**
  * Stats complètes attachées à un prono tennis (selection ou simple).
  */
 export type TennisStats = {
   tournament: CurrentTournament;
+  /** competition_id du tournoi en DB (= tournament_key API-Tennis).
+   *  Permet à l'onglet Bracket de fetch tous les matchs du tournoi. */
+  competitionId?: string;
   homeProfile: PlayerProfile;
   awayProfile: PlayerProfile;
   /** 30 derniers matchs du joueur domicile (pour permettre filtre par surface). */
@@ -67,5 +99,8 @@ export type TennisStats = {
   awayMatches: TennisMatch[];
   /** Confrontations directes (max 10). */
   h2hMatches: TennisMatch[];
+  /** Stats fines du dernier match terminé du joueur domicile (null si pas dispo) */
+  homeLastMatchStats?: TennisMatchFineStats | null;
+  awayLastMatchStats?: TennisMatchFineStats | null;
   // L'onglet Tableau (bracket) viendra plus tard
 };
