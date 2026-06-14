@@ -88,6 +88,7 @@ export function TennisStatsBody({ prono }: { prono: Prono }) {
         ) : (
           <TableauPanel
             competitionId={stats.competitionId ?? null}
+            season={stats.season ?? null}
             tournamentName={stats.tournament.name}
             highlightTeams={[prono.teamHome, prono.teamAway]}
           />
@@ -846,15 +847,17 @@ function TennisMatchRow({
 // ============= TABLEAU (placeholder) =============
 function TableauPanel({
   competitionId,
+  season,
   tournamentName,
   highlightTeams,
 }: {
   competitionId: string | null;
+  season: number | null;
   tournamentName: string;
   highlightTeams: string[];
 }) {
   const c = useThemeColors();
-  const { rounds, isLoading } = useTournamentBracket(competitionId);
+  const { rounds, isLoading } = useTournamentBracket(competitionId, season);
 
   if (!competitionId) {
     return (
@@ -930,6 +933,10 @@ function BracketMatchCard({
   const isFinished = match.status === 'finished';
   const homeWins = match.winner_side === 'home';
   const awayWins = match.winner_side === 'away';
+  // N'affiche les scores que pour les matchs réellement finis (sinon 0-0
+  // hérité de l'API serait affiché comme un vrai score = trompeur).
+  const homeScore = isFinished ? match.score_home : null;
+  const awayScore = isFinished ? match.score_away : null;
   return (
     <View
       style={[
@@ -942,14 +949,14 @@ function BracketMatchCard({
       ]}>
       <BracketLine
         name={match.team_home}
-        score={match.score_home}
+        score={homeScore}
         winner={homeWins}
         loser={isFinished && awayWins}
       />
       <View style={[styles.bracketDivider, { backgroundColor: c.borderFaint }]} />
       <BracketLine
         name={match.team_away}
-        score={match.score_away}
+        score={awayScore}
         winner={awayWins}
         loser={isFinished && homeWins}
       />

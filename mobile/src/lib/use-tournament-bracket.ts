@@ -62,6 +62,7 @@ type UseTournamentBracketResult = {
 
 export function useTournamentBracket(
   competitionId: string | null | undefined,
+  season: number | null | undefined,
 ): UseTournamentBracketResult {
   const [rounds, setRounds] = useState<BracketRound[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,19 +77,24 @@ export function useTournamentBracket(
       }
       setIsLoading(true);
 
-      const { data } = await supabase
+      // Filtre par competition_id + season : l'API api-tennis partage le
+      // même tournament_key entre toutes les éditions d'un tournoi (Halle
+      // 2024 et Halle 2026 ont le même competition_id). On limite donc à
+      // la season du match du prono pour n'avoir que l'édition en cours.
+      let query = supabase
         .from('matches')
         .select(
           'id, team_home, team_away, team_home_logo, team_away_logo, match_start_at, status, score_home, score_away, winner_side, round',
         )
         .eq('sport', 'tennis')
         .eq('competition_id', competitionId)
-        // Exclut les matchs doubles : leur tournament_key est souvent
-        // partagé avec les singles, ce qui pollue le bracket sinon.
-        // Les paires de doubles ont un "/" dans leur nom.
+        // Exclut les matchs doubles (même tournament_key que les singles).
         .not('team_home', 'ilike', '%/%')
-        .not('team_away', 'ilike', '%/%')
-        .order('match_start_at', { ascending: true });
+        .not('team_away', 'ilike', '%/%');
+      if (season != null) {
+        query = query.eq('season', season);
+      }
+      const { data } = await query.order('match_start_at', { ascending: true });
 
       if (cancelled) return;
 
@@ -129,7 +135,7 @@ export function useTournamentBracket(
     return () => {
       cancelled = true;
     };
-  }, [competitionId]);
+  }, [competitionId, season]);
 
   return { rounds, isLoading };
 }

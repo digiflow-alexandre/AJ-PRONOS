@@ -92,6 +92,9 @@ export type TennisStats = {
   /** competition_id du tournoi en DB (= tournament_key API-Tennis).
    *  Permet à l'onglet Bracket de fetch tous les matchs du tournoi. */
   competitionId?: string;
+  /** Saison du tournoi (ex 2026) — combinée à competitionId pour ne
+   *  ramener que l'édition en cours, pas les éditions précédentes. */
+  season?: number;
   homeProfile: PlayerProfile;
   awayProfile: PlayerProfile;
   /** 30 derniers matchs du joueur domicile (pour permettre filtre par surface). */

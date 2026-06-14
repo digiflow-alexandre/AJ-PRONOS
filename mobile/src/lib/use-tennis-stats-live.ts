@@ -257,6 +257,7 @@ export function useTennisStatsLive(
       const composed: TennisStats = {
         tournament,
         competitionId: match.competition_id,
+        season: match.season ?? undefined,
         homeProfile: profileFromDb(home, surface),
         awayProfile: profileFromDb(away, surface),
         homeMatches: homeMatchesRaw.map((m) => matchFromDb(m, homeKey)),
