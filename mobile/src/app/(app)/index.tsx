@@ -335,11 +335,24 @@ export default function HomeScreen() {
                 },
           ]}>
           {todayBets.length > 0 ? (
-            <BlurView
-              intensity={60}
-              tint="systemThinMaterialDark"
-              style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
-            />
+            <>
+              <BlurView
+                intensity={80}
+                tint="dark"
+                style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
+              />
+              {/* Overlay noir semi-opaque pour neutraliser la teinte
+                  du bg hero (image stadium rouge) qui passait à travers
+                  le blur. Combiné au blur, ça donne un vrai effet glass
+                  neutre style iOS notif. */}
+              <View
+                pointerEvents="none"
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: 'rgba(10,10,12,0.55)', borderRadius: 20 },
+                ]}
+              />
+            </>
           ) : null}
           <View style={styles.cardLightHead}>
             <View style={styles.cardLightHeadLeft}>
