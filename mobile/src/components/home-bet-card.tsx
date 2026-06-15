@@ -119,14 +119,15 @@ export function HomeBetCard({
   const status = statusFromResult(bet.result);
   const bgImage = resolveBgImage(sportKey, status);
 
-  // Couleurs de bordure / chip selon statut
+  // Couleurs de bordure selon statut. Pour pending → transparent
+  // (laisse l'image bg respirer sans liseré blanc).
   const borderColor = useMemo(() => {
     if (status === 'live') return 'rgba(251,191,36,0.45)';
     if (status === 'win') return 'rgba(52,211,153,0.40)';
     if (status === 'loss') return 'rgba(248,113,113,0.40)';
     if (status === 'void') return 'rgba(250,250,247,0.18)';
-    return c.borderFaint;
-  }, [status, c.borderFaint]);
+    return 'transparent';
+  }, [status]);
 
   return (
     <Pressable
@@ -452,6 +453,7 @@ function Chip({
 const styles = StyleSheet.create({
   card: {
     width: 320,
+    minHeight: 128,
     borderRadius: 16,
     overflow: 'hidden',
     position: 'relative',
@@ -475,8 +477,10 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   content: {
-    padding: Spacing.three,
-    gap: 9,
+    padding: 12,
+    gap: 7,
+    flex: 1,
+    justifyContent: 'space-between',
   },
   head: {
     flexDirection: 'row',
@@ -565,7 +569,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 8,
+    paddingTop: 6,
     borderTopWidth: 1,
     gap: 10,
   },
@@ -612,7 +616,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingTop: 8,
+    paddingTop: 6,
     borderTopWidth: 1,
   },
   resultIcon: {
@@ -682,7 +686,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingTop: 8,
+    paddingTop: 6,
     borderTopWidth: 1,
   },
   comboMetaText: {
