@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BlurView } from 'expo-blur';
 import { Image as ExpoImage } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
@@ -318,17 +319,28 @@ export default function HomeScreen() {
           </Pressable>
         ) : null}
 
-        {/* Card AUJOURD'HUI : fond transparent quand y'a des paris (pour
-            laisser respirer les bg images des HomeBetCard), fond crème
-            pour l'empty state (contraste nécessaire). Contour conservé
-            dans les 2 cas. */}
+        {/* Card AUJOURD'HUI : effet glass (BlurView) quand y'a des paris
+            pour laisser deviner les bg images des cards en dessous ;
+            fond crème pour l'empty state (besoin du contraste).
+            Contour conservé dans les 2 cas. */}
         <View
           style={[
             styles.cardLight,
             todayBets.length === 0
               ? { backgroundColor: c.bgCardLight, borderColor: c.borderOnLightFaint }
-              : { backgroundColor: 'transparent', borderColor: c.borderFaint },
+              : {
+                  backgroundColor: 'rgba(20,20,22,0.35)',
+                  borderColor: 'rgba(250,250,247,0.18)',
+                  overflow: 'hidden',
+                },
           ]}>
+          {todayBets.length > 0 ? (
+            <BlurView
+              intensity={28}
+              tint="dark"
+              style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
+            />
+          ) : null}
           <View style={styles.cardLightHead}>
             <View style={styles.cardLightHeadLeft}>
               <SymbolView
