@@ -130,6 +130,29 @@ export function HomeBetCard({
   }, [status]);
 
   return (
+    <View style={styles.cardWrap}>
+      {/* Badge ticket bookmaker (centré en haut, chevauche la bordure) —
+          rendu HORS du Pressable (qui a overflow:hidden) pour ne pas être
+          clippé par le top négatif. */}
+      {bet.bookmakerScreenshotUrl ? (
+        <View style={styles.ticketBadgeWrap} pointerEvents="none">
+          <View
+            style={[
+              styles.ticketBadge,
+              { backgroundColor: c.bgWarm, borderColor: c.goldDecorative },
+            ]}>
+            <SymbolView
+              name="doc.text.image"
+              size={10}
+              tintColor={c.gold}
+              weight="semibold"
+            />
+            <Text style={[styles.ticketBadgeText, { color: c.gold }]}>
+              Ticket réel
+            </Text>
+          </View>
+        </View>
+      ) : null}
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
@@ -176,7 +199,11 @@ export function HomeBetCard({
       ) : null}
 
       {bet.type === 'single' ? (
-        <SingleContent prono={bet as Prono} status={status} hasAccess={hasAccess} />
+        <SingleContent
+          prono={bet as Prono}
+          status={status}
+          hasAccess={hasAccess}
+        />
       ) : (
         <ComboContent
           combo={bet as ComboBet}
@@ -186,6 +213,7 @@ export function HomeBetCard({
         />
       )}
     </Pressable>
+    </View>
   );
 }
 
@@ -471,6 +499,12 @@ function Chip({
 // ============================================================
 
 const styles = StyleSheet.create({
+  // Wrapper extérieur en overflow:visible pour que le badge "Ticket réel"
+  // puisse chevaucher la bordure de la card (top négatif).
+  cardWrap: {
+    width: 320,
+    position: 'relative',
+  },
   card: {
     width: 320,
     minHeight: 128,
@@ -495,6 +529,30 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 0 },
     elevation: 4,
+  },
+  // Wrap full-width au-dessus de la card pour centrer le badge "Ticket réel"
+  // horizontalement, en le faisant chevaucher la bordure (top négatif).
+  ticketBadgeWrap: {
+    position: 'absolute',
+    top: -10,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  ticketBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  ticketBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6,
   },
   content: {
     padding: 12,

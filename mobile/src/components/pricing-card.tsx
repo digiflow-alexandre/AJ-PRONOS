@@ -89,9 +89,10 @@ type Props = {
   pack: Pack;
   isCurrent: boolean;
   onPress: () => void;
+  loading?: boolean;
 };
 
-export function PricingCard({ pack, isCurrent, onPress }: Props) {
+export function PricingCard({ pack, isCurrent, onPress, loading }: Props) {
   const price = pack.monthly;
   const period = '/ mois';
   const showBadge = !!pack.badge && !isCurrent;
@@ -107,10 +108,10 @@ export function PricingCard({ pack, isCurrent, onPress }: Props) {
 
       <Pressable
         onPress={onPress}
-        disabled={isCurrent}
+        disabled={isCurrent || loading}
         style={({ pressed }) => [
           styles.card,
-          { opacity: pressed && !isCurrent ? 0.85 : 1 },
+          { opacity: loading ? 0.7 : pressed && !isCurrent ? 0.85 : 1 },
         ]}>
         <Image
           source={FRAMES[pack.tier]}

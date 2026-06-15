@@ -17,7 +17,9 @@
 import Purchases, {
   type CustomerInfo,
   type PurchasesOffering,
+  type PurchasesPackage,
   LOG_LEVEL,
+  PURCHASES_ERROR_CODE,
 } from 'react-native-purchases';
 import { NativeModules, Platform } from 'react-native';
 
@@ -95,6 +97,46 @@ export async function fetchOfferings(): Promise<PurchasesOffering | null> {
   } catch (err) {
     console.warn('[revenuecat] fetchOfferings failed', err);
     return null;
+  }
+}
+
+/**
+ * Achète un package donné.
+ * Retourne :
+ *  - { ok: true, customerInfo } si succès
+ *  - { ok: false, userCancelled: true } si user a annulé (PAS une erreur)
+ *  - { ok: false, error } sinon
+ */
+export type PurchaseResult =
+  | { ok: true; customerInfo: CustomerInfo }
+  | { ok: false; userCancelled: true }
+  | { ok: false; userCancelled: false; error: string };
+
+export async function purchasePackage(
+  pkg: PurchasesPackage,
+): Promise<PurchaseResult> {
+  if (!isNativeAvailable) {
+    return {
+      ok: false,
+      userCancelled: false,
+      error: 'RevenueCat indisponible (utilise un EAS dev build pour tester).',
+    };
+  }
+  try {
+    const { customerInfo } = await Purchases.purchasePackage(pkg);
+    return { ok: true, customerInfo };
+  } catch (err: any) {
+    // L'utilisateur a annulé le paywall natif → cas normal, on ne traite pas
+    // comme une erreur visible.
+    if (err?.userCancelled) {
+      return { ok: false, userCancelled: true };
+    }
+    if (err?.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+      return { ok: false, userCancelled: true };
+    }
+    const message =
+      err?.message ?? err?.userInfo?.readable_error_message ?? 'Achat impossible';
+    return { ok: false, userCancelled: false, error: message };
   }
 }
 

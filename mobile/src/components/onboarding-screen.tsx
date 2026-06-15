@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useEffect, useState } from 'react';
 import {
+  Alert,
   Linking,
   Pressable,
   ScrollView,
@@ -15,7 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandedButton } from '@/components/branded-button';
 import { PricingCard } from '@/components/pricing-card';
-import { WaitlistModal } from '@/components/waitlist-modal';
+import { fetchOfferings, purchasePackage } from '@/lib/revenuecat';
+import type { PurchasesOffering } from 'react-native-purchases';
 import { PACKS, type Pack } from '@/constants/packs';
 import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import { useAuth } from '@/lib/auth-context';
@@ -105,8 +107,16 @@ export function OnboardingScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Modal liste d'attente (pour Pro/VIP tant que RevenueCat pas branché)
-  const [waitlistPack, setWaitlistPack] = useState<Pack | null>(null);
+  // Paywall RevenueCat (Pro/VIP achetables directement, Starter = trial 7j)
+  const [offering, setOffering] = useState<PurchasesOffering | null>(null);
+  const [purchasingTier, setPurchasingTier] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const off = await fetchOfferings();
+      setOffering(off);
+    })();
+  }, []);
 
   function canContinue(): boolean {
     if (step === 'pseudo') return pseudoStatus === 'available';
@@ -162,6 +172,64 @@ export function OnboardingScreen() {
     }
     // À la fin, l'écran (app)/index ne re-rendra plus l'onboarding
     // (isOnboarded passe à true via Realtime).
+  }
+
+  /**
+   * Achat direct d'un pack via RevenueCat (Pro ou VIP). On finalise d'abord
+   * les prefs onboarding puis on lance le paywall natif. Si l'achat réussit,
+   * le webhook RC sync le profil côté Supabase et l'onboarding se ferme via
+   * Realtime (comme le trial).
+   */
+  async function onBuyFromOnboarding(pack: Pack) {
+    if (!offering) {
+      Alert.alert(
+        'Indisponible',
+        'Les abonnements ne sont pas encore chargés. Réessaie dans un instant.',
+      );
+      return;
+    }
+    const pkg = offering.availablePackages.find(
+      (p) => p.identifier === pack.tier,
+    );
+    if (!pkg) {
+      Alert.alert(
+        'Indisponible',
+        'Ce pack n’est pas encore disponible. Réessaie dans un instant.',
+      );
+      return;
+    }
+    // 1) Sauvegarde des prefs avant achat — pour qu'on garde la trace même
+    //    si l'utilisateur arrête là.
+    setSubmitting(true);
+    setError(null);
+    const { error: prefsErr } = await completeOnboarding({
+      displayName: displayName.trim(),
+      dateOfBirth: dobISO,
+      sportsFollowed,
+      riskLevel,
+      notificationsOptedIn,
+    });
+    if (prefsErr) {
+      setError(prefsErr);
+      setSubmitting(false);
+      return;
+    }
+    // 2) Lance le paywall natif
+    setPurchasingTier(pack.tier);
+    const res = await purchasePackage(pkg);
+    setPurchasingTier(null);
+    setSubmitting(false);
+
+    if (res.ok) {
+      // Sync via webhook RC → realtime sortira de l'onboarding.
+      Alert.alert(
+        'Bienvenue 🎉',
+        `Ton abonnement ${pack.name.toUpperCase()} est actif.`,
+      );
+      return;
+    }
+    if (res.userCancelled) return;
+    Alert.alert('Achat impossible', res.error);
   }
 
   return (
@@ -258,17 +326,12 @@ export function OnboardingScreen() {
         {step === 'pack' && (
           <PackStep
             onStartTrial={startTrialAndFinish}
-            onWaitlist={(p) => setWaitlistPack(p)}
+            onBuy={onBuyFromOnboarding}
             submitting={submitting}
+            purchasingTier={purchasingTier}
           />
         )}
       </ScrollView>
-
-      {/* Modal liste d'attente Pro/VIP (RevenueCat pas encore branché) */}
-      <WaitlistModal
-        pack={waitlistPack}
-        onClose={() => setWaitlistPack(null)}
-      />
 
       {/* Erreur d'API si la dernière étape échoue */}
       {error ? (
@@ -811,30 +874,27 @@ function NotifsStep({
 
 function PackStep({
   onStartTrial,
-  onWaitlist,
+  onBuy,
   submitting,
+  purchasingTier,
 }: {
   onStartTrial: () => void;
-  onWaitlist: (pack: Pack) => void;
+  onBuy: (pack: Pack) => void;
   submitting: boolean;
+  purchasingTier: string | null;
 }) {
   const c = useThemeColors();
 
-  // Pour Starter : on offre les 7 jours (handler dédié).
-  // Pour Pro/VIP : la carte mène à la modal liste d'attente
-  // (sera remplacée par le checkout Apple IAP via RevenueCat).
+  // Tap card :
+  //  - Starter → on redirige vers le CTA "Démarrer 7 jours offerts" (clearer UX).
+  //    Si l'utilisateur veut payer Starter direct, il scrolle vers ce CTA.
+  //  - Pro / VIP → on lance le paywall natif via RevenueCat.
   function handleCardPress(pack: Pack) {
     if (pack.tier === 'starter') {
-      // Sur Starter, la card ne déclenche PAS le trial direct :
-      // on demande à l'utilisateur de cliquer le bouton dédié sous
-      // les cartes, qui est plus explicite sur "essai gratuit".
-      // Si l'utilisateur veut s'abonner Starter direct, on l'envoie
-      // sur la même waitlist (l'abo payant Starter sera dispo via
-      // RevenueCat en même temps que Pro et VIP).
-      onWaitlist(pack);
+      onStartTrial();
       return;
     }
-    onWaitlist(pack);
+    onBuy(pack);
   }
 
   return (
@@ -854,6 +914,7 @@ function PackStep({
             key={pack.tier}
             pack={pack}
             isCurrent={false}
+            loading={purchasingTier === pack.tier}
             onPress={() => handleCardPress(pack)}
           />
         ))}

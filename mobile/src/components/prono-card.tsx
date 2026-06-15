@@ -163,21 +163,22 @@ export function PronoCard({ prono, hasAccess, onPress }: Props) {
         </View>
       ) : null}
       {prono.bookmakerScreenshotUrl ? (
-        <View
-          style={[
-            styles.ticketBadge,
-            { backgroundColor: c.bgWarm, borderColor: c.goldDecorative },
-          ]}
-          pointerEvents="none">
-          <SymbolView
-            name="doc.text.image"
-            size={10}
-            tintColor={c.gold}
-            weight="semibold"
-          />
-          <Text style={[styles.ticketBadgeText, { color: c.gold }]}>
-            Ticket réel
-          </Text>
+        <View style={styles.ticketBadgeWrap} pointerEvents="none">
+          <View
+            style={[
+              styles.ticketBadge,
+              { backgroundColor: c.bgWarm, borderColor: c.goldDecorative },
+            ]}>
+            <SymbolView
+              name="doc.text.image"
+              size={10}
+              tintColor={c.gold}
+              weight="semibold"
+            />
+            <Text style={[styles.ticketBadgeText, { color: c.gold }]}>
+              Ticket réel
+            </Text>
+          </View>
         </View>
       ) : null}
       </Pressable>
@@ -216,8 +217,9 @@ function CardContent({
         </View>
       ) : null}
 
-      {/* Badge "ticket dispo" en haut à gauche (preuve bookmaker) */}
+      {/* Badge "ticket dispo" centré en haut (preuve bookmaker) */}
       {prono.bookmakerScreenshotUrl && !hideTopBadges ? (
+        <View style={styles.ticketBadgeWrap}>
         <View
           style={[
             styles.ticketBadge,
@@ -232,6 +234,7 @@ function CardContent({
           <Text style={[styles.ticketBadgeText, { color: c.gold }]}>
             Ticket réel
           </Text>
+        </View>
         </View>
       ) : null}
 
@@ -531,10 +534,17 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
   },
   // — Badge ticket bookmaker —
-  ticketBadge: {
+  // Wrap centré qui prend toute la largeur en haut, pour positionner le
+  // badge centré horizontalement et chevauchant la bordure de la card.
+  ticketBadgeWrap: {
     position: 'absolute',
-    top: -8,
-    left: Spacing.three,
+    top: -10,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  ticketBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -542,7 +552,6 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 999,
     borderWidth: 1,
-    zIndex: 10,
   },
   ticketBadgeText: {
     fontSize: 9,

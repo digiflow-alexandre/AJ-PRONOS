@@ -67,6 +67,8 @@ export function ComboBetDetail({
   const [statsForSelection, setStatsForSelection] =
     useState<ComboBetSelection | null>(null);
   const [markSheetOpen, setMarkSheetOpen] = useState(false);
+  // Ratio dynamique du ticket bookmaker (détecté à onLoad de l'image)
+  const [ticketRatio, setTicketRatio] = useState<number | null>(null);
   const { playedBetIds, unmarkBet } = useUserBets();
   const alreadyPlayed = playedBetIds.has(combo.id);
 
@@ -191,6 +193,40 @@ export function ComboBetDetail({
             ))}
           </View>
         </View>
+
+        {/* ============ TICKET DU BOOKMAKER (preuve réelle) ============ */}
+        {combo.bookmakerScreenshotUrl ? (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: c.gold }]}>
+              {combo.bookmakerName
+                ? `TICKET RÉEL · ${combo.bookmakerName.toUpperCase()}`
+                : 'TICKET RÉEL DE JULIEN'}
+            </Text>
+            <Text style={[styles.ticketIntro, { color: c.textMuted }]}>
+              Pari réellement posé sur le compte bookmaker de Julien — preuve
+              que la mise est engagée.
+            </Text>
+            <View
+              style={[
+                styles.ticketBox,
+                { backgroundColor: c.bgElevated, borderColor: c.borderSoft },
+              ]}>
+              <ExpoImage
+                source={{ uri: combo.bookmakerScreenshotUrl }}
+                style={[
+                  styles.ticketImage,
+                  ticketRatio != null ? { aspectRatio: ticketRatio } : null,
+                ]}
+                contentFit="contain"
+                onLoad={(e) => {
+                  const w = e?.source?.width;
+                  const h = e?.source?.height;
+                  if (w && h) setTicketRatio(w / h);
+                }}
+              />
+            </View>
+          </View>
+        ) : null}
 
         {/* ============ CTA carnet personnel ============ */}
         <View style={styles.ctaBlock}>
@@ -685,6 +721,25 @@ const styles = StyleSheet.create({
   reasoning: {
     fontSize: 15,
     lineHeight: 23,
+  },
+  // === Ticket bookmaker ===
+  ticketIntro: {
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: Spacing.two,
+    fontStyle: 'italic',
+  },
+  ticketBox: {
+    padding: Spacing.two,
+    borderRadius: Radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+  },
+  ticketImage: {
+    width: '100%',
+    aspectRatio: 9 / 16,
+    maxHeight: 560,
+    borderRadius: Radius.sm,
   },
   // Selection card
   selCard: {

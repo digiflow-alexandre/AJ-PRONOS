@@ -149,22 +149,24 @@ export function ComboBetCard({ combo, hasAccess, onPress }: Props) {
           opacity: pressed ? 0.97 : 1,
         },
       ]}>
-      {/* Badge "ticket dispo" en haut à gauche (preuve bookmaker) */}
+      {/* Badge "ticket dispo" centré en haut (preuve bookmaker) */}
       {combo.bookmakerScreenshotUrl ? (
-        <View
-          style={[
-            styles.ticketBadge,
-            { backgroundColor: c.bgWarm, borderColor: c.goldDecorative },
-          ]}>
-          <SymbolView
-            name="doc.text.image"
-            size={10}
-            tintColor={c.gold}
-            weight="semibold"
-          />
-          <Text style={[styles.ticketBadgeText, { color: c.gold }]}>
-            Ticket réel
-          </Text>
+        <View style={styles.ticketBadgeWrap} pointerEvents="none">
+          <View
+            style={[
+              styles.ticketBadge,
+              { backgroundColor: c.bgWarm, borderColor: c.goldDecorative },
+            ]}>
+            <SymbolView
+              name="doc.text.image"
+              size={10}
+              tintColor={c.gold}
+              weight="semibold"
+            />
+            <Text style={[styles.ticketBadgeText, { color: c.gold }]}>
+              Ticket réel
+            </Text>
+          </View>
         </View>
       ) : null}
 
@@ -612,11 +614,16 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 3,
   },
-  // — Badge "ticket réel dispo" en haut à gauche —
-  ticketBadge: {
+  // — Badge "ticket réel dispo" centré en haut, chevauche la bordure —
+  ticketBadgeWrap: {
     position: 'absolute',
     top: -10,
-    left: Spacing.three,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  ticketBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -624,7 +631,6 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 999,
     borderWidth: 1,
-    zIndex: 10,
   },
   ticketBadgeText: {
     fontSize: 9,

@@ -336,11 +336,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   // === Liste ===
-  // maxHeight permet ~4 rows visibles ; scrollable au-delà. La hauteur
-  // d'une row = 60-66px (padding 10 + contenu + bord). 280 = marge confort
-  // pour ne pas tronquer un 3e item à mi-hauteur.
+  // MAX_BETS_DISPLAYED = 5. Une row = ~68px (padding 10 + contenu + bord)
+  // + gap 6 ⇒ 5 rows = 340-360px. 380 = marge confort pour montrer les 5
+  // rows en entier sans demi-coupe en bas. Au-delà : scroll (mais comme
+  // displayed est cappé à 5, ça ne devrait pas arriver).
   list: {
-    maxHeight: 280,
+    maxHeight: 380,
   },
   row: {
     flexDirection: 'row',

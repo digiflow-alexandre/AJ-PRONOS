@@ -1,24 +1,92 @@
 import { SymbolView } from 'expo-symbols';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import type { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 
 import { BrandHeader } from '@/components/brand-header';
 import { PricingCard } from '@/components/pricing-card';
-import { WaitlistModal } from '@/components/waitlist-modal';
 import { PACKS, type Pack } from '@/constants/packs';
 import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import { useProfile } from '@/lib/use-profile';
+import {
+  fetchOfferings,
+  purchasePackage,
+  restorePurchases,
+} from '@/lib/revenuecat';
 import { useThemeColors } from '@/lib/use-theme-colors';
 
 export default function SubscribeScreen() {
   const c = useThemeColors();
-  const { isTrialActive, trialDaysLeft, profile } = useProfile();
-  const [waitlistOpen, setWaitlistOpen] = useState<Pack | null>(null);
+  const { isTrialActive, trialDaysLeft, profile, refresh } = useProfile();
+  const [offering, setOffering] = useState<PurchasesOffering | null>(null);
+  const [loadingOffering, setLoadingOffering] = useState(true);
+  const [purchasingTier, setPurchasingTier] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const off = await fetchOfferings();
+      setOffering(off);
+      setLoadingOffering(false);
+    })();
+  }, []);
+
+  function findPackage(tier: 'starter' | 'pro' | 'vip'): PurchasesPackage | null {
+    if (!offering) return null;
+    // On a configuré 3 packages custom dans RC : starter, pro, vip
+    return (
+      offering.availablePackages.find((p) => p.identifier === tier) ?? null
+    );
+  }
+
+  async function onBuy(tier: 'starter' | 'pro' | 'vip') {
+    const pkg = findPackage(tier);
+    if (!pkg) {
+      Alert.alert(
+        'Indisponible',
+        'Ce pack n’est pas encore disponible à l’achat. Réessaie dans un instant.',
+      );
+      return;
+    }
+    setPurchasingTier(tier);
+    const res = await purchasePackage(pkg);
+    setPurchasingTier(null);
+
+    if (res.ok) {
+      // Le webhook RC va sync le profil côté Supabase. On rafraîchit.
+      await refresh?.();
+      Alert.alert(
+        'Bienvenue 🎉',
+        `Ton abonnement ${tier.toUpperCase()} est actif. Merci de la confiance !`,
+      );
+      return;
+    }
+    if (res.userCancelled) return; // silencieux
+    Alert.alert('Achat impossible', res.error);
+  }
+
+  async function onRestore() {
+    setRestoring(true);
+    const info = await restorePurchases();
+    setRestoring(false);
+    if (info && Object.keys(info.entitlements.active).length > 0) {
+      await refresh?.();
+      Alert.alert('Achats restaurés', 'Ton abonnement a été rétabli.');
+    } else {
+      Alert.alert(
+        'Aucun achat à restaurer',
+        'Nous n’avons pas trouvé d’abonnement actif sur ce compte Apple/Google.',
+      );
+    }
+  }
 
   return (
     <View style={[styles.screen, { backgroundColor: c.bg }]}>
@@ -32,27 +100,52 @@ export default function SubscribeScreen() {
           trialDaysLeft={trialDaysLeft}
         />
 
+        {loadingOffering ? (
+          <View style={styles.loadingBlock}>
+            <ActivityIndicator color={c.gold} />
+          </View>
+        ) : null}
+
         <View style={styles.cards}>
           {PACKS.map((pack) => (
             <PricingCard
               key={pack.tier}
               pack={pack}
               isCurrent={profile?.tier === pack.tier}
-              onPress={() => setWaitlistOpen(pack)}
+              loading={purchasingTier === pack.tier}
+              onPress={() => onBuy(pack.tier)}
             />
           ))}
         </View>
+
+        {/* Bouton "Restaurer mes achats" — obligatoire Apple Guideline 3.1.1 */}
+        <Pressable
+          onPress={onRestore}
+          disabled={restoring}
+          style={({ pressed }) => [
+            styles.restoreBtn,
+            { borderColor: c.borderSoft, opacity: pressed || restoring ? 0.6 : 1 },
+          ]}>
+          {restoring ? (
+            <ActivityIndicator color={c.text} size="small" />
+          ) : (
+            <SymbolView
+              name="arrow.clockwise"
+              size={14}
+              tintColor={c.text}
+              weight="medium"
+            />
+          )}
+          <Text style={[styles.restoreText, { color: c.text }]}>
+            Restaurer mes achats
+          </Text>
+        </Pressable>
 
         <Text style={[styles.legal, { color: c.textDim }]}>
           Sans engagement, résiliable en un clic. Renouvellement automatique
           jusqu’à résiliation. +18 — les paris sportifs comportent des risques.
         </Text>
       </ScrollView>
-
-      <WaitlistModal
-        pack={waitlistOpen}
-        onClose={() => setWaitlistOpen(null)}
-      />
     </View>
   );
 }
@@ -204,6 +297,26 @@ const styles = StyleSheet.create({
   cards: {
     gap: Spacing.five,
     marginTop: Spacing.two,
+  },
+  loadingBlock: {
+    paddingVertical: Spacing.three,
+    alignItems: 'center',
+  },
+  restoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: Spacing.three,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignSelf: 'center',
+    marginTop: Spacing.three,
+  },
+  restoreText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   legal: {
     fontSize: 11,
