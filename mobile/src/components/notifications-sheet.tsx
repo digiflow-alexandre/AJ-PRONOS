@@ -145,7 +145,7 @@ function groupBySection(items: NotificationItem[]): Section[] {
   return [
     { key: 'today', label: "AUJOURD'HUI", items: today },
     { key: 'week', label: 'CETTE SEMAINE', items: week },
-    { key: 'older', label: 'PLUS ANCIEN', items: older },
+    { key: 'older', label: 'PLUS TÔT', items: older },
   ];
 }
 
@@ -231,17 +231,30 @@ function colorFor(type: NotifType, gold: string): {
   return { bg: 'rgba(184,148,31,0.18)', border: 'rgba(184,148,31,0.35)', color: gold };
 }
 
+const MOIS_FR_SHORT = [
+  'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
+  'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
+];
+
 function relativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
+  // Sécurité : si date future (clock drift), afficher "à l'instant"
+  if (diffMs < 0) return "à l'instant";
   const minutes = Math.floor(diffMs / 60_000);
-  if (minutes < 1) return 'à l’instant';
-  if (minutes < 60) return `il y a ${minutes} min`;
+  if (minutes < 1) return "à l'instant";
+  if (minutes === 1) return 'il y a 1 minute';
+  if (minutes < 60) return `il y a ${minutes} minutes`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `il y a ${hours} h`;
+  if (hours === 1) return 'il y a 1 heure';
+  if (hours < 24) return `il y a ${hours} heures`;
   const days = Math.floor(hours / 24);
-  if (days < 7) return `il y a ${days} j`;
+  if (days === 1) return 'hier';
+  if (days < 7) return `il y a ${days} jours`;
+  // Format manuel français (pas de dépendance à la locale OS)
   const d = new Date(iso);
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+  const day = d.getDate();
+  const month = MOIS_FR_SHORT[d.getMonth()];
+  return `${day} ${month}`;
 }
 
 // ============================================================

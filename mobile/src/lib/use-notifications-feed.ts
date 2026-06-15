@@ -102,10 +102,10 @@ export function useNotificationsFeed(): UseNotificationsFeedResult {
       const sels = p.published_bet_selections ?? [];
       const isCombo = p.kind === 'combo';
       const summary = isCombo
-        ? `Combiné ${sels.length} sélections @ ${p.total_odd}`
+        ? `Combiné ${sels.length} sélections · cote ${p.total_odd}`
         : sels[0]
-          ? `${sels[0].team_home} vs ${sels[0].team_away} @ ${p.total_odd}`
-          : `Prono @ ${p.total_odd}`;
+          ? `${sels[0].team_home} contre ${sels[0].team_away} · cote ${p.total_odd}`
+          : `Pronostic · cote ${p.total_odd}`;
 
       // 1) Notification "nouveau prono" (basée sur published_at)
       list.push({
@@ -113,10 +113,10 @@ export function useNotificationsFeed(): UseNotificationsFeedResult {
         type: 'new_prono',
         title:
           p.min_tier === 'vip'
-            ? '💎 Nouveau prono VIP'
+            ? '💎 Nouveau pronostic VIP'
             : p.min_tier === 'pro'
-              ? '🔥 Nouveau prono Pro'
-              : '🔥 Nouveau prono',
+              ? '🔥 Nouveau pronostic Pro'
+              : '🔥 Nouveau pronostic',
         body: summary,
         createdAt: p.published_at,
         target: `/bet/${p.id}`,
@@ -134,10 +134,10 @@ export function useNotificationsFeed(): UseNotificationsFeedResult {
         list.push({
           id: `${p.result}-${p.id}`,
           type: p.result === 'win' ? 'bet_won' : 'bet_lost',
-          title: p.result === 'win' ? '🏆 Pari gagné' : '❌ Pari perdu',
+          title: p.result === 'win' ? '🏆 Pronostic gagné' : '❌ Pronostic perdu',
           body: isCombo
-            ? `Combiné ${sels.length} sélections — cote x${p.total_odd}${finalScore ? '' : ''}`
-            : `${sels[0]?.team_home} vs ${sels[0]?.team_away}${finalScore ? ` — ${finalScore}` : ''}`,
+            ? `Combiné ${sels.length} sélections · cote x${p.total_odd}`
+            : `${sels[0]?.team_home} contre ${sels[0]?.team_away}${finalScore ? ` · score ${finalScore}` : ''}`,
           createdAt: p.updated_at,
           target: `/bet/${p.id}`,
           data: { betId: p.id },
@@ -154,7 +154,7 @@ export function useNotificationsFeed(): UseNotificationsFeedResult {
       list.push({
         id: `vip-${m.id}`,
         type: 'vip_message',
-        title: `${isStaffMsg ? '💎' : '💬'} ${sender} · Salon VIP`,
+        title: `${isStaffMsg ? '💎' : '💬'} Salon VIP · ${sender}`,
         body: preview,
         createdAt: m.created_at,
         target: '/(app)/vip',
