@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(10,10,10,0.65)',
+    backgroundColor: 'rgba(10,10,10,0.75)',
   },
   livePulse: {
     position: 'absolute',

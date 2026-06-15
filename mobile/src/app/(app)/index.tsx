@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BlurView } from 'expo-blur';
 import { Image as ExpoImage } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
@@ -329,31 +328,13 @@ export default function HomeScreen() {
             todayBets.length === 0
               ? { backgroundColor: c.bgCardLight, borderColor: c.borderOnLightFaint }
               : {
-                  backgroundColor: 'transparent',
+                  // Fond opaque sombre : plus de teinte rouge du hero
+                  // stadium qui passait à travers le blur dans Expo Go.
+                  backgroundColor: 'rgba(15,15,18,0.92)',
                   borderColor: 'rgba(250,250,247,0.18)',
                   overflow: 'hidden',
                 },
           ]}>
-          {todayBets.length > 0 ? (
-            <>
-              <BlurView
-                intensity={80}
-                tint="dark"
-                style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
-              />
-              {/* Overlay noir semi-opaque pour neutraliser la teinte
-                  du bg hero (image stadium rouge) qui passait à travers
-                  le blur. Combiné au blur, ça donne un vrai effet glass
-                  neutre style iOS notif. */}
-              <View
-                pointerEvents="none"
-                style={[
-                  StyleSheet.absoluteFill,
-                  { backgroundColor: 'rgba(10,10,12,0.55)', borderRadius: 20 },
-                ]}
-              />
-            </>
-          ) : null}
           <View style={styles.cardLightHead}>
             <View style={styles.cardLightHeadLeft}>
               <SymbolView
