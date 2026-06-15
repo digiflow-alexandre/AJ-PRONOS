@@ -442,10 +442,8 @@ export default function PronosScreen() {
           </View>
         ) : null}
 
-        {betsLoading && ALL_BETS.length === 0 ? (
-          <LoadingState />
-        ) : betsOfDay.length === 0 ? (
-          <EmptyState />
+        {betsOfDay.length === 0 ? (
+          betsLoading ? <LoadingState /> : <EmptyState />
         ) : (
           <View style={styles.cards}>
             {betsOfDay.map((b) =>
