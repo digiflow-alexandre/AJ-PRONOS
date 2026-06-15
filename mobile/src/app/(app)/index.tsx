@@ -329,15 +329,15 @@ export default function HomeScreen() {
             todayBets.length === 0
               ? { backgroundColor: c.bgCardLight, borderColor: c.borderOnLightFaint }
               : {
-                  backgroundColor: 'rgba(20,20,22,0.35)',
+                  backgroundColor: 'transparent',
                   borderColor: 'rgba(250,250,247,0.18)',
                   overflow: 'hidden',
                 },
           ]}>
           {todayBets.length > 0 ? (
             <BlurView
-              intensity={28}
-              tint="dark"
+              intensity={60}
+              tint="systemThinMaterialDark"
               style={[StyleSheet.absoluteFill, { borderRadius: 20 }]}
             />
           ) : null}
