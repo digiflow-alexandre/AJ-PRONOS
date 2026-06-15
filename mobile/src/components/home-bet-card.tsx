@@ -147,8 +147,28 @@ export function HomeBetCard({
         style={StyleSheet.absoluteFill}
         contentFit="cover"
       />
-      {/* Overlay dégradé sombre pour lisibilité texte */}
+      {/* Overlay sombre principal pour lisibilité texte + étouffer les
+          couleurs parasites de l'image bg (rouge/orange des effets
+          décoratifs win/loss). */}
       <View style={styles.overlay} pointerEvents="none" />
+      {/* Tint coloré selon statut — très subtle, juste pour renforcer
+          l'identité win=vert, loss=rouge, live=orange. */}
+      {status === 'win' ? (
+        <View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(52,211,153,0.08)' }]}
+        />
+      ) : status === 'loss' ? (
+        <View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(248,113,113,0.08)' }]}
+        />
+      ) : status === 'live' ? (
+        <View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(251,191,36,0.08)' }]}
+        />
+      ) : null}
 
       {/* Pulse live (en haut à droite) */}
       {status === 'live' ? (
@@ -460,7 +480,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(10,10,10,0.55)',
+    backgroundColor: 'rgba(10,10,10,0.65)',
   },
   livePulse: {
     position: 'absolute',
