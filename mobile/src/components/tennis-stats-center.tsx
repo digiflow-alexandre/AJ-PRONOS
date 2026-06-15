@@ -933,10 +933,13 @@ function BracketMatchCard({
   const isFinished = match.status === 'finished';
   const homeWins = match.winner_side === 'home';
   const awayWins = match.winner_side === 'away';
-  // N'affiche les scores que pour les matchs réellement finis (sinon 0-0
-  // hérité de l'API serait affiché comme un vrai score = trompeur).
-  const homeScore = isFinished ? match.score_home : null;
-  const awayScore = isFinished ? match.score_away : null;
+  // Détail par set pour les matchs finis. Si pas dispo, fallback sur le
+  // total de sets gagnés ("2", "1" en tabular-nums style Eurosport).
+  const sets = isFinished && Array.isArray(match.sets_detail)
+    ? match.sets_detail
+        .slice()
+        .sort((a, b) => (parseInt(a.score_set, 10) || 0) - (parseInt(b.score_set, 10) || 0))
+    : null;
   return (
     <View
       style={[
@@ -949,14 +952,18 @@ function BracketMatchCard({
       ]}>
       <BracketLine
         name={match.team_home}
-        score={homeScore}
+        side="home"
+        sets={sets}
+        fallbackScore={isFinished ? match.score_home : null}
         winner={homeWins}
         loser={isFinished && awayWins}
       />
       <View style={[styles.bracketDivider, { backgroundColor: c.borderFaint }]} />
       <BracketLine
         name={match.team_away}
-        score={awayScore}
+        side="away"
+        sets={sets}
+        fallbackScore={isFinished ? match.score_away : null}
         winner={awayWins}
         loser={isFinished && homeWins}
       />
@@ -966,12 +973,16 @@ function BracketMatchCard({
 
 function BracketLine({
   name,
-  score,
+  side,
+  sets,
+  fallbackScore,
   winner,
   loser,
 }: {
   name: string;
-  score: number | null;
+  side: 'home' | 'away';
+  sets: Array<{ score_first: string; score_second: string; score_set: string }> | null;
+  fallbackScore: number | null;
   winner: boolean;
   loser: boolean;
 }) {
@@ -990,9 +1001,46 @@ function BracketLine({
         numberOfLines={1}>
         {name}
       </Text>
-      <Text style={{ color, fontWeight: weight, fontSize: 13, fontVariant: ['tabular-nums'] }}>
-        {score != null ? score : '·'}
-      </Text>
+      {sets && sets.length > 0 ? (
+        <View style={styles.bracketSetsRow}>
+          {sets.map((s, i) => {
+            const raw = side === 'home' ? s.score_first : s.score_second;
+            // Format API : "7.9" = 7 jeux + 9 pts TB. On affiche juste les
+            // jeux ; le pts TB part en exposant si présent (style ATP).
+            const [games, tb] = String(raw ?? '').split('.');
+            return (
+              <View key={i} style={styles.bracketSetCell}>
+                <Text
+                  style={{
+                    color,
+                    fontWeight: weight,
+                    fontSize: 12,
+                    fontVariant: ['tabular-nums'],
+                  }}>
+                  {games || '·'}
+                </Text>
+                {tb ? (
+                  <Text
+                    style={{
+                      color: c.textMuted,
+                      fontSize: 8,
+                      fontWeight: '600',
+                      marginLeft: 1,
+                      marginTop: -2,
+                      fontVariant: ['tabular-nums'],
+                    }}>
+                    {tb}
+                  </Text>
+                ) : null}
+              </View>
+            );
+          })}
+        </View>
+      ) : (
+        <Text style={{ color, fontWeight: weight, fontSize: 13, fontVariant: ['tabular-nums'] }}>
+          {fallbackScore != null ? fallbackScore : '·'}
+        </Text>
+      )}
     </View>
   );
 }
@@ -1024,6 +1072,17 @@ const styles = StyleSheet.create({
   bracketDivider: {
     height: StyleSheet.hairlineWidth,
     marginVertical: 1,
+  },
+  bracketSetsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  bracketSetCell: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    minWidth: 14,
+    justifyContent: 'flex-end',
   },
   // Tabs
   tabsRow: {

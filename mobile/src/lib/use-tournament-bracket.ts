@@ -23,6 +23,7 @@ export type BracketMatch = {
   score_away: number | null;
   winner_side: 'home' | 'away' | null;
   round: string | null;
+  sets_detail: Array<{ score_first: string; score_second: string; score_set: string }> | null;
 };
 
 export type BracketRound = {
@@ -84,7 +85,7 @@ export function useTournamentBracket(
       let query = supabase
         .from('matches')
         .select(
-          'id, team_home, team_away, team_home_logo, team_away_logo, match_start_at, status, score_home, score_away, winner_side, round',
+          'id, team_home, team_away, team_home_logo, team_away_logo, match_start_at, status, score_home, score_away, winner_side, round, sets_detail',
         )
         .eq('sport', 'tennis')
         .eq('competition_id', competitionId)
