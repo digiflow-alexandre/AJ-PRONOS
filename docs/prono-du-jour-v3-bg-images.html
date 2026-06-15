@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>AJ Pronos — V3 : vrais bg images + combiné simplifié</title>
+<style>
+  :root {
+    --cream: #fafaf7;
+    --cream-dim: rgba(250,250,247,.82);
+    --cream-soft: rgba(250,250,247,.55);
+    --gold: #b8941f;
+    --gold-soft: rgba(184,148,31,.22);
+    --green: #34d399;
+    --red: #f87171;
+    --orange: #fbbf24;
+    --blue: #60a5fa;
+    --border: rgba(250,250,247,.06);
+    --border-strong: rgba(250,250,247,.18);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #18181b;
+    color: var(--cream);
+    min-height: 100vh;
+  }
+  .page { padding: 56px 24px 80px; max-width: 1380px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 56px; }
+  .header h1 {
+    font-size: 28px; font-weight: 600; margin: 0 0 8px; letter-spacing: -0.02em;
+  }
+  .header p { margin: 0; font-size: 14px; color: var(--cream-soft); line-height: 1.55; }
+  .section { margin-top: 56px; }
+  .section-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em;
+    color: var(--gold); font-weight: 700; margin-bottom: 6px;
+  }
+  .section-sub {
+    font-size: 13px; color: var(--cream-soft); margin: 0 0 28px; max-width: 760px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 32px;
+  }
+  .phone {
+    background: #111114; border: 1px solid var(--border);
+    border-radius: 24px; padding: 22px 16px 26px;
+  }
+  .phone-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--cream-soft); margin-bottom: 14px; padding-left: 4px;
+  }
+  .phone-screen {
+    background: #050507; border-radius: 18px;
+    padding: 18px 14px 20px; border: 1px solid var(--border);
+  }
+  .badge {
+    display: inline-flex; padding: 2px 7px; border-radius: 6px;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; align-items: center;
+  }
+  .badge-pro { background: rgba(96,165,250,.18); color: var(--blue); }
+  .badge-vip { background: rgba(184,148,31,.22); color: var(--gold); }
+
+  /* ==========================
+     CARD V3 avec image en bg
+     ========================== */
+  .card {
+    border-radius: 16px;
+    padding: 13px 14px;
+    display: flex; flex-direction: column;
+    gap: 9px;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  /* L'image bg */
+  .card-bg {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    z-index: -2;
+  }
+  /* Overlay dégradé sombre pour assurer la lisibilité du texte */
+  .card-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(10,10,10,0.85) 0%,
+      rgba(10,10,10,0.65) 45%,
+      rgba(10,10,10,0.45) 100%
+    );
+    z-index: -1;
+  }
+  /* Bordure colorée selon statut */
+  .card.pending { border: 1px solid var(--border); }
+  .card.live   { border: 1px solid rgba(251,191,36,.45); }
+  .card.win    { border: 1px solid rgba(52,211,153,.40); }
+  .card.loss   { border: 1px solid rgba(248,113,113,.40); }
+  .card.void   { border: 1px dashed var(--border-strong); }
+
+  /* Pulse live */
+  .card.live::after {
+    content: ""; position: absolute; top: 10px; right: 10px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--orange);
+    box-shadow: 0 0 8px 2px rgba(251,191,36,.65);
+    animation: pulse 1.4s ease-in-out infinite;
+    z-index: 2;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* Contenu */
+  .card-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .card-comp {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; color: var(--cream); font-weight: 700;
+    letter-spacing: 0.6px; text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+  }
+  .card-status-chip {
+    font-size: 9px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 5px;
+    backdrop-filter: blur(6px);
+  }
+  .chip-live { background: rgba(251,191,36,.28); color: var(--orange); border: 1px solid rgba(251,191,36,.4); }
+  .chip-win  { background: rgba(52,211,153,.22); color: var(--green); border: 1px solid rgba(52,211,153,.35); }
+  .chip-loss { background: rgba(248,113,113,.22); color: var(--red); border: 1px solid rgba(248,113,113,.35); }
+  .chip-void { background: rgba(250,250,247,.10); color: var(--cream-soft); }
+  .card-dot {
+    width: 4px; height: 4px; border-radius: 50%; background: var(--gold);
+  }
+  .card-teams-row {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-team {
+    flex: 1; display: flex; align-items: center; gap: 6px;
+    font-size: 13.5px; font-weight: 700; min-width: 0;
+    text-shadow: 0 1px 2px rgba(0,0,0,.6);
+  }
+  .card-team-logo {
+    width: 20px; height: 20px; border-radius: 5px;
+    background: rgba(250,250,247,.08); flex-shrink: 0;
+  }
+  .card-vs {
+    font-size: 9px; color: var(--cream-soft); font-weight: 700; letter-spacing: 0.4px;
+  }
+  .card-pred-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 9px; border-top: 1px solid rgba(250,250,247,.10);
+  }
+  .card-pred {
+    flex: 1; font-size: 12.5px; font-weight: 600; color: var(--cream-dim);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    text-shadow: 0 1px 1px rgba(0,0,0,.4);
+  }
+  .card-pred-label {
+    font-size: 8px; color: var(--gold); font-weight: 800;
+    letter-spacing: 0.6px; text-transform: uppercase; margin-right: 6px;
+  }
+  .card-odd {
+    background: var(--gold); color: #0a0a0a;
+    font-weight: 800; font-size: 12.5px;
+    padding: 5px 10px; border-radius: 8px;
+    font-variant-numeric: tabular-nums; flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+  .card-result-line {
+    display: flex; align-items: center; gap: 8px;
+    padding-top: 8px; border-top: 1px solid rgba(250,250,247,.10);
+    font-size: 11px; color: var(--cream-dim);
+  }
+  .card-result-icon { font-size: 14px; }
+  .card-final-score {
+    margin-left: auto; font-weight: 800; color: var(--cream);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+  }
+  .card-stack > * + * { margin-top: 9px; }
+
+  /* ==========================
+     COMBINÉ V3 simplifié
+     ========================== */
+  .combo-card {
+    border-radius: 16px;
+    padding: 14px;
+    display: flex; flex-direction: column;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    min-height: 120px;
+  }
+  .combo-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .combo-title {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .combo-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: rgba(184,148,31,.18); border: 1px solid var(--gold-soft);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold); font-size: 16px; font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .combo-title-text {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .combo-title-main {
+    font-size: 14px; font-weight: 700; color: var(--cream);
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+  }
+  .combo-title-sub {
+    font-size: 10px; color: var(--cream-soft); font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    text-shadow: 0 1px 1px rgba(0,0,0,.4);
+  }
+  .combo-meta-row {
+    display: flex; align-items: center; gap: 8px;
+    padding-top: 8px; border-top: 1px solid rgba(250,250,247,.10);
+    font-size: 11px; color: var(--cream-dim);
+  }
+  .combo-meta-icon { color: var(--gold); font-size: 11px; }
+  .combo-meta-bullet {
+    color: var(--cream-soft); font-size: 8px;
+  }
+  .combo-odd-block {
+    margin-left: auto;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+  }
+  .combo-odd-label {
+    font-size: 8px; color: var(--cream-soft);
+    letter-spacing: 0.6px; text-transform: uppercase; font-weight: 700;
+  }
+
+  .note {
+    background: #111114; border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 22px;
+    margin-top: 40px; font-size: 13px;
+    color: var(--cream-dim); line-height: 1.55;
+  }
+  .note strong { color: var(--cream); }
+  .note ul { margin: 8px 0 0 18px; padding: 0; }
+  .note li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <h1>Variante 2 — <span style="color:var(--gold)">vraies images en bg + combiné simplifié</span></h1>
+    <p>Card avec image bg correspondant au statut (pending / win / loss + variantes foot/tennis/combo)<br>
+    + combiné réduit à : titre + nb sélections + compétition + nb jours + cote.</p>
+  </header>
+
+  <!-- ===================== Singles avec bg images ===================== -->
+  <div class="section">
+    <div class="section-title">Singles avec image bg selon statut</div>
+    <p class="section-sub">
+      Image bg + overlay sombre 65-85% pour garantir la lisibilité du texte au-dessus.
+      Bordure colorée subtile pour rappel statut.
+    </p>
+
+    <div class="grid">
+      <!-- PENDING FOOT -->
+      <div class="phone">
+        <div class="phone-label">À venir — Foot (bg-card-pending-foot.png)</div>
+        <div class="phone-screen">
+          <div class="card pending">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-pending-foot.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="card-head">
+              <div class="card-comp"><span class="card-dot"></span>Coupe du Monde · J2</div>
+              <span class="badge badge-pro">Pro</span>
+            </div>
+            <div class="card-teams-row">
+              <div class="card-team"><span class="card-team-logo"></span>Côte d'Ivoire</div>
+              <span class="card-vs">VS</span>
+              <div class="card-team" style="justify-content:flex-end">Équateur<span class="card-team-logo"></span></div>
+            </div>
+            <div class="card-pred-row">
+              <div class="card-pred"><span class="card-pred-label">Notre prono</span>Vainqueur Côte d'Ivoire</div>
+              <div class="card-odd">3.15</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PENDING TENNIS -->
+      <div class="phone">
+        <div class="phone-label">À venir — Tennis (bg-card-pending-tennis.png)</div>
+        <div class="phone-screen">
+          <div class="card pending">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-pending-tennis.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="card-head">
+              <div class="card-comp"><span class="card-dot"></span>ATP · Roland-Garros</div>
+              <span class="badge badge-vip">VIP</span>
+            </div>
+            <div class="card-teams-row">
+              <div class="card-team"><span class="card-team-logo"></span>Sinner</div>
+              <span class="card-vs">VS</span>
+              <div class="card-team" style="justify-content:flex-end">Alcaraz<span class="card-team-logo"></span></div>
+            </div>
+            <div class="card-pred-row">
+              <div class="card-pred"><span class="card-pred-label">Notre prono</span>Vainqueur Alcaraz en 4 sets</div>
+              <div class="card-odd">2.10</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE -->
+      <div class="phone">
+        <div class="phone-label">En cours (live) — pulse orange</div>
+        <div class="phone-screen">
+          <div class="card live">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-pending-foot.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="card-head">
+              <div class="card-comp"><span class="card-dot"></span>Coupe du Monde · J2</div>
+              <span class="card-status-chip chip-live">LIVE 67'</span>
+            </div>
+            <div class="card-teams-row">
+              <div class="card-team"><span class="card-team-logo"></span>Côte d'Ivoire<span style="margin-left:auto;font-size:18px;color:var(--orange)">1</span></div>
+              <span class="card-vs">—</span>
+              <div class="card-team" style="justify-content:flex-end"><span style="margin-right:auto;font-size:18px;color:var(--cream-soft)">0</span>Équateur<span class="card-team-logo"></span></div>
+            </div>
+            <div class="card-pred-row">
+              <div class="card-pred"><span class="card-pred-label">Notre prono</span>Vainqueur Côte d'Ivoire</div>
+              <div class="card-odd">3.15</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WIN -->
+      <div class="phone">
+        <div class="phone-label">Gagné — Foot (bg-card-won.png)</div>
+        <div class="phone-screen">
+          <div class="card win">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-won.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="card-head">
+              <div class="card-comp"><span class="card-dot"></span>Coupe du Monde · J2</div>
+              <span class="card-status-chip chip-win">✓ GAGNÉ</span>
+            </div>
+            <div class="card-teams-row">
+              <div class="card-team"><span class="card-team-logo"></span>Côte d'Ivoire</div>
+              <span class="card-vs">VS</span>
+              <div class="card-team" style="justify-content:flex-end">Équateur<span class="card-team-logo"></span></div>
+            </div>
+            <div class="card-pred-row">
+              <div class="card-pred"><span class="card-pred-label">Notre prono</span>Vainqueur Côte d'Ivoire</div>
+              <div class="card-odd">3.15</div>
+            </div>
+            <div class="card-result-line">
+              <span class="card-result-icon" style="color:var(--green)">✓</span>
+              <span>Cote x3.15 réalisée</span>
+              <span class="card-final-score">1-0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WIN TENNIS -->
+      <div class="phone">
+        <div class="phone-label">Gagné — Tennis (bg-card-won-tennis.png)</div>
+        <div class="phone-screen">
+          <div class="card win">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-won-tennis.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="card-head">
+              <div class="card-comp"><span class="card-dot"></span>ATP · Stuttgart · 1/8</div>
+              <span class="card-status-chip chip-win">✓ GAGNÉ</span>
+            </div>
+            <div class="card-teams-row">
+              <div class="card-team"><span class="card-team-logo"></span>B. Shelton</div>
+              <span class="card-vs">VS</span>
+              <div class="card-team" style="justify-content:flex-end">M. Giron<span class="card-team-logo"></span></div>
+            </div>
+            <div class="card-pred-row">
+              <div class="card-pred"><span class="card-pred-label">Notre prono</span>Vainqueur Shelton</div>
+              <div class="card-odd">1.28</div>
+            </div>
+            <div class="card-result-line">
+              <span class="card-result-icon" style="color:var(--green)">✓</span>
+              <span>Victoire en 3 sets</span>
+              <span class="card-final-score">2-1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOSS -->
+      <div class="phone">
+        <div class="phone-label">Perdu — Foot (bg-card-lost.png)</div>
+        <div class="phone-screen">
+          <div class="card loss">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-lost.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="card-head">
+              <div class="card-comp"><span class="card-dot"></span>Coupe du Monde · J1</div>
+              <span class="card-status-chip chip-loss">✕ PERDU</span>
+            </div>
+            <div class="card-teams-row">
+              <div class="card-team"><span class="card-team-logo"></span>Qatar</div>
+              <span class="card-vs">VS</span>
+              <div class="card-team" style="justify-content:flex-end">Suisse<span class="card-team-logo"></span></div>
+            </div>
+            <div class="card-pred-row">
+              <div class="card-pred"><span class="card-pred-label">Notre prono</span>Vainqueur Suisse</div>
+              <div class="card-odd">1.20</div>
+            </div>
+            <div class="card-result-line">
+              <span class="card-result-icon" style="color:var(--red)">✕</span>
+              <span>Mise perdue</span>
+              <span class="card-final-score">1-1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== Combiné simplifié — par sport ===================== -->
+  <div class="section">
+    <div class="section-title">Combiné — bg selon sport (100% foot / 100% tennis / mixte)</div>
+    <p class="section-sub">
+      Mapping bg selon le sport dominant du combiné :
+      <strong>100% foot</strong> → bg foot · <strong>100% tennis</strong> → bg tennis ·
+      <strong>mixte (foot + tennis)</strong> → bg mixed/combo.
+    </p>
+
+    <div class="grid">
+      <!-- COMBO PENDING — 100% FOOT -->
+      <div class="phone">
+        <div class="phone-label">Pending — Combo 100% foot (pending-foot.png)</div>
+        <div class="phone-screen">
+          <div class="combo-card pending card">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-pending-foot.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="combo-head">
+              <div class="combo-title">
+                <div class="combo-icon">3</div>
+                <div class="combo-title-text">
+                  <div class="combo-title-main">Combiné · 3 sélections</div>
+                  <div class="combo-title-sub">Coupe du Monde · Foot</div>
+                </div>
+              </div>
+              <span class="badge badge-vip">VIP</span>
+            </div>
+            <div class="combo-meta-row">
+              <span class="combo-meta-icon">📅</span>
+              <span>Étalé sur 2 jours</span>
+              <div class="combo-odd-block">
+                <span class="combo-odd-label">Cote totale</span>
+                <div class="card-odd" style="font-size:14px;padding:5px 11px">2.40</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMBO PENDING — 100% TENNIS -->
+      <div class="phone">
+        <div class="phone-label">Pending — Combo 100% tennis (pending-tennis.png)</div>
+        <div class="phone-screen">
+          <div class="combo-card pending card">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-pending-tennis.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="combo-head">
+              <div class="combo-title">
+                <div class="combo-icon">6</div>
+                <div class="combo-title-text">
+                  <div class="combo-title-main">Combiné · 6 sélections</div>
+                  <div class="combo-title-sub">ATP / WTA · Tennis</div>
+                </div>
+              </div>
+              <span class="badge badge-vip">VIP</span>
+            </div>
+            <div class="combo-meta-row">
+              <span class="combo-meta-icon">📅</span>
+              <span>Étalé sur 3 jours</span>
+              <div class="combo-odd-block">
+                <span class="combo-odd-label">Cote totale</span>
+                <div class="card-odd" style="font-size:14px;padding:5px 11px">6.21</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMBO PENDING — MIXTE -->
+      <div class="phone">
+        <div class="phone-label">Pending — Combo mixte foot+tennis (pending-mixed.png)</div>
+        <div class="phone-screen">
+          <div class="combo-card pending card">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-pending-mixed.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="combo-head">
+              <div class="combo-title">
+                <div class="combo-icon">7</div>
+                <div class="combo-title-text">
+                  <div class="combo-title-main">Combiné · 7 sélections</div>
+                  <div class="combo-title-sub">Foot + Tennis</div>
+                </div>
+              </div>
+              <span class="badge badge-vip">VIP</span>
+            </div>
+            <div class="combo-meta-row">
+              <span class="combo-meta-icon">📅</span>
+              <span>Étalé sur 4 jours</span>
+              <div class="combo-odd-block">
+                <span class="combo-odd-label">Cote totale</span>
+                <div class="card-odd" style="font-size:14px;padding:5px 11px">29.50</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMBO WIN — 100% FOOT -->
+      <div class="phone">
+        <div class="phone-label">Gagné — Combo 100% foot (won.png)</div>
+        <div class="phone-screen">
+          <div class="combo-card win card">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-won.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="combo-head">
+              <div class="combo-title">
+                <div class="combo-icon" style="background:rgba(52,211,153,.18);color:var(--green);border-color:rgba(52,211,153,.4)">✓</div>
+                <div class="combo-title-text">
+                  <div class="combo-title-main">Combiné · 2 sélections</div>
+                  <div class="combo-title-sub">Coupe du Monde · Foot</div>
+                </div>
+              </div>
+              <span class="card-status-chip chip-win">✓ GAGNÉ</span>
+            </div>
+            <div class="combo-meta-row">
+              <span class="combo-meta-icon">📅</span>
+              <span>Étalé sur 2 jours</span>
+              <div class="combo-odd-block">
+                <span class="combo-odd-label">Cote totale</span>
+                <div class="card-odd" style="font-size:14px;padding:5px 11px">1.91</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMBO WIN — 100% TENNIS -->
+      <div class="phone">
+        <div class="phone-label">Gagné — Combo 100% tennis (won-tennis.png)</div>
+        <div class="phone-screen">
+          <div class="combo-card win card">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-won-tennis.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="combo-head">
+              <div class="combo-title">
+                <div class="combo-icon" style="background:rgba(52,211,153,.18);color:var(--green);border-color:rgba(52,211,153,.4)">✓</div>
+                <div class="combo-title-text">
+                  <div class="combo-title-main">Combiné · 6 sélections</div>
+                  <div class="combo-title-sub">ATP / WTA · Tennis</div>
+                </div>
+              </div>
+              <span class="card-status-chip chip-win">✓ GAGNÉ</span>
+            </div>
+            <div class="combo-meta-row">
+              <span class="combo-meta-icon">📅</span>
+              <span>Étalé sur 3 jours</span>
+              <div class="combo-odd-block">
+                <span class="combo-odd-label">Cote totale</span>
+                <div class="card-odd" style="font-size:14px;padding:5px 11px">6.21</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMBO WIN — MIXTE -->
+      <div class="phone">
+        <div class="phone-label">Gagné — Combo mixte (won-combo.png)</div>
+        <div class="phone-screen">
+          <div class="combo-card win card">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-won-combo.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="combo-head">
+              <div class="combo-title">
+                <div class="combo-icon" style="background:rgba(52,211,153,.18);color:var(--green);border-color:rgba(52,211,153,.4)">✓</div>
+                <div class="combo-title-text">
+                  <div class="combo-title-main">Combiné · 4 sélections</div>
+                  <div class="combo-title-sub">Foot + Tennis</div>
+                </div>
+              </div>
+              <span class="card-status-chip chip-win">✓ GAGNÉ</span>
+            </div>
+            <div class="combo-meta-row">
+              <span class="combo-meta-icon">📅</span>
+              <span>Étalé sur 3 jours</span>
+              <div class="combo-odd-block">
+                <span class="combo-odd-label">Cote totale</span>
+                <div class="card-odd" style="font-size:14px;padding:5px 11px">8.40</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMBO LOSS — 100% FOOT -->
+      <div class="phone">
+        <div class="phone-label">Perdu — Combo 100% foot (lost.png)</div>
+        <div class="phone-screen">
+          <div class="combo-card loss card">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-lost.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="combo-head">
+              <div class="combo-title">
+                <div class="combo-icon" style="background:rgba(248,113,113,.18);color:var(--red);border-color:rgba(248,113,113,.4)">✕</div>
+                <div class="combo-title-text">
+                  <div class="combo-title-main">Combiné · 3 sélections</div>
+                  <div class="combo-title-sub">Coupe du Monde · Foot</div>
+                </div>
+              </div>
+              <span class="card-status-chip chip-loss">✕ PERDU</span>
+            </div>
+            <div class="combo-meta-row">
+              <span class="combo-meta-icon">📅</span>
+              <span>Étalé sur 2 jours</span>
+              <div class="combo-odd-block">
+                <span class="combo-odd-label">Cote totale</span>
+                <div class="card-odd" style="font-size:14px;padding:5px 11px;opacity:0.7">2.40</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMBO LOSS — 100% TENNIS -->
+      <div class="phone">
+        <div class="phone-label">Perdu — Combo 100% tennis (lost-tennis.png)</div>
+        <div class="phone-screen">
+          <div class="combo-card loss card">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-lost-tennis.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="combo-head">
+              <div class="combo-title">
+                <div class="combo-icon" style="background:rgba(248,113,113,.18);color:var(--red);border-color:rgba(248,113,113,.4)">✕</div>
+                <div class="combo-title-text">
+                  <div class="combo-title-main">Combiné · 4 sélections</div>
+                  <div class="combo-title-sub">ATP / WTA · Tennis</div>
+                </div>
+              </div>
+              <span class="card-status-chip chip-loss">✕ PERDU</span>
+            </div>
+            <div class="combo-meta-row">
+              <span class="combo-meta-icon">📅</span>
+              <span>Étalé sur 2 jours</span>
+              <div class="combo-odd-block">
+                <span class="combo-odd-label">Cote totale</span>
+                <div class="card-odd" style="font-size:14px;padding:5px 11px;opacity:0.7">3.85</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMBO LOSS — MIXTE -->
+      <div class="phone">
+        <div class="phone-label">Perdu — Combo mixte (lost-combo.png)</div>
+        <div class="phone-screen">
+          <div class="combo-card loss card">
+            <div class="card-bg" style="background-image:url('cards-bg/bg-card-lost-combo.png')"></div>
+            <div class="card-overlay"></div>
+            <div class="combo-head">
+              <div class="combo-title">
+                <div class="combo-icon" style="background:rgba(248,113,113,.18);color:var(--red);border-color:rgba(248,113,113,.4)">✕</div>
+                <div class="combo-title-text">
+                  <div class="combo-title-main">Combiné · 5 sélections</div>
+                  <div class="combo-title-sub">Foot + Tennis</div>
+                </div>
+              </div>
+              <span class="card-status-chip chip-loss">✕ PERDU</span>
+            </div>
+            <div class="combo-meta-row">
+              <span class="combo-meta-icon">📅</span>
+              <span>Étalé sur 3 jours</span>
+              <div class="combo-odd-block">
+                <span class="combo-odd-label">Cote totale</span>
+                <div class="card-odd" style="font-size:14px;padding:5px 11px;opacity:0.7">12.30</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Notes :</strong>
+    <ul>
+      <li><strong>Bg images</strong> : les images sont utilisées en background avec un overlay sombre 65-85% pour garantir le contraste du texte. Bordure colorée subtile en complément du chip statut.</li>
+      <li><strong>Combiné simplifié</strong> : icône ronde avec le nombre de sélections (ou icône statut quand résolu), titre <strong>"Combiné · N sélections"</strong>, compétition (sous-titre), nb jours d'étalement, cote totale. Tap → /bet/[id] pour voir toutes les sélections détaillées.</li>
+      <li><strong>Hauteurs cohérentes</strong> : ~110-130px pour les singles, ~100-110px pour les combinés (plus aérés sans la liste).</li>
+      <li><strong>Cas LIVE combo</strong> : le chip affiche "LIVE 2/3" pour indiquer "2 sélections déjà résolues sur 3, 1 en cours".</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

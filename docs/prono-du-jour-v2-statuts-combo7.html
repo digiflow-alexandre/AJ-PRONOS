@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>AJ Pronos — V2 + statuts + combo 7 sélections</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-card: #16161a;
+    --bg-card-elev: #1c1c20;
+    --cream: #fafaf7;
+    --cream-dim: rgba(250,250,247,.78);
+    --cream-soft: rgba(250,250,247,.55);
+    --gold: #b8941f;
+    --gold-soft: rgba(184,148,31,.22);
+    --green: #34d399;
+    --green-soft: rgba(52,211,153,.10);
+    --green-strong: rgba(52,211,153,.28);
+    --red: #f87171;
+    --red-soft: rgba(248,113,113,.10);
+    --red-strong: rgba(248,113,113,.28);
+    --orange: #fbbf24;
+    --orange-soft: rgba(251,191,36,.10);
+    --orange-strong: rgba(251,191,36,.32);
+    --blue: #60a5fa;
+    --grey-soft: rgba(250,250,247,.05);
+    --border: rgba(250,250,247,.06);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #18181b;
+    color: var(--cream);
+    min-height: 100vh;
+  }
+  .page { padding: 56px 24px 80px; max-width: 1320px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 56px; }
+  .header h1 {
+    font-size: 28px; font-weight: 600; margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+  .header p {
+    margin: 0; font-size: 14px; color: var(--cream-soft); line-height: 1.55;
+  }
+  .section { margin-top: 56px; }
+  .section-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em;
+    color: var(--gold); font-weight: 700; margin-bottom: 6px;
+  }
+  .section-sub {
+    font-size: 13px; color: var(--cream-soft); margin: 0 0 28px;
+    max-width: 720px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 32px;
+  }
+  .phone {
+    background: #111114;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 22px 16px 26px;
+  }
+  .phone-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--cream-soft); margin-bottom: 14px; padding-left: 4px;
+  }
+  .phone-screen {
+    background:
+      radial-gradient(140% 60% at 50% 100%, rgba(184,148,31,.06) 0%, transparent 60%),
+      #050507;
+    border-radius: 18px;
+    padding: 18px 14px 20px;
+    border: 1px solid var(--border);
+  }
+  .badge {
+    display: inline-flex; padding: 2px 7px; border-radius: 6px;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; align-items: center;
+  }
+  .badge-pro { background: rgba(96,165,250,.18); color: var(--blue); }
+  .badge-vip { background: rgba(184,148,31,.22); color: var(--gold); }
+
+  /* =========================
+     Card V2 (base + déclinaisons statut)
+     ========================= */
+  .v2-card {
+    border-radius: 16px;
+    padding: 13px 14px;
+    display: flex; flex-direction: column;
+    gap: 9px;
+    position: relative;
+    overflow: hidden;
+  }
+  .v2-card::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    border-radius: inherit;
+  }
+  /* Statuts */
+  .v2-pending {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+  }
+  .v2-live {
+    background:
+      linear-gradient(135deg, var(--orange-soft) 0%, transparent 60%),
+      var(--bg-card);
+    border: 1px solid var(--orange-strong);
+    box-shadow: 0 0 0 1px rgba(251,191,36,.15) inset;
+  }
+  .v2-live::after {
+    content: ""; position: absolute; top: 10px; right: 10px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--orange);
+    box-shadow: 0 0 8px 2px rgba(251,191,36,.6);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+  .v2-win {
+    background:
+      linear-gradient(135deg, var(--green-soft) 0%, transparent 60%),
+      var(--bg-card);
+    border: 1px solid var(--green-strong);
+  }
+  .v2-loss {
+    background:
+      linear-gradient(135deg, var(--red-soft) 0%, transparent 60%),
+      var(--bg-card);
+    border: 1px solid var(--red-strong);
+  }
+  .v2-void {
+    background: var(--grey-soft);
+    border: 1px dashed rgba(250,250,247,.18);
+    opacity: 0.8;
+  }
+  /* Contenu */
+  .v2-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .v2-comp {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; color: var(--cream-soft); font-weight: 600;
+    letter-spacing: 0.6px; text-transform: uppercase;
+  }
+  .v2-status-chip {
+    font-size: 9px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 5px;
+  }
+  .chip-live { background: rgba(251,191,36,.18); color: var(--orange); }
+  .chip-win  { background: rgba(52,211,153,.18); color: var(--green); }
+  .chip-loss { background: rgba(248,113,113,.18); color: var(--red); }
+  .chip-void { background: rgba(250,250,247,.10); color: var(--cream-soft); }
+  .v2-dot {
+    width: 4px; height: 4px; border-radius: 50%; background: var(--gold);
+  }
+  .v2-teams-row {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .v2-team {
+    flex: 1; display: flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 600; min-width: 0;
+  }
+  .v2-team-logo {
+    width: 18px; height: 18px; border-radius: 4px;
+    background: rgba(250,250,247,.05); flex-shrink: 0;
+  }
+  .v2-vs {
+    font-size: 9px; color: var(--cream-soft); font-weight: 700; letter-spacing: 0.4px;
+  }
+  .v2-pred-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 8px; border-top: 1px solid var(--border);
+  }
+  .v2-pred {
+    flex: 1; font-size: 12px; font-weight: 600; color: var(--cream-dim);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .v2-pred-label {
+    font-size: 8px; color: var(--gold); font-weight: 700;
+    letter-spacing: 0.6px; text-transform: uppercase; margin-right: 6px;
+  }
+  .v2-odd {
+    background: var(--gold); color: #0a0a0a;
+    font-weight: 800; font-size: 12px;
+    padding: 5px 9px; border-radius: 8px;
+    font-variant-numeric: tabular-nums; flex-shrink: 0;
+  }
+  /* Result for resolved bets */
+  .v2-result-line {
+    display: flex; align-items: center; gap: 8px;
+    padding-top: 8px; border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--cream-dim);
+  }
+  .v2-result-icon { font-size: 14px; }
+  .v2-final-score {
+    margin-left: auto; font-weight: 700; color: var(--cream);
+    font-variant-numeric: tabular-nums;
+  }
+  .v2-stack > * + * { margin-top: 9px; }
+
+  /* =========================
+     Combo 7 sélections — 3 traitements
+     ========================= */
+
+  /* Combo A : empilement vertical compact */
+  .comboA {
+    border-radius: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 13px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .comboA-head {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .comboA-title {
+    font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px;
+  }
+  .comboA-title-icon {
+    width: 20px; height: 20px; border-radius: 6px; background: var(--gold-soft);
+    color: var(--gold); font-size: 11px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .comboA-sel {
+    display: grid;
+    grid-template-columns: 14px 1fr auto;
+    gap: 8px; align-items: center;
+    padding: 5px 0;
+  }
+  .comboA-num {
+    width: 14px; height: 14px; border-radius: 4px;
+    background: var(--grey-soft); color: var(--cream-soft);
+    font-size: 9px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .comboA-sel-body {
+    font-size: 11.5px; color: var(--cream-dim); min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .comboA-sel-body strong {
+    color: var(--cream); font-weight: 600;
+  }
+  .comboA-sel-odd {
+    font-size: 11px; color: var(--gold); font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .comboA-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 8px; border-top: 1px solid var(--border);
+  }
+  .comboA-cote-label {
+    font-size: 9px; color: var(--cream-soft);
+    letter-spacing: 0.6px; text-transform: uppercase; font-weight: 700;
+  }
+
+  /* Combo B : preview 3 + collapse */
+  .comboB {
+    border-radius: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 13px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .comboB-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0;
+  }
+  .comboB-row-num {
+    width: 16px; font-size: 10px; color: var(--gold); font-weight: 800;
+  }
+  .comboB-row-text {
+    flex: 1; font-size: 12px; color: var(--cream-dim);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .comboB-row-text strong { color: var(--cream); font-weight: 600; }
+  .comboB-row-odd {
+    font-size: 11px; color: var(--gold); font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .comboB-expand {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; padding: 8px;
+    background: rgba(184,148,31,.08); border: 1px dashed var(--gold-soft);
+    border-radius: 10px; cursor: pointer;
+    font-size: 11px; color: var(--gold); font-weight: 700;
+  }
+
+  /* Combo C : chips horizontaux scrollable */
+  .comboC {
+    border-radius: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 13px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .comboC-chips-wrap {
+    display: flex; gap: 6px;
+    overflow-x: auto; padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+  .comboC-chip {
+    display: flex; flex-direction: column;
+    background: var(--bg-card-elev);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 7px 9px;
+    flex-shrink: 0; min-width: 110px;
+  }
+  .comboC-chip-num {
+    font-size: 8px; color: var(--cream-soft); letter-spacing: 0.4px;
+    font-weight: 700; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .comboC-chip-num .v2-odd {
+    padding: 1px 5px; font-size: 9px;
+  }
+  .comboC-chip-text {
+    font-size: 11px; color: var(--cream); font-weight: 600;
+    margin-top: 4px; line-height: 1.3;
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  }
+
+  .note {
+    background: #111114; border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 22px;
+    margin-top: 40px; font-size: 13px;
+    color: var(--cream-dim); line-height: 1.55;
+  }
+  .note strong { color: var(--cream); }
+  .note ul { margin: 8px 0 0 18px; padding: 0; }
+  .note li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <h1>Variante 2 — <span style="color:var(--gold)">déclinée par statut + combo long</span></h1>
+    <p>Card média avec fond qui s'adapte au statut du pari. Et 3 façons de gérer un combiné à 7 sélections.</p>
+  </header>
+
+  <!-- ===================== Section 1 : statuts ===================== -->
+  <div class="section">
+    <div class="section-title">Carte selon statut (5 états)</div>
+    <p class="section-sub">
+      Chaque card s'adapte visuellement à son statut sans cliquer : fond dégradé subtil + bordure colorée + chip d'état.
+      Performance ROI sans surcharge.
+    </p>
+
+    <div class="grid">
+      <!-- PENDING -->
+      <div class="phone">
+        <div class="phone-label">À venir (pending)</div>
+        <div class="phone-screen">
+          <div class="v2-card v2-pending">
+            <div class="v2-head">
+              <div class="v2-comp"><span class="v2-dot"></span>Coupe du Monde · J2</div>
+              <span class="badge badge-pro">Pro</span>
+            </div>
+            <div class="v2-teams-row">
+              <div class="v2-team"><span class="v2-team-logo"></span>Côte d'Ivoire</div>
+              <span class="v2-vs">VS</span>
+              <div class="v2-team" style="justify-content:flex-end">Équateur<span class="v2-team-logo"></span></div>
+            </div>
+            <div class="v2-pred-row">
+              <div class="v2-pred"><span class="v2-pred-label">Notre prono</span>Vainqueur Côte d'Ivoire</div>
+              <div class="v2-odd">3.15</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE -->
+      <div class="phone">
+        <div class="phone-label">En cours (live) — pulse orange</div>
+        <div class="phone-screen">
+          <div class="v2-card v2-live">
+            <div class="v2-head">
+              <div class="v2-comp"><span class="v2-dot"></span>Coupe du Monde · J2</div>
+              <span class="v2-status-chip chip-live">● LIVE 67'</span>
+            </div>
+            <div class="v2-teams-row">
+              <div class="v2-team"><span class="v2-team-logo"></span>Côte d'Ivoire <span style="color:var(--orange);font-weight:800;margin-left:auto">1</span></div>
+              <span class="v2-vs">—</span>
+              <div class="v2-team" style="justify-content:flex-end"><span style="color:var(--cream-soft);font-weight:800;margin-right:auto">0</span>Équateur<span class="v2-team-logo"></span></div>
+            </div>
+            <div class="v2-pred-row">
+              <div class="v2-pred"><span class="v2-pred-label">Notre prono</span>Vainqueur Côte d'Ivoire</div>
+              <div class="v2-odd">3.15</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WIN -->
+      <div class="phone">
+        <div class="phone-label">Gagné (win)</div>
+        <div class="phone-screen">
+          <div class="v2-card v2-win">
+            <div class="v2-head">
+              <div class="v2-comp"><span class="v2-dot"></span>Coupe du Monde · J2</div>
+              <span class="v2-status-chip chip-win">✓ GAGNÉ</span>
+            </div>
+            <div class="v2-teams-row">
+              <div class="v2-team"><span class="v2-team-logo"></span>Côte d'Ivoire</div>
+              <span class="v2-vs">VS</span>
+              <div class="v2-team" style="justify-content:flex-end">Équateur<span class="v2-team-logo"></span></div>
+            </div>
+            <div class="v2-pred-row">
+              <div class="v2-pred"><span class="v2-pred-label">Notre prono</span>Vainqueur Côte d'Ivoire</div>
+              <div class="v2-odd">3.15</div>
+            </div>
+            <div class="v2-result-line">
+              <span class="v2-result-icon" style="color:var(--green)">✓</span>
+              <span>Cote x3.15 réalisée</span>
+              <span class="v2-final-score">1-0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOSS -->
+      <div class="phone">
+        <div class="phone-label">Perdu (loss)</div>
+        <div class="phone-screen">
+          <div class="v2-card v2-loss">
+            <div class="v2-head">
+              <div class="v2-comp"><span class="v2-dot"></span>Coupe du Monde · J1</div>
+              <span class="v2-status-chip chip-loss">✕ PERDU</span>
+            </div>
+            <div class="v2-teams-row">
+              <div class="v2-team"><span class="v2-team-logo"></span>Qatar</div>
+              <span class="v2-vs">VS</span>
+              <div class="v2-team" style="justify-content:flex-end">Suisse<span class="v2-team-logo"></span></div>
+            </div>
+            <div class="v2-pred-row">
+              <div class="v2-pred"><span class="v2-pred-label">Notre prono</span>Vainqueur Suisse</div>
+              <div class="v2-odd">1.20</div>
+            </div>
+            <div class="v2-result-line">
+              <span class="v2-result-icon" style="color:var(--red)">✕</span>
+              <span>Mise perdue</span>
+              <span class="v2-final-score">1-1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VOID -->
+      <div class="phone">
+        <div class="phone-label">Annulé / Remboursé (void)</div>
+        <div class="phone-screen">
+          <div class="v2-card v2-void">
+            <div class="v2-head">
+              <div class="v2-comp"><span class="v2-dot" style="background:var(--cream-soft)"></span>Ligue 1 · J34</div>
+              <span class="v2-status-chip chip-void">⌀ ANNULÉ</span>
+            </div>
+            <div class="v2-teams-row">
+              <div class="v2-team"><span class="v2-team-logo"></span>Lyon</div>
+              <span class="v2-vs">VS</span>
+              <div class="v2-team" style="justify-content:flex-end">Marseille<span class="v2-team-logo"></span></div>
+            </div>
+            <div class="v2-pred-row">
+              <div class="v2-pred"><span class="v2-pred-label">Notre prono</span>Plus de 2.5 buts</div>
+              <div class="v2-odd" style="background:rgba(250,250,247,.15);color:var(--cream)">1.70</div>
+            </div>
+            <div class="v2-result-line">
+              <span class="v2-result-icon" style="color:var(--cream-soft)">⌀</span>
+              <span>Match annulé — mise remboursée</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== Section 2 : combo long ===================== -->
+  <div class="section">
+    <div class="section-title">Combo 7 sélections — 3 traitements</div>
+    <p class="section-sub">
+      Pour un combiné long, on a 3 approches selon la priorité :
+      <strong>tout voir d'un coup</strong> vs <strong>compact + détail au tap</strong>.
+    </p>
+
+    <div class="grid">
+
+      <!-- Combo A -->
+      <div class="phone">
+        <div class="phone-label">A — Empilement vertical (tout visible)</div>
+        <div class="phone-screen">
+          <div class="comboA">
+            <div class="comboA-head">
+              <div class="comboA-title">
+                <span class="comboA-title-icon">7</span>
+                Combiné · 7 sélections
+              </div>
+              <span class="badge badge-vip">VIP</span>
+            </div>
+            <div class="v2-comp" style="margin-top:-4px">CdM 2026 · 4 jours</div>
+            <div>
+              <div class="comboA-sel">
+                <span class="comboA-num">1</span>
+                <span class="comboA-sel-body"><strong>Côte d'Ivoire</strong> vainqueur</span>
+                <span class="comboA-sel-odd">3.15</span>
+              </div>
+              <div class="comboA-sel">
+                <span class="comboA-num">2</span>
+                <span class="comboA-sel-body"><strong>Japon</strong> ou nul</span>
+                <span class="comboA-sel-odd">1.62</span>
+              </div>
+              <div class="comboA-sel">
+                <span class="comboA-num">3</span>
+                <span class="comboA-sel-body"><strong>Suède</strong> ou nul</span>
+                <span class="comboA-sel-odd">1.18</span>
+              </div>
+              <div class="comboA-sel">
+                <span class="comboA-num">4</span>
+                <span class="comboA-sel-body"><strong>Brésil-Maroc</strong> +1.5 buts</span>
+                <span class="comboA-sel-odd">1.30</span>
+              </div>
+              <div class="comboA-sel">
+                <span class="comboA-num">5</span>
+                <span class="comboA-sel-body"><strong>Écosse</strong> vainqueur</span>
+                <span class="comboA-sel-odd">1.54</span>
+              </div>
+              <div class="comboA-sel">
+                <span class="comboA-num">6</span>
+                <span class="comboA-sel-body"><strong>Allemagne</strong> vainqueur</span>
+                <span class="comboA-sel-odd">1.45</span>
+              </div>
+              <div class="comboA-sel">
+                <span class="comboA-num">7</span>
+                <span class="comboA-sel-body"><strong>+2.5 buts</strong> Espagne-USA</span>
+                <span class="comboA-sel-odd">1.70</span>
+              </div>
+            </div>
+            <div class="comboA-foot">
+              <span class="comboA-cote-label">Cote totale</span>
+              <div class="v2-odd" style="font-size:14px;padding:6px 12px">29.50</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Combo B -->
+      <div class="phone">
+        <div class="phone-label">B — Preview 3 + voir tout (compact) ⭐</div>
+        <div class="phone-screen">
+          <div class="comboB">
+            <div class="comboA-head">
+              <div class="comboA-title">
+                <span class="comboA-title-icon">7</span>
+                Combiné · 7 sélections
+              </div>
+              <span class="badge badge-vip">VIP</span>
+            </div>
+            <div class="v2-comp" style="margin-top:-4px">CdM 2026 · 4 jours</div>
+            <div>
+              <div class="comboB-row">
+                <span class="comboB-row-num">1.</span>
+                <span class="comboB-row-text"><strong>Côte d'Ivoire</strong> vainqueur · Côte d'Ivoire–Équateur</span>
+                <span class="comboB-row-odd">3.15</span>
+              </div>
+              <div class="comboB-row">
+                <span class="comboB-row-num">2.</span>
+                <span class="comboB-row-text"><strong>Japon</strong> ou nul · Pays-Bas–Japon</span>
+                <span class="comboB-row-odd">1.62</span>
+              </div>
+              <div class="comboB-row">
+                <span class="comboB-row-num">3.</span>
+                <span class="comboB-row-text"><strong>Suède</strong> ou nul · Suède–Tunisie</span>
+                <span class="comboB-row-odd">1.18</span>
+              </div>
+            </div>
+            <div class="comboB-expand">
+              + 4 autres sélections — tap pour voir
+              <span style="font-size:12px">↓</span>
+            </div>
+            <div class="comboA-foot">
+              <span class="comboA-cote-label">Cote totale</span>
+              <div class="v2-odd" style="font-size:14px;padding:6px 12px">29.50</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Combo C -->
+      <div class="phone">
+        <div class="phone-label">C — Chips horizontaux scrollable</div>
+        <div class="phone-screen">
+          <div class="comboC">
+            <div class="comboA-head">
+              <div class="comboA-title">
+                <span class="comboA-title-icon">7</span>
+                Combiné · 7 sélections
+              </div>
+              <span class="badge badge-vip">VIP</span>
+            </div>
+            <div class="v2-comp" style="margin-top:-4px">CdM 2026 · 4 jours</div>
+            <div class="comboC-chips-wrap">
+              <div class="comboC-chip">
+                <div class="comboC-chip-num">1<span class="v2-odd">3.15</span></div>
+                <div class="comboC-chip-text">Côte d'Ivoire vainqueur</div>
+              </div>
+              <div class="comboC-chip">
+                <div class="comboC-chip-num">2<span class="v2-odd">1.62</span></div>
+                <div class="comboC-chip-text">Japon ou nul</div>
+              </div>
+              <div class="comboC-chip">
+                <div class="comboC-chip-num">3<span class="v2-odd">1.18</span></div>
+                <div class="comboC-chip-text">Suède ou nul</div>
+              </div>
+              <div class="comboC-chip">
+                <div class="comboC-chip-num">4<span class="v2-odd">1.30</span></div>
+                <div class="comboC-chip-text">Brésil–Maroc +1.5</div>
+              </div>
+              <div class="comboC-chip">
+                <div class="comboC-chip-num">5<span class="v2-odd">1.54</span></div>
+                <div class="comboC-chip-text">Écosse vainqueur</div>
+              </div>
+              <div class="comboC-chip">
+                <div class="comboC-chip-num">6<span class="v2-odd">1.45</span></div>
+                <div class="comboC-chip-text">Allemagne vainqueur</div>
+              </div>
+              <div class="comboC-chip">
+                <div class="comboC-chip-num">7<span class="v2-odd">1.70</span></div>
+                <div class="comboC-chip-text">+2.5 buts ESP–USA</div>
+              </div>
+            </div>
+            <div class="comboA-foot">
+              <span class="comboA-cote-label">Cote totale · scroll horizontal →</span>
+              <div class="v2-odd" style="font-size:14px;padding:6px 12px">29.50</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Mes recommandations :</strong>
+    <ul>
+      <li><strong>Statuts</strong> : on garde tous les 5 états (pending / live pulse / win / loss / void). Le pulse sur le live est subtil mais signal fort. Les win/loss ont un fond très subtil pour pas saturer la home.</li>
+      <li><strong>Combo long</strong> : <strong>traitement B (preview 3 + collapse)</strong> est le plus adapté pour l'Accueil. Garde la card compacte (~210px) tout en laissant l'utilisateur étendre s'il veut le détail. Le A est OK pour 4-5 sélections mais devient long à 7+. Le C demande un scroll horizontal qui n'est pas évident à découvrir sur mobile.</li>
+      <li>Note : la card "Voir les détails" ouvre la fiche complète /bet/[id] avec toutes les sélections détaillées de toute façon — le preview 3 sur l'Accueil suffit largement à donner envie de cliquer.</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

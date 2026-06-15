@@ -14,11 +14,10 @@ import {
 
 import { BetCarousel } from '@/components/bet-carousel';
 import { BrandedButton } from '@/components/branded-button';
-import { ComboBetCard } from '@/components/combo-bet-card';
+import { HomeBetCard } from '@/components/home-bet-card';
 import { DailyRecapModal } from '@/components/daily-recap-modal';
 import { HomeHero, HomeStickyTopBar } from '@/components/home-hero';
 import { OnboardingScreen } from '@/components/onboarding-screen';
-import { PronoCard } from '@/components/prono-card';
 import { StatsBilanRow } from '@/components/stats-bilan-row';
 import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import { computeBilan, getGreeting } from '@/lib/bilan';
@@ -387,23 +386,14 @@ export default function HomeScreen() {
             </View>
           ) : (
             <BetCarousel>
-              {todayBets.map((b) =>
-                b.type === 'single' ? (
-                  <PronoCard
-                    key={b.id}
-                    prono={b as Prono}
-                    hasAccess={hasAccess(b)}
-                    onPress={() => openBetDetail(b)}
-                  />
-                ) : (
-                  <ComboBetCard
-                    key={b.id}
-                    combo={b as ComboBet}
-                    hasAccess={hasAccess(b)}
-                    onPress={() => openBetDetail(b)}
-                  />
-                ),
-              )}
+              {todayBets.map((b) => (
+                <HomeBetCard
+                  key={b.id}
+                  bet={b}
+                  hasAccess={hasAccess(b)}
+                  onPress={() => openBetDetail(b)}
+                />
+              ))}
             </BetCarousel>
           )}
         </View>

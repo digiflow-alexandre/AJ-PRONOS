@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>AJ Pronos — Prono du jour : variantes compactes</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-card: #111114;
+    --bg-elev: #16161a;
+    --cream: #fafaf7;
+    --cream-dim: rgba(250,250,247,.72);
+    --cream-soft: rgba(250,250,247,.5);
+    --gold: #b8941f;
+    --gold-soft: rgba(184,148,31,.22);
+    --green: #34d399;
+    --red: #f87171;
+    --blue: #60a5fa;
+    --border: rgba(250,250,247,.06);
+    --border-strong: rgba(250,250,247,.12);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #18181b;
+    color: var(--cream);
+    min-height: 100vh;
+  }
+  .page {
+    padding: 56px 24px 80px;
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  .header h1 {
+    font-size: 28px; font-weight: 600; margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+  .header p {
+    margin: 0; font-size: 14px; color: var(--cream-soft); line-height: 1.55;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 40px;
+  }
+  /* Phone frame */
+  .phone {
+    background: #111114;
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 24px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .variant-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em;
+    color: var(--cream-soft); align-self: stretch;
+    padding-left: 4px;
+  }
+  .variant-sub {
+    font-size: 12px; color: var(--cream-dim); line-height: 1.45;
+    align-self: stretch; padding-left: 4px; margin-bottom: 8px;
+  }
+  .phone-screen {
+    width: 340px;
+    background:
+      radial-gradient(140% 60% at 50% 100%, rgba(184,148,31,.06) 0%, transparent 60%),
+      #050507;
+    border-radius: 22px;
+    padding: 22px 16px 24px;
+    border: 1px solid var(--border);
+  }
+  .eyebrow-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.8px; color: var(--gold);
+  }
+  .see-all {
+    font-size: 11px; color: var(--cream-soft); font-weight: 600;
+  }
+  .badge {
+    display: inline-flex;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-pro { background: rgba(96,165,250,.18); color: var(--blue); }
+  .badge-vip { background: rgba(184,148,31,.22); color: var(--gold); }
+  .badge-starter { background: rgba(250,250,247,.1); color: var(--cream-dim); }
+
+  /* =========================================================
+     VARIANTE 1 — ULTRA COMPACT (ligne unique style Stocks)
+     ========================================================= */
+  .v1-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .v1-flag {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: linear-gradient(135deg, #0a0a0a, #16161a);
+    border: 1px solid var(--gold-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 800; letter-spacing: 0.5px; color: var(--gold);
+    flex-shrink: 0;
+  }
+  .v1-body { flex: 1; min-width: 0; }
+  .v1-line1 {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 700;
+  }
+  .v1-comp {
+    font-size: 9px; color: var(--cream-soft); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    margin-bottom: 2px;
+  }
+  .v1-teams {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .v1-meta {
+    display: flex; align-items: center; gap: 8px;
+    flex-shrink: 0;
+  }
+  .v1-odd {
+    background: var(--gold); color: #0a0a0a;
+    font-weight: 800; font-size: 12px;
+    padding: 6px 10px; border-radius: 8px;
+    min-width: 44px; text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .v1-stack > * + * { margin-top: 6px; }
+
+  /* =========================================================
+     VARIANTE 2 — CARTE MÉDIA (équilibre info / taille)
+     ========================================================= */
+  .v2-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+  }
+  .v2-head {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 8px;
+  }
+  .v2-comp {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; color: var(--cream-soft); font-weight: 600;
+    letter-spacing: 0.6px; text-transform: uppercase;
+  }
+  .v2-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); }
+  .v2-teams-row {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .v2-team {
+    flex: 1; display: flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 600;
+    min-width: 0;
+  }
+  .v2-team-logo {
+    width: 18px; height: 18px; border-radius: 4px;
+    background: rgba(250,250,247,.05);
+    flex-shrink: 0;
+  }
+  .v2-vs {
+    font-size: 9px; color: var(--cream-soft); font-weight: 700;
+    letter-spacing: 0.4px;
+  }
+  .v2-pred-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .v2-pred {
+    flex: 1; font-size: 12px; font-weight: 600; color: var(--cream-dim);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .v2-pred-label {
+    font-size: 8px; color: var(--gold); font-weight: 700;
+    letter-spacing: 0.6px; text-transform: uppercase;
+    margin-right: 6px;
+  }
+  .v2-odd {
+    background: var(--gold); color: #0a0a0a;
+    font-weight: 800; font-size: 12px;
+    padding: 5px 9px; border-radius: 8px;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+  .v2-stack > * + * { margin-top: 8px; }
+
+  /* =========================================================
+     VARIANTE 3 — EDITORIAL (premium, peu plus dense)
+     ========================================================= */
+  .v3-card {
+    background:
+      radial-gradient(120% 90% at 0% 0%, rgba(184,148,31,.06), transparent 60%),
+      var(--bg-elev);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--gold);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .v3-row1 {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px; color: var(--cream-soft); font-weight: 700;
+    letter-spacing: 0.8px; text-transform: uppercase;
+  }
+  .v3-time {
+    margin-left: auto; color: var(--cream); font-size: 11px;
+  }
+  .v3-row2 {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+  }
+  .v3-matchup {
+    font-size: 14px; font-weight: 700;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    min-width: 0;
+  }
+  .v3-odd-pill {
+    background: var(--gold); color: #0a0a0a;
+    font-weight: 800; font-size: 13px;
+    padding: 6px 11px; border-radius: 8px;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+  .v3-row3 {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--cream-dim);
+  }
+  .v3-pred-arrow {
+    width: 4px; height: 4px;
+    background: var(--gold); border-radius: 1px;
+    flex-shrink: 0;
+  }
+  .v3-stack > * + * { margin-top: 8px; }
+
+  /* =========================================================
+     VARIANTE 4 — ULTRA-MINI + EXPAND (au tap)
+     ========================================================= */
+  .v4-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: padding 0.2s;
+  }
+  .v4-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(184,148,31,.12);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold); font-size: 14px;
+    flex-shrink: 0;
+  }
+  .v4-body { flex: 1; min-width: 0; }
+  .v4-line1 {
+    font-size: 12.5px; font-weight: 700;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .v4-line2 {
+    font-size: 10px; color: var(--cream-soft);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin-top: 2px;
+  }
+  .v4-odd {
+    background: var(--gold); color: #0a0a0a;
+    font-weight: 800; font-size: 11px;
+    padding: 4px 8px; border-radius: 7px;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+  .v4-chev {
+    color: var(--cream-soft); font-size: 10px;
+    margin-left: -4px;
+  }
+  .v4-stack > * + * { margin-top: 6px; }
+
+  .note {
+    background: #111114;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-top: 40px;
+    font-size: 13px;
+    color: var(--cream-dim);
+    line-height: 1.55;
+  }
+  .note strong { color: var(--cream); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <h1>Prono du jour — <span style="color:var(--gold)">variantes compactes</span></h1>
+    <p>4 propositions visuelles classées du + minimaliste au + éditorial.<br>
+       Toutes affichent : compétition, équipes, prédiction (variante 2/3), cote, pack mini.</p>
+  </header>
+
+  <div class="grid">
+
+    <!-- VARIANTE 1 -->
+    <div class="phone">
+      <div class="variant-title">Variante 1 — Ultra compact</div>
+      <div class="variant-sub">
+        Style "row liste iOS Stocks". 1 ligne par prono, ~52px de haut.
+        Sacrifie la prédiction (affichée dans le détail). Très scannable
+        quand il y a plusieurs paris du jour.
+      </div>
+      <div class="phone-screen">
+        <div class="eyebrow-row">
+          <span class="eyebrow">— PRONOS DU JOUR (2)</span>
+          <span class="see-all">VOIR TOUS →</span>
+        </div>
+        <div class="v1-stack">
+          <div class="v1-card">
+            <div class="v1-flag">CDM</div>
+            <div class="v1-body">
+              <div class="v1-comp">Coupe du Monde · J2</div>
+              <div class="v1-line1 v1-teams">Côte d'Ivoire vs Équateur</div>
+            </div>
+            <div class="v1-meta">
+              <span class="badge badge-pro">Pro</span>
+              <div class="v1-odd">3.15</div>
+            </div>
+          </div>
+          <div class="v1-card">
+            <div class="v1-flag">CDM</div>
+            <div class="v1-body">
+              <div class="v1-comp">Coupe du Monde · J3</div>
+              <div class="v1-line1 v1-teams">Combiné 2 sélections</div>
+            </div>
+            <div class="v1-meta">
+              <span class="badge badge-vip">VIP</span>
+              <div class="v1-odd">1.91</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANTE 2 -->
+    <div class="phone">
+      <div class="variant-title">Variante 2 — Carte média ⭐ recommandée</div>
+      <div class="variant-sub">
+        ~90px de haut. Affiche compétition + équipes + prédiction + cote
+        sur 3 lignes serrées. Lisible, scannable, et garde l'info essentielle
+        du pari sans cliquer.
+      </div>
+      <div class="phone-screen">
+        <div class="eyebrow-row">
+          <span class="eyebrow">— PRONOS DU JOUR (2)</span>
+          <span class="see-all">VOIR TOUS →</span>
+        </div>
+        <div class="v2-stack">
+          <div class="v2-card">
+            <div class="v2-head">
+              <div class="v2-comp">
+                <span class="v2-dot"></span>
+                Coupe du Monde · J2
+              </div>
+              <span class="badge badge-pro">Pro</span>
+            </div>
+            <div class="v2-teams-row">
+              <div class="v2-team"><span class="v2-team-logo"></span>Côte d'Ivoire</div>
+              <span class="v2-vs">VS</span>
+              <div class="v2-team" style="justify-content:flex-end">Équateur<span class="v2-team-logo"></span></div>
+            </div>
+            <div class="v2-pred-row">
+              <div class="v2-pred"><span class="v2-pred-label">Notre prono</span>Vainqueur Côte d'Ivoire</div>
+              <div class="v2-odd">3.15</div>
+            </div>
+          </div>
+          <div class="v2-card">
+            <div class="v2-head">
+              <div class="v2-comp">
+                <span class="v2-dot"></span>
+                Combiné · 2 sélections
+              </div>
+              <span class="badge badge-vip">VIP</span>
+            </div>
+            <div class="v2-teams-row">
+              <div class="v2-team" style="font-size:11.5px;color:var(--cream-dim)">Pays-Bas–Japon · Suède–Tunisie</div>
+            </div>
+            <div class="v2-pred-row">
+              <div class="v2-pred"><span class="v2-pred-label">Double chance</span>Japon ou nul · Suède ou nul</div>
+              <div class="v2-odd">1.91</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANTE 3 -->
+    <div class="phone">
+      <div class="variant-title">Variante 3 — Editorial premium</div>
+      <div class="variant-sub">
+        ~100px de haut, bord or vertical à gauche style "article featured".
+        Plus statement, garde l'élégance The Athletic / Substack premium.
+        Bonne perception de qualité.
+      </div>
+      <div class="phone-screen">
+        <div class="eyebrow-row">
+          <span class="eyebrow">— PRONO DU JOUR</span>
+          <span class="see-all">VOIR TOUS →</span>
+        </div>
+        <div class="v3-stack">
+          <div class="v3-card">
+            <div class="v3-row1">
+              <span>FOOT</span>
+              <span>·</span>
+              <span>Coupe du Monde · J2</span>
+              <span class="v3-time">21:00</span>
+            </div>
+            <div class="v3-row2">
+              <div class="v3-matchup">Côte d'Ivoire — Équateur</div>
+              <div class="v3-odd-pill">3.15</div>
+            </div>
+            <div class="v3-row3">
+              <span class="v3-pred-arrow"></span>
+              <span>Vainqueur Côte d'Ivoire</span>
+              <span style="margin-left:auto"><span class="badge badge-pro">Pro</span></span>
+            </div>
+          </div>
+          <div class="v3-card">
+            <div class="v3-row1">
+              <span>COMBINÉ</span>
+              <span>·</span>
+              <span>2 sélections · CdM</span>
+              <span class="v3-time">demain</span>
+            </div>
+            <div class="v3-row2">
+              <div class="v3-matchup">Japon ou nul + Suède ou nul</div>
+              <div class="v3-odd-pill">1.91</div>
+            </div>
+            <div class="v3-row3">
+              <span class="v3-pred-arrow"></span>
+              <span>Double chance · cote totale x1.91</span>
+              <span style="margin-left:auto"><span class="badge badge-vip">VIP</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANTE 4 -->
+    <div class="phone">
+      <div class="variant-title">Variante 4 — Ultra mini liste</div>
+      <div class="variant-sub">
+        ~48px de haut. Format "tableau" qui peut afficher 5-6 paris du jour
+        en une seule vue. Très efficace si volume élevé. Cote en avant,
+        on tape pour voir le détail.
+      </div>
+      <div class="phone-screen">
+        <div class="eyebrow-row">
+          <span class="eyebrow">— PRONOS DU JOUR (2)</span>
+          <span class="see-all">VOIR TOUS →</span>
+        </div>
+        <div class="v4-stack">
+          <div class="v4-card">
+            <div class="v4-icon">⚽</div>
+            <div class="v4-body">
+              <div class="v4-line1">Côte d'Ivoire vs Équateur</div>
+              <div class="v4-line2">CdM · 21:00 · Vainqueur Côte d'Ivoire</div>
+            </div>
+            <div class="v4-odd">3.15</div>
+            <div class="v4-chev">›</div>
+          </div>
+          <div class="v4-card">
+            <div class="v4-icon">🎯</div>
+            <div class="v4-body">
+              <div class="v4-line1">Combiné 2 sélections</div>
+              <div class="v4-line2">CdM · Pays-Bas + Suède · Double chance</div>
+            </div>
+            <div class="v4-odd">1.91</div>
+            <div class="v4-chev">›</div>
+          </div>
+          <div class="v4-card">
+            <div class="v4-icon">🎾</div>
+            <div class="v4-body">
+              <div class="v4-line1">Sinner vs Alcaraz</div>
+              <div class="v4-line2">ATP Halle · Demi-finale · Vainqueur Alcaraz</div>
+            </div>
+            <div class="v4-odd">2.10</div>
+            <div class="v4-chev">›</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Mon conseil :</strong> Variante 2 (Carte média) — équilibre parfait
+    entre densité d'information et lisibilité. Garde la prédiction visible
+    (qui est l'info clé d'un pari) sans alourdir comme la card actuelle. Et tu
+    peux empiler 2-3 cards du jour sans saturer l'écran d'accueil.<br><br>
+    <strong>Si tu veux maximum compact</strong> (afficher 5+ paris du jour sans scroll) :
+    Variante 4 (ultra mini liste). Sacrifie la prédiction mais ultra-scannable.<br><br>
+    <strong>Si tu veux statement éditorial premium</strong> : Variante 3 (border or).
+    Plus de personnalité, mais légèrement plus haut.
+  </div>
+
+</div>
+</body>
+</html>
