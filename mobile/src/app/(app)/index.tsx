@@ -318,21 +318,30 @@ export default function HomeScreen() {
           </Pressable>
         ) : null}
 
-        {/* Card crème : AUJOURD'HUI (en premier — info immédiate) */}
+        {/* Card AUJOURD'HUI : fond transparent quand y'a des paris (pour
+            laisser respirer les bg images des HomeBetCard), fond crème
+            pour l'empty state (contraste nécessaire). Contour conservé
+            dans les 2 cas. */}
         <View
           style={[
             styles.cardLight,
-            { backgroundColor: c.bgCardLight, borderColor: c.borderOnLightFaint },
+            todayBets.length === 0
+              ? { backgroundColor: c.bgCardLight, borderColor: c.borderOnLightFaint }
+              : { backgroundColor: 'transparent', borderColor: c.borderFaint },
           ]}>
           <View style={styles.cardLightHead}>
             <View style={styles.cardLightHeadLeft}>
               <SymbolView
                 name="bolt.fill"
                 size={14}
-                tintColor={c.goldOnLight}
+                tintColor={todayBets.length === 0 ? c.goldOnLight : c.gold}
                 weight="semibold"
               />
-              <Text style={[styles.cardEyebrowDark, { color: c.textOnLight }]}>
+              <Text
+                style={[
+                  styles.cardEyebrowDark,
+                  { color: todayBets.length === 0 ? c.textOnLight : c.text },
+                ]}>
                 AUJOURD’HUI
               </Text>
             </View>
@@ -343,13 +352,17 @@ export default function HomeScreen() {
                 styles.seeAllBtn,
                 { opacity: pressed ? 0.6 : 1 },
               ]}>
-              <Text style={[styles.seeAllText, { color: c.textOnLight }]}>
+              <Text
+                style={[
+                  styles.seeAllText,
+                  { color: todayBets.length === 0 ? c.textOnLight : c.text },
+                ]}>
                 Voir tout
               </Text>
               <SymbolView
                 name="arrow.right"
                 size={12}
-                tintColor={c.textOnLight}
+                tintColor={todayBets.length === 0 ? c.textOnLight : c.text}
                 weight="semibold"
               />
             </Pressable>
