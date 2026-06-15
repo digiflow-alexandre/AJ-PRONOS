@@ -336,8 +336,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   // === Liste ===
+  // maxHeight permet ~4 rows visibles ; scrollable au-delà. La hauteur
+  // d'une row = 60-66px (padding 10 + contenu + bord). 280 = marge confort
+  // pour ne pas tronquer un 3e item à mi-hauteur.
   list: {
-    maxHeight: 200,
+    maxHeight: 280,
   },
   row: {
     flexDirection: 'row',

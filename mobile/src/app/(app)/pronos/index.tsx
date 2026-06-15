@@ -3,6 +3,7 @@ import { SymbolView } from 'expo-symbols';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -71,7 +72,7 @@ export default function PronosScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { profile, isTrialActive, canAccess, isStaff } = useProfile();
-  const { bets: ALL_BETS } = useAllBets();
+  const { bets: ALL_BETS, isLoading: betsLoading } = useAllBets();
   const [sport, setSport] = useState<SportFilter>('all');
   const [status, setStatus] = useState<StatusFilter>('all');
   const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
@@ -441,7 +442,9 @@ export default function PronosScreen() {
           </View>
         ) : null}
 
-        {betsOfDay.length === 0 ? (
+        {betsLoading && ALL_BETS.length === 0 ? (
+          <LoadingState />
+        ) : betsOfDay.length === 0 ? (
           <EmptyState />
         ) : (
           <View style={styles.cards}>
@@ -668,6 +671,18 @@ function EmptyState() {
       <Text style={[styles.emptyBody, { color: c.textMuted }]}>
         Aucun pronostic publié pour ce jour et ce sport. Active les
         notifications pour être prévenu dès qu’un prono arrive.
+      </Text>
+    </View>
+  );
+}
+
+function LoadingState() {
+  const c = useThemeColors();
+  return (
+    <View style={[styles.empty, { alignItems: 'center' }]}>
+      <ActivityIndicator size="large" color={c.gold} />
+      <Text style={[styles.emptyBody, { color: c.textMuted, marginTop: 8 }]}>
+        Chargement des pronos…
       </Text>
     </View>
   );
