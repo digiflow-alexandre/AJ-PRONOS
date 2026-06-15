@@ -505,7 +505,7 @@ export default function AdminIndexScreen() {
                         isLast={idx === group.bets.length - 1}
                         onPress={() =>
                           router.push({
-                            pathname: '/(app)/pronos/[id]',
+                            pathname: '/bet/[id]',
                             params: { id: b.id },
                           })
                         }

@@ -29,7 +29,7 @@ export function useNotificationTapHandler() {
           case 'prono_result':
             if (data.bet_id) {
               router.push({
-                pathname: '/(app)/pronos/[id]',
+                pathname: '/bet/[id]',
                 params: { id: data.bet_id },
               });
             }

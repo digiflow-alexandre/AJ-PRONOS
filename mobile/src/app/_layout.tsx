@@ -29,6 +29,10 @@ function RootStack() {
       <Stack.Protected guard={!!session}>
         <Stack.Screen name="stats" options={{ presentation: 'modal' }} />
         <Stack.Screen name="carnet" options={{ presentation: 'modal' }} />
+        {/* Fiche pari ouvrable depuis l'Accueil/Carnet — au niveau racine
+            pour éviter de polluer la sous-stack du tab Pronos quand on
+            ouvre une fiche depuis ailleurs (cf bet/[id].tsx comment). */}
+        <Stack.Screen name="bet/[id]" />
       </Stack.Protected>
     </Stack>
   );

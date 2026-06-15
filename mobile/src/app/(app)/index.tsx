@@ -165,8 +165,12 @@ export default function HomeScreen() {
   }
 
   function openBetDetail(bet: AnyBet) {
+    // /bet/[id] = route racine (hors tab Pronos) pour ne pas empiler la
+    // fiche dans la sous-stack du tab. Quand l'utilisateur ferme la
+    // fiche, on retombe sur l'Accueil et l'onglet Pronos reste sur sa
+    // liste (au lieu d'être bloqué sur la fiche).
     router.push({
-      pathname: '/(app)/pronos/[id]',
+      pathname: '/bet/[id]',
       params: { id: bet.id },
     });
   }

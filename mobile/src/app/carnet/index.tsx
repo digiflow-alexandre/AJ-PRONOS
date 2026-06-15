@@ -132,7 +132,7 @@ export default function CarnetScreen() {
                       }
                       setTimeout(() => {
                         router.push({
-                          pathname: '/(app)/pronos/[id]',
+                          pathname: '/bet/[id]',
                           params: { id: ub.bet_id },
                         });
                       }, 80);
